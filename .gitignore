@@ -1,0 +1,28 @@
+# Dependencies
+maca-empire/node_modules/
+maca-empire/.pnp
+maca-empire/.pnp.*
+maca-empire/.yarn/*
+
+# Next.js & Build
+maca-empire/.next/
+maca-empire/out/
+maca-empire/build/
+maca-empire/.vercel/
+maca-empire/*.tsbuildinfo
+maca-empire/next-env.d.ts
+
+# Secrets & Private Strategy (Protecting "import stuff")
+maca-empire/.env*
+maca-empire/docs/
+maca-empire/supabase_check.txt
+
+# Debug logs
+maca-empire/npm-debug.log*
+maca-empire/yarn-debug.log*
+maca-empire/yarn-error.log*
+maca-empire/.pnpm-debug.log*
+
+# Misc
+.DS_Store
+*.pem

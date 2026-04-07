@@ -1,0 +1,82 @@
+:root {
+  --primary: hsl(174, 88%, 34%);
+  --primary-glow: hsla(174, 88%, 34%, 0.15);
+  --secondary: hsl(180, 20%, 98%);
+  --foreground: hsl(200, 20%, 15%);
+  --background: hsl(0, 0%, 100%);
+  --muted: hsl(180, 10%, 45%);
+  --border: hsl(180, 10%, 90%);
+  --radius: 1rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: hsl(174, 88%, 45%);
+    --primary-glow: hsla(174, 88%, 45%, 0.2);
+    --secondary: hsl(200, 20%, 12%);
+    --foreground: hsl(180, 20%, 95%);
+    --background: hsl(200, 25%, 6%);
+    --muted: hsl(180, 10%, 65%);
+    --border: hsl(200, 20%, 20%);
+  }
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  min-height: 100%;
+  font-family: var(--font-geist-sans), Inter, system-ui, -apple-system, sans-serif;
+  background: var(--background);
+  color: var(--foreground);
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.button-primary {
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius);
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px 0 var(--primary-glow);
+}
+
+.button-primary:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+}
+
+/* Glass effect utility */
+.glass {
+  background: hsla(0, 0%, 100%, 0.1);
+  backdrop-filter: blur(8px);
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}

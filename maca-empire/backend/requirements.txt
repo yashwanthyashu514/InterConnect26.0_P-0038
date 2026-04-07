@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+openai
+supabase
+pypdf
+python-dotenv
+tiktoken
+psycopg2-binary
+requests
+slowapi
+bcrypt
