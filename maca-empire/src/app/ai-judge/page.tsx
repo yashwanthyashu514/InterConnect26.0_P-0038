@@ -2,214 +2,187 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Scale, AlertTriangle, CheckCircle, Search, TrendingUp, Download } from "lucide-react";
-import { saveToVault } from "@/lib/vault";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
-interface Precedent {
-  case_name: string;
-  outcome: string;
-  year?: string;
-  relevance?: string;
+interface Argument {
+  side: "claimant" | "respondent";
+  text: string;
+  timestamp: string;
 }
 
-interface OutcomeResult {
-  win_probability: number;
-  reasoning: string;
-  top_precedents: Precedent[];
-  recommended_action: "Appeal" | "Settle" | "Negotiate";
-}
+const initialArguments: Argument[] = [
+  { side: "claimant", text: "The respondent failed to deliver the agreed software within the stipulated 90-day period, causing direct financial losses of ₹14 lakhs.", timestamp: "10:02 AM" },
+  { side: "respondent", text: "The delay was caused by the claimant's failure to provide required API documentation for 45 days, which constituted a material breach of the project specification.", timestamp: "10:05 AM" },
+];
+
+const judgeResponses = [
+  "Having examined the submissions, this tribunal notes that both parties bear partial responsibility. The claimant's failure to provide documentation within agreed timelines constitutes contributory conduct.",
+  "The tribunal is examining the force majeure clause. Counsel for the respondent is directed to produce documentary evidence of the documentation delays within 7 days.",
+  "After careful deliberation, this tribunal finds merit in the claimant's position regarding delivery timelines. However, contributory negligence reduces damages proportionally.",
+];
 
 export default function AIJudgePage() {
-  const [loading, setLoading] = useState(false);
-  const [noticeType, setNoticeType] = useState("Income Tax");
-  const [assesseeType, setAssesseeType] = useState("Individual");
-  const [amount, setAmount] = useState("");
-  const [facts, setFacts] = useState("");
-  const [result, setResult] = useState<OutcomeResult | null>(null);
+  const [claimantInput, setClaimantInput] = useState("");
+  const [respondentInput, setRespondentInput] = useState("");
+  const [arguments_, setArguments] = useState<Argument[]>(initialArguments);
+  const [judgeResponse, setJudgeResponse] = useState(judgeResponses[0]);
+  const [jurisdiction, setJurisdiction] = useState("Arbitration Tribunal");
+  const [showAward, setShowAward] = useState(false);
+  const [isRuling, setIsRuling] = useState(false);
 
-  const handlePredict = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!amount || !facts) return;
-    setLoading(true);
-    setResult(null);
-
-    try {
-      const res = await fetch(`${BACKEND_URL}/predict-outcome`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          notice_type: noticeType,
-          assessee_type: assesseeType,
-          amount,
-          facts
-        }),
-      });
-      const data = await res.json();
-      setResult(data);
-      
-      saveToVault({
-        agent_id: "C1",
-        doc_type: "AI Verdict Prediction",
-        content: `Notice: ${noticeType}\nAmount: ${amount}\nWin Prob: ${data.win_probability}%\nVerdict: ${data.recommended_action}\nReasoning: ${data.reasoning}`
-      });
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const getProbColor = (prob: number) => {
-    if (prob < 30) return "#dc2626"; // red
-    if (prob < 60) return "#f59e0b"; // amber
-    return "#10b981"; // green
+  const submitArgument = (side: "claimant" | "respondent", text: string) => {
+    if (!text.trim()) return;
+    const newArg: Argument = { side, text, timestamp: new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) };
+    setArguments((prev) => [...prev, newArg]);
+    setIsRuling(true);
+    setTimeout(() => {
+      setJudgeResponse(judgeResponses[Math.floor(Math.random() * judgeResponses.length)]);
+      setIsRuling(false);
+    }, 2000);
+    if (side === "claimant") setClaimantInput("");
+    else setRespondentInput("");
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", padding: "2rem" }}>
-      <main style={{ maxWidth: "1000px", margin: "2rem auto" }}>
-        <div style={{ marginBottom: "3rem", textAlign: "center" }}>
-          <h1 style={{ fontSize: "2.5rem", fontWeight: "900", color: "var(--primary)", letterSpacing: "-1px" }}>⚖️ AI Judge C1</h1>
-          <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginTop: "0.5rem" }}>Predict Tax Appeal Outcomes in 30 Seconds via Supreme Court Precedents</p>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column" }}>
+
+      {/* Courtroom Header */}
+      <div style={{ background: "var(--bg-secondary)", borderBottom: "1px solid rgba(181,255,46,0.2)", padding: "16px 32px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
+          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "12px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
+            maCA
+          </span>
+        </Link>
+        <div style={{ textAlign: "center" }}>
+          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "18px", letterSpacing: "2px", color: "var(--text-primary)", textTransform: "uppercase" }}>
+            Before the AI Mock Judge
+          </p>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", letterSpacing: "1px" }}>
+            Arbitration Simulator · Contract Dispute Matter No. 2025/001
+          </p>
+        </div>
+        <select value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)} style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "6px 12px", color: "var(--text-muted)", fontSize: "12px", fontFamily: "'DM Sans', sans-serif", outline: "none" }}>
+          {["Arbitration Tribunal", "Consumer Forum", "Labour Tribunal", "RERA Tribunal", "NCDRC"].map((j) => (
+            <option key={j}>{j}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* 3-Panel Courtroom */}
+      <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
+
+        {/* ── Claimant Panel ── */}
+        <div style={{ flex: "0 0 35%", borderRight: "0.5px solid var(--border-subtle)", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
+            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Claimant</p>
+            <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px" }}>Party A</p>
+          </div>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+            {arguments_.filter((a) => a.side === "claimant").map((arg, i) => (
+              <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderLeft: "3px solid var(--acid)", borderRadius: "8px", padding: "12px", marginBottom: "10px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: "6px" }}>{arg.text}</p>
+                <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{arg.timestamp}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
+            <textarea
+              value={claimantInput}
+              onChange={(e) => setClaimantInput(e.target.value)}
+              placeholder="Submit your argument..."
+              rows={3}
+              style={{ width: "100%", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "10px 12px", color: "var(--text-primary)", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", marginBottom: "8px" }}
+            />
+            <button className="btn-primary btn-sm" style={{ width: "100%", justifyContent: "center", fontSize: "12px" }} onClick={() => submitArgument("claimant", claimantInput)}>
+              Submit Argument →
+            </button>
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: result ? "1fr 1fr" : "1fr", gap: "3rem", transition: "all 0.5s ease" }}>
-          {/* Input Form */}
-          <div style={{ background: "var(--secondary)", padding: "2.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
-            <h3 style={{ fontSize: "1rem", fontWeight: "900", color: "var(--foreground)", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-              <Search size={20} /> CASE PARAMETERS
-            </h3>
-            <form onSubmit={handlePredict} style={{ display: "grid", gap: "1.5rem" }}>
-              <div>
-                <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", textTransform: "uppercase", display: "block", marginBottom: "0.5rem" }}>Notice Type</label>
-                <select 
-                  value={noticeType} 
-                  onChange={e => setNoticeType(e.target.value)}
-                  style={{ width: "100%", padding: "1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "1rem" }}
-                >
-                  <option>Income Tax</option><option>GST</option><option>Customs</option><option>Corporate Law</option>
-                </select>
-              </div>
+        {/* ── Judge Panel (Center) ── */}
+        <div style={{ flex: "0 0 30%", display: "flex", flexDirection: "column", borderRight: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)", position: "relative" }}>
+          {/* Judge orb */}
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "300px", height: "300px", background: "radial-gradient(ellipse at center, rgba(181,255,46,0.06) 0%, transparent 65%)", pointerEvents: "none" }} />
 
-              <div>
-                <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", textTransform: "uppercase", display: "block", marginBottom: "0.5rem" }}>Assessee Type</label>
-                <select 
-                  value={assesseeType} 
-                  onChange={e => setAssesseeType(e.target.value)}
-                  style={{ width: "100%", padding: "1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "1rem" }}
-                >
-                  <option>Individual</option><option>Private Ltd</option><option>Public Ltd</option><option>Partnership</option><option>Trust</option>
-                </select>
-              </div>
-
-              <div>
-                <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", textTransform: "uppercase", display: "block", marginBottom: "0.5rem" }}>Disputed Amount (₹)</label>
-                <input 
-                  type="number"
-                  value={amount}
-                  onChange={e => setAmount(e.target.value)}
-                  placeholder="e.g. 500000"
-                  style={{ width: "100%", padding: "1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "1.2rem", fontWeight: "700" }}
-                />
-              </div>
-
-              <div>
-                <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", textTransform: "uppercase", display: "block", marginBottom: "0.5rem" }}>Brief Facts (Max 300 chars)</label>
-                <textarea 
-                  value={facts}
-                  onChange={e => setFacts(e.target.value.slice(0, 300))}
-                  placeholder="Summarize the core dispute (e.g. Exemption under Sec 54 claimed but denied by AO citing non-investment in stipulated time)..."
-                  rows={4}
-                  style={{ width: "100%", padding: "1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "0.95rem", lineHeight: "1.5" }}
-                />
-              </div>
-
-              <button 
-                type="submit"
-                disabled={loading}
-                style={{
-                  marginTop: "1rem", padding: "1.25rem", borderRadius: "0.75rem", background: "var(--primary)", color: "white",
-                  border: "none", fontSize: "1.1rem", fontWeight: "900", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "1rem",
-                  transition: "all 0.2s"
-                }}
-              >
-                {loading ? "GAVEL STRIKING..." : "⚖️ PREDICT VERDICT →"}
-              </button>
-            </form>
-          </div>
-
-          {/* Results Side */}
-          {result && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-              {/* Verdict Card */}
-              <div style={{ background: "var(--secondary)", padding: "2.5rem", borderRadius: "1.5rem", border: `2px solid ${getProbColor(result.win_probability)}33`, textAlign: "center" }}>
-                <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "var(--muted)", marginBottom: "1.5rem" }}>AI PROBABILITY VERDICT</h4>
-                <div style={{ position: "relative", width: "200px", height: "200px", margin: "0 auto" }}>
-                   <svg viewBox="0 0 100 100" style={{ width: "100%", height: "100%" }}>
-                     <circle cx="50" cy="50" r="45" fill="none" stroke="var(--border)" strokeWidth="6" />
-                     <circle 
-                       cx="50" cy="50" r="45" fill="none" stroke={getProbColor(result.win_probability)} 
-                       strokeWidth="10" strokeDasharray={`${result.win_probability * 2.83} 283`}
-                       strokeLinecap="round" transform="rotate(-90 50 50)"
-                     />
-                   </svg>
-                   <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)" }}>
-                     <div style={{ fontSize: "3.5rem", fontWeight: "900", color: getProbColor(result.win_probability) }}>{result.win_probability}%</div>
-                     <div style={{ fontSize: "0.7rem", fontWeight: "900", color: "var(--muted)" }}>WIN PROBABILITY</div>
-                   </div>
-                </div>
-                
-                <div style={{
-                  marginTop: "2rem", padding: "1rem", borderRadius: "0.75rem",
-                  background: `${getProbColor(result.win_probability)}15`,
-                  border: `1px solid ${getProbColor(result.win_probability)}44`,
-                  color: getProbColor(result.win_probability),
-                  fontWeight: "900", fontSize: "1.1rem"
-                }}>
-                  {result.recommended_action === "Appeal" ? "🚀 RECOMMENDATION: FILING APPEAL IS STRONGLY ADVISED" : 
-                   result.recommended_action === "Settle" ? "🛑 RECOMMENDATION: SETTLEMENT PREFERRED" : 
-                   "⚠️ RECOMMENDATION: NEGOTIATE UNDER VIVAAD SE VISHWAS"}
-                </div>
-
-                <p style={{ marginTop: "1.5rem", fontSize: "0.95rem", color: "var(--foreground)", lineHeight: "1.6", fontStyle: "italic" }}>
-                  "{result.reasoning}"
-                </p>
-              </div>
-
-              {/* Precedents */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                <h4 style={{ fontSize: "0.9rem", fontWeight: "900", color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                  <TrendingUp size={18} /> TOP {result.top_precedents.length} CITATIONS FOUND
-                </h4>
-                {result.top_precedents.map((p, i) => (
-                  <div key={i} style={{ background: "var(--secondary)", padding: "1.25rem", borderRadius: "1rem", border: "1px solid var(--border)", display: "grid", gridTemplateColumns: "1fr auto", alignItems: "center" }}>
-                    <div>
-                      <div style={{ fontSize: "0.95rem", fontWeight: "900", color: "var(--foreground)" }}>{p.case_name}</div>
-                      <div style={{ fontSize: "0.7rem", color: "var(--muted)", fontWeight: "700" }}>Outcome: <span style={{ color: p.outcome.includes("Allowed") ? "#10b981" : "#f59e0b" }}>{p.outcome}</span></div>
-                    </div>
-                    <div style={{ padding: "0.4rem 0.8rem", background: "var(--background)", borderRadius: "0.5rem", border: "1px solid var(--border)", fontSize: "0.7rem", fontWeight: "900" }}>
-                      VERIFIED LAW
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ padding: "1rem", borderRadius: "0.75rem", background: "rgba(239, 68, 68, 0.05)", border: "1px dashed #ef4444", fontSize: "0.75rem", color: "#ef4444", textAlign: "center" }}>
-                Disclaimer: This is as AI risk analysis based on public judgments. Consult a Senior Counsel before final decision.
-              </div>
+          <div style={{ padding: "24px 20px", textAlign: "center", borderBottom: "0.5px solid var(--border-acid)", position: "relative", zIndex: 1 }}>
+            <div style={{ width: "64px", height: "64px", background: "var(--acid-muted)", border: "0.5px solid var(--border-acid)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "28px", margin: "0 auto 12px" }}>
+              🤖
             </div>
-          )}
+            <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>AI Mock Judge</p>
+            <span className={`status-online`} style={{ background: isRuling ? "rgba(255,184,0,0.1)" : undefined, color: isRuling ? "var(--warning)" : undefined }}>
+              {isRuling ? "Deliberating..." : "Session Active"}
+            </span>
+          </div>
+
+          <div style={{ flex: 1, overflowY: "auto", padding: "20px", position: "relative", zIndex: 1 }}>
+            <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "12px", padding: "20px", marginBottom: "16px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif", marginBottom: "10px" }}>
+                {isRuling ? "⏳ DELIBERATING..." : "📋 RULING IN PROGRESS"}
+              </p>
+              <p style={{ fontSize: "14px", color: "var(--text-primary)", fontFamily: "Georgia, serif", lineHeight: 1.7, fontStyle: "italic" }}>
+                &ldquo;{judgeResponse}&rdquo;
+              </p>
+            </div>
+          </div>
         </div>
 
-        {!result && !loading && (
-          <div style={{ gridColumn: "span 2", textAlign: "center", marginTop: "4rem", opacity: 0.4 }}>
-            <Scale size={64} style={{ marginBottom: "1rem", color: "var(--muted)" }} />
-            <p style={{ fontSize: "1.1rem", fontWeight: "700" }}>Ready for Assessment? Enter your case details to begin.</p>
+        {/* ── Respondent Panel ── */}
+        <div style={{ flex: "0 0 35%", display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div style={{ padding: "16px 20px", borderBottom: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
+            <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Respondent</p>
+            <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px" }}>Party B</p>
           </div>
-        )}
-      </main>
+          <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+            {arguments_.filter((a) => a.side === "respondent").map((arg, i) => (
+              <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid rgba(255,94,94,0.2)", borderLeft: "3px solid var(--danger)", borderRadius: "8px", padding: "12px", marginBottom: "10px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6, marginBottom: "6px" }}>{arg.text}</p>
+                <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{arg.timestamp}</p>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
+            <textarea
+              value={respondentInput}
+              onChange={(e) => setRespondentInput(e.target.value)}
+              placeholder="Submit your argument..."
+              rows={3}
+              style={{ width: "100%", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "10px 12px", color: "var(--text-primary)", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", outline: "none", resize: "none", marginBottom: "8px" }}
+            />
+            <button style={{ width: "100%", justifyContent: "center", fontSize: "12px", background: "transparent", border: "0.5px solid rgba(255,94,94,0.3)", color: "var(--danger)", padding: "8px", borderRadius: "8px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}
+              onClick={() => submitArgument("respondent", respondentInput)}>
+              Submit Argument →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Bar */}
+      <div style={{ background: "var(--bg-secondary)", borderTop: "0.5px solid var(--border-acid)", padding: "12px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Case: Contract Dispute · {jurisdiction}</p>
+          <span className="badge badge-acid">In Session</span>
+        </div>
+        <button className="btn-primary btn-sm" style={{ fontSize: "12px" }} onClick={() => setShowAward(true)}>
+          Request Final Award ⚖️
+        </button>
+      </div>
+
+      {/* Final Award Modal */}
+      {showAward && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(8,11,7,0.85)", backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+          <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "20px", padding: "40px", maxWidth: "600px", width: "90%" }}>
+            <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "20px", letterSpacing: "-0.5px", textAlign: "center", marginBottom: "4px", textTransform: "uppercase" }}>Final Arbitration Award</p>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", marginBottom: "24px" }}>AI Mock Judge · {jurisdiction} · {new Date().toLocaleDateString("en-IN")}</p>
+            <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", padding: "24px", fontFamily: "Georgia, serif", fontSize: "13px", color: "var(--text-secondary)", lineHeight: 1.8, marginBottom: "20px" }}>
+              <p><strong style={{ color: "var(--text-primary)" }}>FINDINGS:</strong> Having heard both parties, this tribunal finds that the respondent was in breach of the delivery timeline. However, the claimant&apos;s 45-day delay in providing API documentation constitutes 40% contributory negligence.</p>
+              <p style={{ marginTop: "12px" }}><strong style={{ color: "var(--text-primary)" }}>RULING:</strong> Respondent to pay ₹8,40,000 (being 60% of claimed ₹14,00,000) within 30 days. Each party to bear own costs.</p>
+            </div>
+            <div style={{ display: "flex", gap: "10px" }}>
+              <button className="btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: "13px" }}>Download Award PDF ↓</button>
+              <button className="btn-ghost" style={{ fontSize: "13px" }} onClick={() => setShowAward(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

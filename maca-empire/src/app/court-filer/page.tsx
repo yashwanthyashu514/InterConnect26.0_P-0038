@@ -1,163 +1,101 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import AgentChatLayout from "@/components/agent/AgentChatLayout";
 
-interface PetitionData {
-  case_title: string;
-  complainant_placeholder: string;
-  respondent: string;
-  facts_summary: string;
-  relief_sought: string;
-  legal_grounds: string;
+const docTypes = [
+  { icon: "⚖️", label: "Petition", desc: "Civil or criminal petition" },
+  { icon: "📜", label: "Affidavit", desc: "Sworn statement of facts" },
+  { icon: "📨", label: "Legal Notice", desc: "Demand or cease & desist" },
+  { icon: "🛒", label: "Consumer Complaint", desc: "NCDRC / State forum" },
+  { icon: "🏛️", label: "Writ Petition", desc: "High Court / Supreme Court" },
+  { icon: "📝", label: "Reply", desc: "Reply to notice or complaint" },
+];
+
+function CourtPreviewPanel() {
+  return (
+    <div style={{ padding: "20px" }}>
+      <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "12px" }}>Court Preview</p>
+      <div style={{ background: "#fff", borderRadius: "10px", padding: "24px", color: "#111", fontFamily: "Georgia, serif", fontSize: "12px", lineHeight: 1.8 }}>
+        <p style={{ textAlign: "center", fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>IN THE DISTRICT COURT</p>
+        <p style={{ textAlign: "center", fontSize: "12px", marginBottom: "4px" }}>AT [City], [State]</p>
+        <p style={{ textAlign: "center", marginBottom: "16px" }}>Case No. ____/2025</p>
+        <p style={{ textAlign: "center", marginBottom: "2px" }}>Arjun Sharma</p>
+        <p style={{ textAlign: "center", marginBottom: "8px", fontSize: "11px" }}>...Petitioner/Complainant</p>
+        <p style={{ textAlign: "center", marginBottom: "2px" }}>v/s</p>
+        <p style={{ textAlign: "center", marginBottom: "2px" }}>Respondent Co. Ltd.</p>
+        <p style={{ textAlign: "center", marginBottom: "16px", fontSize: "11px" }}>...Respondent</p>
+        <p style={{ fontWeight: 700, marginBottom: "8px" }}>CONSUMER COMPLAINT</p>
+        <p>The Complainant above-named respectfully submits as follows:</p>
+        <p style={{ color: "#888" }}>[AI-generated complaint continues...]</p>
+      </div>
+      <div style={{ display: "flex", gap: "8px", marginTop: "12px" }}>
+        <button className="btn-primary btn-sm" style={{ flex: 1, justifyContent: "center", fontSize: "11px" }}>Download PDF</button>
+        <button className="btn-ghost btn-sm" style={{ flex: 1, justifyContent: "center", fontSize: "11px" }}>Copy</button>
+      </div>
+    </div>
+  );
 }
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
-import { saveToVault } from "@/lib/vault";
+const prompts = [
+  "Draft a consumer complaint against a builder",
+  "Generate a legal notice for non-payment",
+  "Help me file a writ petition",
+  "Draft an affidavit for property matter",
+];
 
 export default function CourtFilerPage() {
-  const [bank, setBank] = useState("");
-  const [complaint, setComplaint] = useState("");
-  const [rbiRef, setRbiRef] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [petition, setPetition] = useState<PetitionData | null>(null);
-
-  const generatePetition = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!bank || !complaint) return;
-    setLoading(true);
-    
-    try {
-      const res = await fetch(`${BACKEND_URL}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          query: `Bank: ${bank}. Issue: ${complaint}. RBI ref: ${rbiRef}`,
-          agent_id: "A8"
-        }),
-      });
-      const data = await res.json();
-      
-      let finalPetition: PetitionData;
-      const jsonMatch = data.answer.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-         finalPetition = JSON.parse(jsonMatch[0]);
-      } else {
-         finalPetition = {
-           case_title: `${bank.toUpperCase()} CONSUMER DEFICIENCY CASE`,
-           complainant_placeholder: "[YOUR FULL NAME]",
-           respondent: bank,
-           facts_summary: complaint,
-           relief_sought: "Recovery of unauthorized debits with 18% penal interest and ₹50,000 for mental agony.",
-           legal_grounds: "Section 2(11) of Consumer Protection Act 2019 — Deficiency of Service."
-         };
-      }
-      setPetition(finalPetition);
-      saveToVault({ agent_id: "A8", doc_type: "Court Petition Draft", content: JSON.stringify(finalPetition, null, 2) });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const downloadPDF = () => {
-    if (!petition) return;
-    const content = `
-      IN THE DISTRICT CONSUMER DISPUTES REDRESSAL COMMISSION
-      CASE TITLE: ${petition.case_title}
-
-      BETWEEN:
-      ${petition.complainant_placeholder} (Complainant)
-      AND
-      ${petition.respondent} (Respondent)
-
-      1. FACTS OF THE CASE:
-      ${petition.facts_summary}
-
-      2. LEGAL GROUNDS:
-      ${petition.legal_grounds}
-
-      3. RELIEF SOUGHT:
-      ${petition.relief_sought}
-
-      Generated by maCA Court Filer on ${new Date().toLocaleDateString()}
-    `;
-    const blob = new Blob([content], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "Consumer_Court_Petition.txt";
-    a.click();
-  };
+  const [selected, setSelected] = useState<string | null>(null);
+  const [jurisdiction, setJurisdiction] = useState("District Court");
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", padding: "2rem" }}>
-      <main style={{ maxWidth: "900px", margin: "2rem auto" }}>
-        <div style={{ marginBottom: "2rem" }}>
-          <h1 style={{ fontSize: "1.8rem", fontWeight: "900", color: "var(--primary)" }}>⚖️ Court Filer A8</h1>
-          <p style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Consumer Protection Act 2019 Specialist</p>
-        </div>
-
-        <div style={{ background: "rgba(220,38,38,0.05)", border: "1px dashed #dc2626", borderRadius: "1rem", padding: "1.5rem", marginBottom: "2rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-          <span style={{ fontSize: "2rem" }}>⛔</span>
-          <div>
-            <p style={{ fontSize: "0.9rem", fontWeight: "900", color: "#dc2626" }}>RBI OMBUDSMAN FAILED? ESCALATE TO COURT.</p>
-            <p style={{ fontSize: "0.75rem", color: "var(--muted)" }}>BankFight didn't work? We draft the full legal petition for your district consumer court in 10 seconds.</p>
+    <AgentChatLayout
+      agentName="Court Filer"
+      agentIcon="⚖️"
+      agentDescription="Generate court-ready petitions, affidavits, and legal notices in correct format."
+      rightPanel={<CourtPreviewPanel />}
+      extraTopBarContent={
+        <select value={jurisdiction} onChange={(e) => setJurisdiction(e.target.value)}
+          style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "6px 12px", color: "var(--text-secondary)", fontSize: "12px", fontFamily: "'DM Sans', sans-serif", outline: "none" }}>
+          {["District Court", "High Court", "Supreme Court", "Consumer Forum", "NCDRC"].map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      }
+    >
+      {!selected ? (
+        <div className="empty-state">
+          <div className="empty-state-icon">⚖️</div>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Select Document Type</h2>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "400px" }}>
+            Choose your document type to get a court-ready draft in proper legal format.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "10px", width: "100%", maxWidth: "500px" }}>
+            {docTypes.map((d) => (
+              <button key={d.label} onClick={() => setSelected(d.label)} style={{ padding: "16px 12px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", cursor: "pointer", textAlign: "center", transition: "border-color 0.2s" }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-acid)")}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-subtle)")}>
+                <span style={{ fontSize: "24px", display: "block", marginBottom: "6px" }}>{d.icon}</span>
+                <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "12px", color: "var(--text-primary)", marginBottom: "2px" }}>{d.label}</p>
+                <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{d.desc}</p>
+              </button>
+            ))}
+          </div>
+          <div className="suggested-prompts">
+            {prompts.map((p, i) => (
+              <button key={i} className="prompt-pill">{p}</button>
+            ))}
           </div>
         </div>
-
-        <form onSubmit={generatePetition} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem", marginBottom: "2rem" }}>
-           <div>
-             <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--muted)" }}>BANK NAME</label>
-             <input value={bank} onChange={e => setBank(e.target.value)} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--secondary)", color: "var(--foreground)", marginTop: "0.4rem" }} />
-           </div>
-           <div>
-             <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--muted)" }}>RBI CASE REF (OPTIONAL)</label>
-             <input value={rbiRef} onChange={e => setRbiRef(e.target.value)} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--secondary)", color: "var(--foreground)", marginTop: "0.4rem" }} />
-           </div>
-           <div style={{ gridColumn: "span 2" }}>
-             <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--muted)" }}>BRIEF SUMMARY OF GRIEVANCE</label>
-             <textarea value={complaint} onChange={e => setComplaint(e.target.value)} rows={3} style={{ width: "100%", padding: "1rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--secondary)", color: "var(--foreground)", marginTop: "0.4rem" }} />
-           </div>
-           <button style={{ gridColumn: "span 2", padding: "1rem", background: "var(--primary)", color: "white", border: "none", borderRadius: "0.5rem", fontWeight: "900", cursor: "pointer" }}>
-             {loading ? "DRAFTING PETITION..." : "⚔️ GENERATE COURT PETITION →"}
-          </button>
-        </form>
-
-        {petition && (
-          <div style={{ background: "white", color: "#1e293b", padding: "2.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)", boxShadow: "0 20px 40px rgba(0,0,0,0.1)" }}>
-             <div style={{ borderBottom: "2px solid #e2e8f0", paddingBottom: "1.5rem", marginBottom: "1.5rem", textAlign: "center" }}>
-                <h2 style={{ fontSize: "1.1rem", fontWeight: "900", color: "#0f172a" }}>IN THE DISTRICT CONSUMER DISPUTES REDRESSAL COMMISSION</h2>
-                <p style={{ fontSize: "0.75rem", color: "#64748b", textTransform: "uppercase", marginTop: "0.5rem" }}>{petition.case_title}</p>
-             </div>
-             
-             <div style={{ fontSize: "0.85rem", lineHeight: "1.7" }}>
-                <p><strong>BETWEEN:</strong> {petition.complainant_placeholder} (Complainant)</p>
-                <p><strong>AND:</strong> {petition.respondent} (Respondent)</p>
-                
-                <h4 style={{ marginTop: "1.5rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.4rem" }}>1. FACTS OF THE CASE</h4>
-                <p style={{ marginTop: "0.5rem" }}>{petition.facts_summary}</p>
-
-                <h4 style={{ marginTop: "1.5rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.4rem" }}>2. RELIEF SOUGHT</h4>
-                <p style={{ marginTop: "0.5rem" }}>{petition.relief_sought}</p>
-
-                <h4 style={{ marginTop: "1.5rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.4rem" }}>3. LEGAL GROUNDS</h4>
-                <p style={{ marginTop: "0.5rem" }}>{petition.legal_grounds}</p>
-             </div>
-
-             <div style={{ marginTop: "2rem", display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
-                <button 
-                  onClick={downloadPDF}
-                  style={{ padding: "0.7rem 1.5rem", background: "var(--primary)", color: "white", border: "none", borderRadius: "0.5rem", fontWeight: "800", cursor: "pointer" }}
-                >
-                  📥 DOWNLOAD FOR FILING
-                </button>
-             </div>
+      ) : (
+        <div className="empty-state">
+          <div style={{ background: "var(--acid)", color: "var(--bg-primary)", padding: "8px 16px", borderRadius: "8px", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", fontWeight: 500 }}>
+            {selected} selected · {jurisdiction}
           </div>
-        )}
-      </main>
-    </div>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif" }}>Describe your case and the agent will draft it in proper court format</p>
+          <button onClick={() => setSelected(null)} className="btn-ghost btn-sm">← Change Type</button>
+        </div>
+      )}
+    </AgentChatLayout>
   );
 }

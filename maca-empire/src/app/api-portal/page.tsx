@@ -1,112 +1,356 @@
 "use client";
 
 import React, { useState } from "react";
-import { Terminal, Key, Cpu, Code, BarChart3, Copy, CheckCircle2, Settings } from "lucide-react";
+import Link from "next/link";
+
+const tabs = ["Overview", "API Keys", "Documentation", "Usage Analytics", "Webhooks"];
+
+const endpoints = [
+  { method: "POST", path: "/v1/agents/tax/query", desc: "Send query to maCA Tax agent", rateLimit: "100/min" },
+  { method: "POST", path: "/v1/agents/bankfight/complaint", desc: "Generate RBI complaint draft", rateLimit: "50/min" },
+  { method: "POST", path: "/v1/agents/notice/reply", desc: "Draft notice reply from uploaded PDF", rateLimit: "30/min" },
+  { method: "POST", path: "/v1/agents/compliance/calendar", desc: "Get compliance calendar for GSTIN", rateLimit: "100/min" },
+  { method: "GET", path: "/v1/vault/documents", desc: "List documents in user vault", rateLimit: "200/min" },
+  { method: "POST", path: "/v1/vault/upload", desc: "Upload document to vault", rateLimit: "20/min" },
+  { method: "POST", path: "/v1/agents/contract/review", desc: "AI contract review and redlining", rateLimit: "20/min" },
+  { method: "GET", path: "/v1/agents", desc: "List all available agents", rateLimit: "500/min" },
+];
+
+const apiKeys = [
+  { name: "Production Key", prefix: "mca_prod_...x8k2", created: "Mar 1, 2025", lastUsed: "2 min ago", permissions: ["read", "write", "agents"] },
+  { name: "Staging Key", prefix: "mca_stag_...p3q9", created: "Feb 15, 2025", lastUsed: "3 days ago", permissions: ["read", "agents"] },
+];
+
+const overviewStats = [
+  { label: "Total API Calls", value: "48,291", delta: "+12% this month", icon: "📡" },
+  { label: "Successful Calls", value: "47,834", delta: "99.05% success rate", icon: "✅" },
+  { label: "Error Rate", value: "0.95%", delta: "-0.3% vs last month", icon: "⚠️" },
+  { label: "Avg Response Time", value: "1.2s", delta: "-200ms improvement", icon: "⚡" },
+];
+
+const curlExample = `curl -X POST https://api.macaempire.in/v1/agents/tax/query \\
+  -H "Authorization: Bearer mca_prod_...x8k2" \\
+  -H "Content-Type: application/json" \\
+  -d '{"query": "What is my tax liability for AY 2024-25?", "pan": "ABCDE1234F"}'`;
+
+const pythonExample = `import requests
+
+response = requests.post(
+    "https://api.macaempire.in/v1/agents/tax/query",
+    headers={"Authorization": "Bearer mca_prod_...x8k2"},
+    json={
+        "query": "What is my tax liability for AY 2024-25?",
+        "pan": "ABCDE1234F"
+    }
+)
+data = response.json()
+print(data["response"])`;
+
+const nodeExample = `const response = await fetch(
+  'https://api.macaempire.in/v1/agents/tax/query',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer mca_prod_...x8k2',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      query: 'What is my tax liability for AY 2024-25?',
+      pan: 'ABCDE1234F',
+    }),
+  }
+);
+const data = await response.json();`;
 
 export default function APIPortalPage() {
+  const [activeTab, setActiveTab] = useState("Overview");
+  const [showNewKeyModal, setShowNewKeyModal] = useState(false);
+  const [codeLanguage, setCodeLanguage] = useState<"curl" | "python" | "node">("curl");
   const [copied, setCopied] = useState(false);
-  const apiKey = "maca_live_4f8e2190c128a8d7";
+
+  const getCode = () => {
+    if (codeLanguage === "curl") return curlExample;
+    if (codeLanguage === "python") return pythonExample;
+    return nodeExample;
+  };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(apiKey);
+    navigator.clipboard.writeText(getCode());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", padding: "2rem" }}>
-      <main style={{ maxWidth: "1200px", margin: "2rem auto" }}>
-        <div style={{ marginBottom: "3rem" }}>
-           <h1 style={{ fontSize: "2.8rem", fontWeight: "900", color: "var(--primary)", letterSpacing: "-1.5px" }}>⚡ maCA API C4</h1>
-           <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginTop: "0.5rem" }}>Embed Indian Legal AI into your Fintech or ERP with 5 lines of code</p>
+    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-primary)" }}>
+
+      {/* ── Dashboard Sidebar ── */}
+      <aside style={{ width: "240px", minWidth: "240px", background: "var(--bg-secondary)", borderRight: "0.5px solid var(--border-subtle)", display: "flex", flexDirection: "column", padding: "24px 0", position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 10 }}>
+        <div style={{ padding: "0 20px 20px", borderBottom: "0.5px solid var(--border-subtle)" }}>
+          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
+              maCA
+            </span>
+          </Link>
+        </div>
+        <nav style={{ padding: "12px 0", flex: 1 }}>
+          {[
+            { icon: "🏠", label: "Dashboard", href: "/dashboard" },
+            { icon: "🤖", label: "All Agents", href: "/dashboard#agents" },
+            { icon: "🗄️", label: "Vault", href: "/vault" },
+            { icon: "⚡", label: "API Portal", href: "/api-portal", active: true },
+          ].map((item) => (
+            <Link key={item.label} href={item.href} className={`nav-item ${item.active ? "active" : ""}`}>
+              <span style={{ fontSize: "16px" }}>{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+        <div style={{ padding: "16px 20px", borderTop: "0.5px solid var(--border-subtle)" }}>
+          <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>API Plan</p>
+          <span className="badge badge-acid">Enterprise</span>
+        </div>
+      </aside>
+
+      {/* ── Main ── */}
+      <div style={{ marginLeft: "240px", flex: 1 }}>
+        {/* Header */}
+        <div style={{ padding: "32px 32px 0" }}>
+          <span className="section-tag" style={{ marginBottom: "12px" }}>Enterprise</span>
+          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "32px", letterSpacing: "-1.5px", marginBottom: "8px" }}>API Portal</h1>
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "28px" }}>
+            Integrate maCA Empire agents into your own products via REST API.
+          </p>
+
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: "2px", borderBottom: "0.5px solid var(--border-subtle)" }}>
+            {tabs.map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                style={{ padding: "10px 18px", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: activeTab === tab ? "var(--acid)" : "var(--text-muted)", borderBottom: activeTab === tab ? "2px solid var(--acid)" : "2px solid transparent", transition: "color 0.2s", marginBottom: "-0.5px" }}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3rem" }}>
-           {/* API Key & Usage */}
-           <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-              <div style={{ background: "var(--secondary)", padding: "2.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                 <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}><Key size={16}/> YOUR API ACCESS KEY</h4>
-                 <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: "0.5rem", alignItems: "center", padding: "1.25rem", background: "black", borderRadius: "0.75rem", border: "1px solid var(--border)" }}>
-                    <div style={{ fontSize: "1.1rem", fontWeight: "900", color: "var(--primary)", fontFamily: "monospace" }}>{apiKey}</div>
-                    <button onClick={handleCopy} style={{ background: "transparent", border: "none", color: copied ? "#10b981" : "var(--muted)", cursor: "pointer", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                       {copied ? <CheckCircle2 size={20}/> : <Copy size={20}/>}
-                    </button>
-                 </div>
-                 <p style={{ marginTop: "1rem", fontSize: "0.7rem", color: "var(--muted)" }}>⚠️ Do not share this key. It grants access to your Legal Ops account.</p>
-              </div>
+        <div style={{ padding: "28px 32px" }}>
 
-              <div style={{ background: "var(--secondary)", padding: "2.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                 <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}><BarChart3 size={16}/> USAGE ANALYTICS</h4>
-                 <div style={{ marginBottom: "1.5rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.8rem", fontWeight: "900", marginBottom: "0.5rem" }}>
-                       <span>MONTHLY API CALLS</span>
-                       <span style={{ color: "var(--primary)" }}>412 / 1000</span>
+          {/* ── Overview Tab ── */}
+          {activeTab === "Overview" && (
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "32px" }}>
+                {overviewStats.map((s, i) => (
+                  <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "12px" }}>
+                      <span style={{ fontSize: "22px" }}>{s.icon}</span>
                     </div>
-                    <div style={{ width: "100%", height: "12px", background: "black", borderRadius: "1rem", overflow: "hidden" }}>
-                       <div style={{ width: "41.2%", height: "100%", background: "var(--primary)" }}></div>
+                    <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "28px", letterSpacing: "-1px", marginBottom: "4px" }}>{s.value}</p>
+                    <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>{s.label}</p>
+                    <p style={{ fontSize: "11px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>{s.delta}</p>
+                  </div>
+                ))}
+              </div>
+
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", marginBottom: "16px" }}>Available Endpoints</h3>
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", overflow: "hidden", marginBottom: "32px" }}>
+                <table className="data-table">
+                  <thead><tr><th>Method</th><th>Path</th><th>Description</th><th>Rate Limit</th></tr></thead>
+                  <tbody>
+                    {endpoints.map((ep, i) => (
+                      <tr key={i}>
+                        <td>
+                          <span style={{ background: ep.method === "GET" ? "rgba(181,255,46,0.1)" : "rgba(255,184,0,0.1)", color: ep.method === "GET" ? "var(--acid)" : "var(--warning)", border: `0.5px solid ${ep.method === "GET" ? "rgba(181,255,46,0.25)" : "rgba(255,184,0,0.25)"}`, borderRadius: "6px", padding: "3px 8px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>
+                            {ep.method}
+                          </span>
+                        </td>
+                        <td style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)" }}>{ep.path}</td>
+                        <td>{ep.desc}</td>
+                        <td style={{ color: "var(--acid)" }}>{ep.rateLimit}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Code Samples */}
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", marginBottom: "16px" }}>Quick Start</h3>
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", overflow: "hidden" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "0.5px solid var(--border-subtle)" }}>
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    {(["curl", "python", "node"] as const).map((lang) => (
+                      <button key={lang} onClick={() => setCodeLanguage(lang)} style={{ padding: "5px 14px", borderRadius: "6px", border: "none", cursor: "pointer", background: codeLanguage === lang ? "var(--acid)" : "var(--bg-primary)", color: codeLanguage === lang ? "var(--bg-primary)" : "var(--text-muted)", fontSize: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
+                        {lang === "node" ? "Node.js" : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                  <button onClick={handleCopy} style={{ fontSize: "12px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "5px 14px", color: copied ? "var(--acid)" : "var(--text-muted)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                    {copied ? "✓ Copied" : "Copy"}
+                  </button>
+                </div>
+                <pre className="code-block" style={{ borderRadius: 0, border: "none", background: "#0a0d09" }}>
+                  <code>{getCode()}</code>
+                </pre>
+              </div>
+            </div>
+          )}
+
+          {/* ── API Keys Tab ── */}
+          {activeTab === "API Keys" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div>
+                  <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", marginBottom: "4px" }}>API Keys</h3>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Manage your API keys. Never commit them to source control.</p>
+                </div>
+                <button onClick={() => setShowNewKeyModal(true)} className="btn-primary" style={{ fontSize: "13px" }}>
+                  + Generate New Key
+                </button>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                {apiKeys.map((key, i) => (
+                  <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "20px" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>
+                        <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>{key.name}</p>
+                        <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px" }}>{key.prefix}</p>
+                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                          {key.permissions.map((p) => (
+                            <span key={p} className="badge badge-acid" style={{ fontSize: "10px" }}>{p}</span>
+                          ))}
+                        </div>
+                      </div>
+                      <div style={{ textAlign: "right" }}>
+                        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>Last used: {key.lastUsed}</p>
+                        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "12px" }}>Created: {key.created}</p>
+                        <button style={{ background: "none", border: "0.5px solid rgba(255,94,94,0.25)", borderRadius: "8px", padding: "6px 14px", color: "var(--danger)", cursor: "pointer", fontSize: "12px", fontFamily: "'DM Sans', sans-serif" }}>
+                          Revoke
+                        </button>
+                      </div>
                     </div>
-                 </div>
-                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                    <div style={{ padding: "1rem", background: "var(--background)", borderRadius: "0.75rem", border: "1px solid var(--border)" }}>
-                       <div style={{ fontSize: "0.6rem", fontWeight: "900", color: "var(--muted)" }}>AVG LATENCY</div>
-                       <div style={{ fontSize: "1.2rem", fontWeight: "900" }}>384ms</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* New Key Modal */}
+              {showNewKeyModal && (
+                <div style={{ position: "fixed", inset: 0, background: "rgba(8,11,7,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
+                  <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "20px", padding: "32px", width: "440px" }}>
+                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>New API Key Generated</h3>
+                    <p style={{ fontSize: "13px", color: "var(--warning)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>⚠️ This is shown only once. Copy it now.</p>
+                    <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "10px", padding: "14px 16px", fontFamily: "monospace", fontSize: "13px", color: "var(--acid)", marginBottom: "20px", wordBreak: "break-all" }}>
+                      mca_prod_sk_live_abcdef1234567890xyz...complete_key_here
                     </div>
-                    <div style={{ padding: "1rem", background: "var(--background)", borderRadius: "0.75rem", border: "1px solid var(--border)" }}>
-                       <div style={{ fontSize: "0.6rem", fontWeight: "900", color: "var(--muted)" }}>ERROR RATE</div>
-                       <div style={{ fontSize: "1.2rem", fontWeight: "900", color: "#10b981" }}>0.02%</div>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button className="btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: "13px" }}>Copy Key</button>
+                      <button className="btn-ghost" style={{ fontSize: "13px" }} onClick={() => setShowNewKeyModal(false)}>Done</button>
                     </div>
-                 </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Usage Analytics Tab ── */}
+          {activeTab === "Usage Analytics" && (
+            <div>
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", marginBottom: "20px" }}>API Usage Analytics</h3>
+              {/* Simulated chart area */}
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>Daily API Calls — Last 30 Days</p>
+                <div style={{ height: "160px", display: "flex", alignItems: "flex-end", gap: "4px" }}>
+                  {Array.from({ length: 30 }, (_, i) => {
+                    const h = Math.floor(40 + Math.random() * 120);
+                    return (
+                      <div key={i} style={{ flex: 1, background: `rgba(181,255,46,${0.3 + (h / 160) * 0.7})`, borderRadius: "3px 3px 0 0", height: `${h}px`, minWidth: "4px", transition: "opacity 0.2s", cursor: "pointer" }}
+                        title={`${800 + h * 30} calls`} />
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: "8px" }}>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Mar 10</span>
+                  <span style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Apr 9</span>
+                </div>
               </div>
 
-              <div style={{ background: "black", padding: "2rem", borderRadius: "1.5rem", border: "1px solid var(--border)", textAlign: "center" }}>
-                 <h4 style={{ fontSize: "1rem", fontWeight: "900", color: "white" }}>GO UNLIMITED</h4>
-                 <p style={{ fontSize: "0.75rem", color: "var(--muted)", margin: "0.5rem 0 1.5rem" }}>Upgrade to Pro for limitless requests & priority RAG access.</p>
-                 <button style={{ padding: "1rem 2rem", background: "white", color: "black", borderRadius: "0.75rem", fontWeight: "900", border: "none", cursor: "pointer" }}>UPGRADE TO PRO →</button>
+              {/* Calls per endpoint bar chart */}
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "24px" }}>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>Calls by Agent Endpoint</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {[
+                    { label: "/agents/tax/query", pct: 38, calls: "18,350" },
+                    { label: "/agents/compliance/calendar", pct: 22, calls: "10,624" },
+                    { label: "/agents/bankfight/complaint", pct: 15, calls: "7,244" },
+                    { label: "/vault/documents", pct: 12, calls: "5,795" },
+                    { label: "/agents/notice/reply", pct: 8, calls: "3,863" },
+                    { label: "Other", pct: 5, calls: "2,415" },
+                  ].map((item, i) => (
+                    <div key={i}>
+                      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                        <span style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-secondary)" }}>{item.label}</span>
+                        <span style={{ fontSize: "12px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>{item.calls}</span>
+                      </div>
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${item.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-           </div>
+            </div>
+          )}
 
-           {/* Code Snippets */}
-           <div style={{ background: "var(--secondary)", padding: "2.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-              <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.5rem" }}><Code size={16}/> INTEGRATION EXAMPLE</h4>
-              
-              <div style={{ display: "flex", gap: "1rem", borderBottom: "1px solid var(--border)", paddingBottom: "1rem" }}>
-                 {["Node.js", "Python", "cURL"].map(x => (
-                   <div key={x} style={{ fontSize: "0.9rem", fontWeight: "900", color: x === "Node.js" ? "var(--primary)" : "var(--muted)", borderBottom: x === "Node.js" ? "2px solid var(--primary)" : "none", paddingBottom: "0.5rem", cursor: "pointer" }}>{x}</div>
-                 ))}
+          {/* ── Documentation Tab ── */}
+          {activeTab === "Documentation" && (
+            <div style={{ maxWidth: "800px" }}>
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "14px", padding: "32px" }}>
+                <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", marginBottom: "16px" }}>Getting Started</h3>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65, marginBottom: "20px" }}>
+                  The maCA Empire API gives you programmatic access to all 22 AI agents. All requests must be authenticated using your API key in the Authorization header.
+                </p>
+                <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "16px", marginBottom: "20px" }}>
+                  <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--acid)" }}>Base URL: https://api.macaempire.in/v1</p>
+                </div>
+                {[
+                  { title: "Authentication", content: "Pass your API key as a Bearer token in the Authorization header: `Authorization: Bearer your_api_key`" },
+                  { title: "Rate Limits", content: "API calls are rate-limited per endpoint (see Overview tab). When you exceed a limit, you receive a 429 Too Many Requests response." },
+                  { title: "Response Format", content: "All responses are JSON. Successful responses have a `response` field. Errors have `error` and `code` fields." },
+                ].map((section, i) => (
+                  <div key={i} style={{ marginBottom: "20px" }}>
+                    <h4 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", marginBottom: "8px", color: "var(--text-primary)" }}>{section.title}</h4>
+                    <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65 }}>{section.content}</p>
+                  </div>
+                ))}
+                <Link href="https://docs.macaempire.in" className="btn-primary" style={{ fontSize: "13px", display: "inline-flex" }}>
+                  Full Documentation →
+                </Link>
               </div>
+            </div>
+          )}
 
-              <div style={{ background: "black", padding: "1.5rem", borderRadius: "1rem", border: "1px solid var(--border)", position: "relative" }}>
-                 <pre style={{ margin: 0, fontSize: "0.85rem", color: "#d1d5db", fontFamily: "'Fira Code', monospace", lineHeight: "1.6" }}>
-{`const res = await fetch("https://api.maca.in/v1/ask", {
-  method: "POST",
-  headers: {
-    "X-MACA-API-KEY": "${apiKey}",
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    query: "GST on SaaS export invoice?",
-    agent_id: "A1"
-  })
-});
-
-const { answer, citations } = await res.json();
-console.log(answer);`}
-                 </pre>
-                 <button onClick={handleCopy} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.1)", border: "none", color: "white", padding: "0.4rem", borderRadius: "0.4rem", cursor: "pointer" }}><Copy size={14}/></button>
+          {/* ── Webhooks Tab ── */}
+          {activeTab === "Webhooks" && (
+            <div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                <div>
+                  <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px" }}>Webhooks</h3>
+                  <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Receive real-time events from maCA Empire agents</p>
+                </div>
+                <button className="btn-primary" style={{ fontSize: "13px" }}>+ Add Endpoint</button>
               </div>
-
-              <div style={{ padding: "1.5rem", background: "rgba(20,184,166,0.05)", borderRadius: "1.25rem", border: "1px dashed var(--primary)" }}>
-                 <h5 style={{ fontSize: "0.85rem", fontWeight: "900", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.75rem" }}><Cpu size={16}/> API SPECS</h5>
-                 <ul style={{ display: "grid", gap: "0.5rem", padding: 0, listStyle: "none", fontSize: "0.8rem", color: "var(--muted)" }}>
-                    <li><strong style={{ color: "var(--foreground)" }}>Base URL:</strong> https://api.maca.in/v1</li>
-                    <li><strong style={{ color: "var(--foreground)" }}>Models:</strong> Llama-3.3-70b-instruct-optimized</li>
-                    <li><strong style={{ color: "var(--foreground)" }}>RAG Depth:</strong> Top 3 Legal Chunks (Act Verified)</li>
-                    <li><strong style={{ color: "var(--foreground)" }}>Rate Limit:</strong> 60 req / min</li>
-                 </ul>
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px dashed var(--border-acid)", borderRadius: "14px", padding: "48px", textAlign: "center" }}>
+                <p style={{ fontSize: "32px", marginBottom: "12px" }}>🔗</p>
+                <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", color: "var(--text-primary)", marginBottom: "8px" }}>No webhooks configured</p>
+                <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "20px" }}>Add a webhook endpoint to receive events when agents complete tasks</p>
+                <button className="btn-primary" style={{ fontSize: "13px" }}>Configure Webhook →</button>
               </div>
-           </div>
+            </div>
+          )}
+
         </div>
-      </main>
+      </div>
     </div>
   );
 }

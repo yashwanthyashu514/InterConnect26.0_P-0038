@@ -1,64 +1,81 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import AgentChatLayout from "@/components/agent/AgentChatLayout";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-
-import { saveToVault } from "@/lib/vault";
-
-export default function PensionAgentPage() {
-  const [salary, setSalary] = useState("");
-  const [years, setYears] = useState("");
-  const [type, setType] = useState("Gratuity");
-  const [loading, setLoading] = useState(false);
-  const [calc, setCalc] = useState("");
-
-  const calculateRetirement = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const resp = await fetch(`${BACKEND_URL}/ask`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: `${type}: Salary ${salary}, Years ${years}`, agent_id: "B8" }),
-      });
-      const data = await resp.json();
-      setCalc(data.answer);
-      saveToVault({ agent_id: "B8", doc_type: `Retirement Plan: ${type}`, content: data.answer });
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+function EPFCalculator() {
+  const [salary, setSalary] = useState(50000);
+  const [years, setYears] = useState(10);
+  const monthlyPF = Math.min(salary * 0.12, 1800);
+  const employerPF = monthlyPF;
+  const annualContrib = (monthlyPF + employerPF) * 12;
+  const rate = 0.081;
+  const corpus = annualContrib * ((Math.pow(1 + rate, years) - 1) / rate) * (1 + rate);
+  const eps = years >= 10 ? Math.min(salary, 15000) * years / 70 : 0;
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", padding: "2rem" }}>
-      <main style={{ maxWidth: "800px", margin: "2rem auto" }}>
-        <div style={{ marginBottom: "2rem" }}>
-           <h1 style={{ fontSize: "1.8rem", fontWeight: "900", color: "var(--primary)" }}>👵 Pension Agent B8</h1>
-           <p style={{ fontSize: "0.85rem", color: "var(--muted)" }}>Gratuity & Retirement Shield (Act 1972) · Compliance Automator</p>
+    <div style={{ padding: "20px" }}>
+      <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>EPF Calculator</p>
+
+      <div style={{ marginBottom: "14px" }}>
+        <label style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: "5px" }}>Basic Salary (₹)</label>
+        <input type="number" value={salary} onChange={(e) => setSalary(Number(e.target.value))} className="input-dark" style={{ fontSize: "13px" }} />
+      </div>
+      <div style={{ marginBottom: "16px" }}>
+        <label style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", display: "block", marginBottom: "5px" }}>Years of Service: <span style={{ color: "var(--acid)" }}>{years}</span></label>
+        <input type="range" min="1" max="35" value={years} onChange={(e) => setYears(Number(e.target.value))} style={{ width: "100%", accentColor: "var(--acid)" }} />
+      </div>
+
+      <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "10px", padding: "16px", marginBottom: "12px" }}>
+        <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>Projected EPF Corpus</p>
+        <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "28px", letterSpacing: "-1px", color: "var(--acid)" }}>
+          ₹{(corpus / 100000).toFixed(1)}L
+        </p>
+        <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>@ 8.1% p.a. · {years} years</p>
+      </div>
+
+      {[
+        { label: "Your PF/month", value: `₹${monthlyPF.toLocaleString("en-IN")}` },
+        { label: "Employer PF/month", value: `₹${employerPF.toLocaleString("en-IN")}` },
+        { label: "Annual contribution", value: `₹${annualContrib.toLocaleString("en-IN")}` },
+        { label: "EPS Pension (monthly)", value: years >= 10 ? `₹${eps.toFixed(0)}` : "Min 10 yrs needed" },
+      ].map((r, i) => (
+        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
+          <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{r.label}</span>
+          <span style={{ fontSize: "12px", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>{r.value}</span>
         </div>
-        <div style={{ background: "var(--secondary)", padding: "2rem", borderRadius: "1rem", border: "1px solid var(--border)", marginBottom: "2rem" }}>
-          <form onSubmit={calculateRetirement} style={{ display: "grid", gap: "1rem" }}>
-             <select value={type} onChange={e => setType(e.target.value)} style={{ padding: "0.8rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--background)", color: "white" }}>
-                <option>Gratuity Entitlement</option><option>EPS / PF Pension Dispute</option><option>Voluntary Retirement (VRS)</option>
-             </select>
-             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                <input type="number" value={salary} onChange={e => setSalary(e.target.value)} placeholder="Last Drawn Salary (Basic + DA)" style={{ padding: "0.8rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--background)", color: "white" }} />
-                <input type="number" value={years} onChange={e => setYears(e.target.value)} placeholder="Years of Service" style={{ padding: "0.8rem", borderRadius: "0.5rem", border: "1px solid var(--border)", background: "var(--background)", color: "white" }} />
-             </div>
-             <button disabled={loading} style={{ padding: "1rem", background: "#8b5cf6", color: "white", borderRadius: "0.5rem", fontWeight: "900", border: "none", cursor: "pointer" }}>
-                {loading ? "CALCULATING RETIREMENT BENEFITS..." : "👵 COMPUTE BENEFITS & DRAFT GRIEVANCE →"}
-             </button>
-          </form>
-        </div>
-        {calc && (
-          <div style={{ background: "rgba(20,184,166,0.05)", padding: "2rem", borderRadius: "1rem", border: "1px solid var(--primary)", whiteSpace: "pre-wrap", fontSize: "0.9rem", lineHeight: "1.7" }}>
-            {calc}
-          </div>
-        )}
-      </main>
+      ))}
     </div>
+  );
+}
+
+const prompts = [
+  "How do I withdraw my EPF online?",
+  "Calculate my EPF corpus at retirement",
+  "What is the EPS pension formula?",
+  "Can I withdraw EPF before 5 years?",
+];
+
+export default function PensionPage() {
+  return (
+    <AgentChatLayout
+      agentName="Pension Pilot"
+      agentIcon="🏖️"
+      agentDescription="EPF withdrawals, EPS pension claims, and retirement corpus planning."
+      rightPanel={<EPFCalculator />}
+    >
+      <div className="empty-state">
+        <div className="empty-state-icon">🏖️</div>
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Pension Pilot</h2>
+        <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
+          Plan your retirement confidently. Calculate EPF corpus, understand EPS pension, and navigate withdrawals.
+        </p>
+        <div className="suggested-prompts">
+          {prompts.map((p, i) => (
+            <button key={i} className="prompt-pill">{p}</button>
+          ))}
+        </div>
+      </div>
+    </AgentChatLayout>
   );
 }

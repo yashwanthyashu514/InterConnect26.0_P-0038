@@ -1,146 +1,182 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
+import React, { useState } from "react";
+import Link from "next/link";
+
+const steps = [
+  {
+    step: 1,
+    title: "Who are you?",
+    options: [
+      { icon: "👤", label: "Individual / Salaried", desc: "Personal tax, loans, disputes" },
+      { icon: "🏪", label: "MSME / Founder", desc: "GST, compliance, contracts" },
+      { icon: "🌏", label: "NRI", desc: "FEMA, DTAA, NRO/NRE advisory" },
+      { icon: "🏢", label: "Enterprise / Law Firm", desc: "B2B API and white-label access" },
+    ],
+  },
+  {
+    step: 2,
+    title: "What's your biggest pain point?",
+    options: [
+      "Tax & ITR Filing", "GST & Compliance", "Legal Disputes",
+      "Contracts & Agreements", "Banking Issues", "Real Estate Problems",
+    ],
+  },
+  { step: 3, title: "Create your account" },
+  { step: 4, title: "You're all set!" },
+];
+
+const recommendedAgents = [
+  { icon: "📋", name: "maCA Tax", href: "/tax" },
+  { icon: "🏦", name: "BankFight", href: "/bankfight" },
+  { icon: "📝", name: "Notice Fighter", href: "/notice" },
+];
 
 export default function OnboardingPage() {
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [gstin, setGstin] = useState('');
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [step, setStep] = useState(1);
+  const [selectedRole, setSelectedRole] = useState<number | null>(null);
+  const [selectedPains, setSelectedPains] = useState<number[]>([]);
+  const [agreed, setAgreed] = useState(false);
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push('/login');
-      }
-    };
-    checkUser();
-  }, [router]);
+  const progress = (step / 4) * 100;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    // Update user profile metadata or save to profiles table
-    const { error } = await supabase.auth.updateUser({
-      data: { 
-        full_name: name,
-        phone_number: phone,
-        gstin: gstin,
-        onboarding_completed: true
-      }
-    });
-
-    if (error) {
-      alert(error.message);
-    } else {
-      router.push('/'); // Redirect to main app or dashboard
-    }
-    setLoading(false);
+  const togglePain = (i: number) => {
+    setSelectedPains((prev) => prev.includes(i) ? prev.filter((x) => x !== i) : [...prev, i]);
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '1rem',
-      background: 'var(--background)'
-    }}>
-      <div className="animate-in" style={{
-        maxWidth: '500px',
-        width: '100%',
-        background: 'var(--secondary)',
-        padding: '3rem',
-        borderRadius: 'var(--radius)',
-        border: '1px solid var(--border)',
-        boxShadow: '0 20px 40px rgba(0, 0, 0, 0.05)'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-          <h1 style={{ color: 'var(--primary)', fontSize: '2rem', marginBottom: '0.5rem' }}>One Last Step</h1>
-          <p style={{ color: 'var(--muted)', fontSize: '0.875rem' }}>Let's personalize your maCA experience</p>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 24px" }}>
+
+      {/* Logo */}
+      <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)", marginBottom: "48px" }}>
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
+          maCA
+        </span>
+      </Link>
+
+      {/* Progress */}
+      <div style={{ width: "100%", maxWidth: "600px", marginBottom: "12px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+          <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Step {step} of 4</span>
+          <span style={{ fontSize: "12px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>{Math.round(progress)}%</span>
         </div>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', color: 'var(--muted)' }}>
-              FULL NAME
-            </label>
-            <input 
-              type="text" 
-              placeholder="Ataru Moroboshi" 
-              value={name}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                background: 'var(--background)',
-                color: 'var(--foreground)'
-              }}
-            />
+      {/* Step Card */}
+      <div style={{ width: "100%", maxWidth: "600px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "20px", padding: "40px" }}>
+        {/* Step 1 */}
+        {step === 1 && (
+          <div>
+            <span className="section-tag" style={{ marginBottom: "16px" }}>Step 1</span>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
+              {steps[0].title}
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              {(steps[0].options as { icon: string; label: string; desc: string }[]).map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedRole(i)}
+                  style={{ padding: "20px", background: selectedRole === i ? "var(--acid-muted)" : "var(--bg-primary)", border: `0.5px solid ${selectedRole === i ? "var(--border-acid)" : "var(--border-subtle)"}`, borderRadius: "12px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
+                >
+                  <div style={{ fontSize: "28px", marginBottom: "10px" }}>{opt.icon}</div>
+                  <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "14px", color: "var(--text-primary)", marginBottom: "4px" }}>{opt.label}</p>
+                  <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{opt.desc}</p>
+                </button>
+              ))}
+            </div>
           </div>
+        )}
 
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', color: 'var(--muted)' }}>
-              PHONE NUMBER
-            </label>
-            <input 
-              type="tel" 
-              placeholder="+91 99999 00000" 
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                background: 'var(--background)',
-                color: 'var(--foreground)'
-              }}
-            />
+        {/* Step 2 */}
+        {step === 2 && (
+          <div>
+            <span className="section-tag" style={{ marginBottom: "16px" }}>Step 2</span>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
+              {steps[1].title}
+            </h2>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+              {(steps[1].options as string[]).map((opt, i) => (
+                <button
+                  key={i}
+                  onClick={() => togglePain(i)}
+                  style={{ padding: "10px 20px", background: selectedPains.includes(i) ? "var(--acid)" : "var(--bg-primary)", border: `0.5px solid ${selectedPains.includes(i) ? "var(--acid)" : "var(--border-subtle)"}`, borderRadius: "100px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: selectedPains.includes(i) ? "var(--bg-primary)" : "var(--text-secondary)", fontWeight: selectedPains.includes(i) ? 500 : 400, transition: "all 0.2s" }}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
           </div>
+        )}
 
-          <div style={{ marginBottom: '2.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: '600', marginBottom: '0.5rem', color: 'var(--muted)' }}>
-              GSTIN (OPTIONAL)
-            </label>
-            <input 
-              type="text" 
-              placeholder="27AAACR1234A1Z5" 
-              value={gstin}
-              onChange={(e) => setGstin(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                borderRadius: 'var(--radius)',
-                border: '1px solid var(--border)',
-                background: 'var(--background)',
-                color: 'var(--foreground)'
-              }}
-            />
+        {/* Step 3 */}
+        {step === 3 && (
+          <div>
+            <span className="section-tag" style={{ marginBottom: "16px" }}>Step 3</span>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
+              {steps[2].title}
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <input type="text" placeholder="Full Name" className="input-dark" />
+              <input type="email" placeholder="Email Address" className="input-dark" />
+              <input type="tel" placeholder="Phone Number" className="input-dark" />
+              <input type="password" placeholder="Create Password" className="input-dark" />
+              <input type="text" placeholder="Referral Code (optional)" className="input-dark" />
+              <label style={{ display: "flex", gap: "10px", alignItems: "flex-start", cursor: "pointer" }}>
+                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} style={{ marginTop: "3px", accentColor: "var(--acid)" }} />
+                <span style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5 }}>
+                  I agree to the <span style={{ color: "var(--acid)" }}>Terms of Service</span> and <span style={{ color: "var(--acid)" }}>Privacy Policy</span>. I understand maCA Empire is an AI tool and not a substitute for professional legal advice.
+                </span>
+              </label>
+            </div>
           </div>
+        )}
 
-          <button 
-            type="submit" 
-            className="button-primary" 
-            disabled={loading}
-            style={{ width: '100%', padding: '0.75rem' }}
-          >
-            {loading ? 'Finalizing...' : 'Complete Onboarding'}
-          </button>
-        </form>
+        {/* Step 4 */}
+        {step === 4 && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width: "80px", height: "80px", background: "var(--acid)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "36px", margin: "0 auto 24px" }}>✓</div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "12px" }}>You&apos;re all set!</h2>
+            <p style={{ fontSize: "15px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "32px" }}>
+              Based on your needs, here are your recommended agents:
+            </p>
+            <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "32px" }}>
+              {recommendedAgents.map((a, i) => (
+                <Link key={i} href={a.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px", background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "12px", textDecoration: "none", minWidth: "100px" }}>
+                  <span style={{ fontSize: "28px" }}>{a.icon}</span>
+                  <span style={{ fontSize: "12px", color: "var(--text-primary)", fontFamily: "'Syne', sans-serif", fontWeight: 700 }}>{a.name}</span>
+                </Link>
+              ))}
+            </div>
+            <Link href="/dashboard" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px 40px" }}>
+              Go to Dashboard →
+            </Link>
+          </div>
+        )}
+
+        {/* Navigation */}
+        {step < 4 && (
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px" }}>
+            <button
+              onClick={() => setStep(Math.max(1, step - 1))}
+              className="btn-ghost"
+              style={{ display: step === 1 ? "none" : "flex" }}
+            >
+              ← Back
+            </button>
+            <div style={{ flex: 1 }} />
+            <button
+              onClick={() => setStep(step + 1)}
+              className="btn-primary"
+              disabled={step === 3 && !agreed}
+              style={{ opacity: step === 3 && !agreed ? 0.5 : 1 }}
+            >
+              {step === 3 ? "Create Account →" : "Continue →"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -16,6 +16,11 @@ maca-empire/next-env.d.ts
 maca-empire/.env*
 maca-empire/docs/
 maca-empire/supabase_check.txt
+*.local
+*.secret
+credentials.json
+token.json
+.vscode/
 
 # Debug logs
 maca-empire/npm-debug.log*

@@ -1,193 +1,165 @@
 "use client";
 
 import React, { useState } from "react";
-import { Building2, Users, LayoutDashboard, Key, ShieldCheck, Clock, CheckCircle, ChevronRight, Briefcase, Zap } from "lucide-react";
+import Link from "next/link";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+const features = [
+  { icon: "🔌", title: "API Portal Access", desc: "Full REST API access to all 22 agents with 99.9% SLA guarantees and dedicated rate limits." },
+  { icon: "🏷️", title: "White-Label", desc: "Deploy under your brand. Your domain, your identity. Custom styling and branding supported." },
+  { icon: "👥", title: "Team Accounts", desc: "Multi-user with role-based access control. Unlimited seats with enterprise plan." },
+  { icon: "📊", title: "Analytics Dashboard", desc: "Full usage analytics, agent performance metrics, and audit logs for compliance." },
+  { icon: "🔒", title: "Data Residency", desc: "On-prem deployment options for sensitive data. DPDP Act fully compliant." },
+  { icon: "🤝", title: "Dedicated CSM", desc: "Dedicated customer success manager with SLA for enterprise customers." },
+];
 
-interface B2BResult {
-  company_name: string;
-  cin_valid: boolean;
-  upcoming_deadlines: string[];
-  risk_flags: string[];
-  recommended_agents: string[];
-  api_key?: string;
-}
+const clients = [
+  "HDFC Bank", "Razorpay", "Nasscom", "Legalzoom IN", "Quicko", "ClearTax"
+];
 
 export default function B2BPage() {
-  const [cin, setCin] = useState("");
-  const [empCount, setEmpCount] = useState("10-50");
-  const [needs, setNeeds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<B2BResult | null>(null);
+  const [submitted, setSubmitted] = useState(false);
+  const [form, setForm] = useState({ company: "", name: "", email: "", phone: "", teamSize: "11-50", useCase: "" });
 
-  const toggleNeed = (n: string) => {
-    setNeeds(prev => prev.includes(n) ? prev.filter(x => x !== n) : [...prev, n]);
-  };
-
-  const handleOnboard = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!cin.trim()) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/b2b-onboard`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cin, emp_count: empCount, selected_needs: needs }),
-      });
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
+    setSubmitted(true);
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--background)", padding: "2rem" }}>
-      <main style={{ maxWidth: "1200px", margin: "2rem auto" }}>
-        <div style={{ marginBottom: "3.5rem", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <div>
-            <h1 style={{ fontSize: "2.8rem", fontWeight: "900", color: "var(--primary)", letterSpacing: "-1.5px" }}>💼 B2B Legal Ops</h1>
-            <p style={{ fontSize: "1.1rem", color: "var(--muted)", marginTop: "0.5rem" }}>The Dedicated Legal Department for Indian SMEs · Compliance at Scale</p>
+    <main style={{ background: "var(--bg-primary)", paddingTop: "68px" }}>
+
+      {/* ── HERO ── */}
+      <section style={{ position: "relative", padding: "100px 24px 80px", textAlign: "center", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: "-100px", left: "50%", transform: "translateX(-50%)", width: "800px", height: "500px", background: "radial-gradient(ellipse at center, rgba(181,255,46,0.07) 0%, transparent 65%)", pointerEvents: "none" }} />
+        <div style={{ position: "relative", zIndex: 1, maxWidth: "700px", margin: "0 auto" }}>
+          <span className="section-tag" style={{ marginBottom: "20px" }}>Enterprise & B2B</span>
+          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(36px, 5vw, 64px)", letterSpacing: "-2.5px", lineHeight: 1.05, marginBottom: "20px" }}>
+            maCA Empire for
+            <br />
+            <span style={{ color: "var(--acid)" }}>Enterprise</span>
+          </h1>
+          <p style={{ fontSize: "18px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "500px", margin: "0 auto 32px", lineHeight: 1.65 }}>
+            Full API access to 22 AI agents. White-label deployment. Enterprise SLAs. Built for legal tech firms, banks, and large corporates.
+          </p>
+          <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
+            <a href="#contact" className="btn-primary" style={{ fontSize: "16px", padding: "14px 32px" }}>Book a Demo →</a>
+            <Link href="/api-portal" className="btn-ghost" style={{ fontSize: "16px", padding: "14px 32px" }}>View API Docs</Link>
           </div>
-          <div style={{ padding: "0.5rem 1.25rem", background: "var(--primary)", color: "white", borderRadius: "2rem", fontWeight: "900", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Zap size={14} fill="currentColor" /> ENTERPRISE PLAN
+          <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginTop: "20px" }}>
+            Starting from <span style={{ color: "var(--acid)" }}>₹25,000/month</span> · Custom contract · Dedicated support
+          </p>
+        </div>
+      </section>
+
+      {/* ── CLIENT LOGOS ── */}
+      <section style={{ padding: "40px 24px", borderTop: "0.5px solid var(--border-subtle)", borderBottom: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
+        <div className="container" style={{ textAlign: "center" }}>
+          <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", letterSpacing: "1px", textTransform: "uppercase", marginBottom: "20px" }}>Trusted by India&apos;s leading organizations</p>
+          <div style={{ display: "flex", gap: "32px", justifyContent: "center", flexWrap: "wrap", alignItems: "center" }}>
+            {clients.map((c) => (
+              <div key={c} style={{ padding: "10px 20px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px" }}>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "14px", color: "var(--text-muted)" }}>{c}</span>
+              </div>
+            ))}
           </div>
         </div>
+      </section>
 
-        {!result ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "4rem" }}>
-            {/* Left: Onboarding Form */}
-            <div style={{ background: "var(--secondary)", padding: "3rem", borderRadius: "2rem", border: "1px solid var(--border)" }}>
-              <h3 style={{ fontSize: "1.2rem", fontWeight: "900", color: "var(--foreground)", marginBottom: "2.5rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                <Building2 size={24} /> COMPANY ONBOARDING
-              </h3>
-              <form onSubmit={handleOnboard} style={{ display: "grid", gap: "2rem" }}>
-                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "1.5rem" }}>
-                   <div>
-                     <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", marginBottom: "0.6rem", display: "block" }}>COMPANY CIN / GSTIN</label>
-                     <input value={cin} onChange={e => setCin(e.target.value.toUpperCase())} placeholder="e.g. U74999MH2021PTC123456" style={{ width: "100%", padding: "1.1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "1rem" }} />
-                   </div>
-                   <div>
-                     <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", marginBottom: "0.6rem", display: "block" }}>EMPLOYEE COUNT</label>
-                     <select value={empCount} onChange={e => setEmpCount(e.target.value)} style={{ width: "100%", padding: "1.1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", background: "var(--background)", color: "white", fontSize: "1rem" }}>
-                       <option>1-10</option><option>10-50</option><option>50-200</option><option>200+</option>
-                     </select>
-                   </div>
+      {/* ── FEATURES ── */}
+      <section style={{ padding: "80px 24px" }}>
+        <div className="container">
+          <div style={{ textAlign: "center", marginBottom: "48px" }}>
+            <span className="section-tag" style={{ marginBottom: "16px" }}>Enterprise Features</span>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px, 4vw, 44px)", letterSpacing: "-2px" }}>
+              Built for scale. Built for India.
+            </h2>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+            {features.map((f, i) => (
+              <div key={i} className="card" style={{ padding: "28px" }}>
+                <div style={{ fontSize: "32px", marginBottom: "16px" }}>{f.icon}</div>
+                <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", marginBottom: "10px" }}>{f.title}</h3>
+                <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65 }}>{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS ── */}
+      <section style={{ padding: "60px 24px", background: "var(--bg-secondary)" }}>
+        <div className="container">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0", border: "0.5px solid var(--border-acid)", borderRadius: "16px", overflow: "hidden", background: "var(--bg-primary)" }}>
+            {[
+              { value: "99.9%", label: "API Uptime SLA" },
+              { value: "< 2s", label: "Avg Response Time" },
+              { value: "22", label: "Specialized Agents" },
+              { value: "DPDP", label: "Compliant" },
+            ].map((s, i) => (
+              <div key={i} style={{ padding: "32px 24px", textAlign: "center", borderRight: i < 3 ? "0.5px solid var(--border-subtle)" : "none" }}>
+                <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "40px", letterSpacing: "-2px", color: "var(--acid)", marginBottom: "6px" }}>{s.value}</p>
+                <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CONTACT FORM ── */}
+      <section id="contact" style={{ padding: "80px 24px" }}>
+        <div className="container">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start" }}>
+            <div>
+              <span className="section-tag" style={{ marginBottom: "16px" }}>Contact Sales</span>
+              <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px, 3.5vw, 44px)", letterSpacing: "-2px", marginBottom: "20px" }}>
+                Let&apos;s build something together.
+              </h2>
+              <p style={{ fontSize: "15px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65, marginBottom: "32px" }}>
+                Our enterprise team will work with you to create a custom deployment plan. Expect a response within 24 business hours.
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                {[
+                  { icon: "📧", label: "enterprise@macaempire.in" },
+                  { icon: "📞", label: "+91 98765 43210" },
+                  { icon: "🏢", label: "Bengaluru, Karnataka, India" },
+                ].map((c, i) => (
+                  <div key={i} style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+                    <span style={{ fontSize: "20px" }}>{c.icon}</span>
+                    <span style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif" }}>{c.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {submitted ? (
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "20px", padding: "48px", textAlign: "center" }}>
+                <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
+                <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", marginBottom: "8px" }}>Request received!</h3>
+                <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Our enterprise team will contact you within 24 business hours.</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "20px", padding: "32px", display: "flex", flexDirection: "column", gap: "12px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <input placeholder="Company Name" className="input-dark" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} required />
+                  <input placeholder="Your Name" className="input-dark" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
                 </div>
-
-                <div>
-                   <label style={{ fontSize: "0.75rem", fontWeight: "900", color: "var(--muted)", marginBottom: "1rem", display: "block" }}>PRIMARY LEGAL NEEDS (MULTI-SELECT)</label>
-                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1rem" }}>
-                      {["GST Compliance", "Payroll & EPF", "Contract Review", "Regulatory ROC", "Banking Disputes", "LITIGATION GUARD"].map(n => (
-                        <div key={n} onClick={() => toggleNeed(n)} style={{
-                          padding: "1rem", borderRadius: "0.75rem", border: "1px solid var(--border)", cursor: "pointer",
-                          background: needs.includes(n) ? "var(--primary)" : "var(--background)", 
-                          color: needs.includes(n) ? "white" : "var(--foreground)",
-                          fontSize: "0.85rem", fontWeight: "700", textAlign: "center", transition: "0.2s"
-                        }}>
-                          {n}
-                        </div>
-                      ))}
-                   </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                  <input type="email" placeholder="Email Address" className="input-dark" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+                  <input type="tel" placeholder="Phone Number" className="input-dark" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
                 </div>
-
-                <button type="submit" disabled={loading} style={{ padding: "1.5rem", borderRadius: "1rem", background: "var(--primary)", color: "white", border: "none", fontSize: "1.2rem", fontWeight: "900", cursor: "pointer", transition: "0.2s", marginTop: "1rem" }}>
-                  {loading ? "INITIALIZING LEGAL OPS..." : "ACTIVATE ENTERPRISE SUITE →"}
+                <select className="input-dark" value={form.teamSize} onChange={(e) => setForm({ ...form, teamSize: e.target.value })}>
+                  {["1-10", "11-50", "51-200", "201-1000", "1000+"].map((s) => <option key={s} value={s}>{s} employees</option>)}
+                </select>
+                <textarea placeholder="Describe your use case and requirements..." rows={4} className="input-dark" value={form.useCase} onChange={(e) => setForm({ ...form, useCase: e.target.value })} style={{ resize: "none" }} required />
+                <button type="submit" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px" }}>
+                  Contact Enterprise Sales →
                 </button>
               </form>
-            </div>
-
-            {/* Right: Pitch */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-               <div style={{ background: "rgba(20,184,166,0.05)", border: "1px dashed var(--primary)", borderRadius: "1.5rem", padding: "2rem" }}>
-                  <h4 style={{ fontSize: "0.9rem", fontWeight: "900", color: "var(--primary)", marginBottom: "1rem" }}>WHY B2B?</h4>
-                  <ul style={{ display: "grid", gap: "1rem", padding: 0, listStyle: "none" }}>
-                    {[
-                      "Unlocks all 22 Expert AI Agents",
-                      "Priority Response Tier (< 10s)",
-                      "Secure Company Document Vault",
-                      "5 Collaborative Team Seats",
-                      "Custom API Integration Key"
-                    ].map(x => (
-                      <li key={x} style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.95rem", color: "var(--foreground)" }}>
-                        <CheckCircle size={18} style={{ color: "var(--primary)" }} /> {x}
-                      </li>
-                    ))}
-                  </ul>
-               </div>
-               <div style={{ textAlign: "center", padding: "2rem", background: "black", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                 <div style={{ fontSize: "2rem", fontWeight: "900", color: "white" }}>₹9,999<span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>/month</span></div>
-                 <p style={{ fontSize: "0.75rem", color: "var(--muted)", marginTop: "0.5rem" }}>Replaces a ₹65,000/month In-house Counsel</p>
-               </div>
-            </div>
+            )}
           </div>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", gap: "3rem" }}>
-            {/* Sidebar Dashboard */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-               <div style={{ background: "var(--secondary)", padding: "1.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)", textAlign: "center" }}>
-                  <div style={{ width: "80px", height: "80px", background: "var(--primary)", borderRadius: "1rem", margin: "0 auto 1.5rem", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "2rem", fontWeight: "900" }}>{result.company_name[0]}</div>
-                  <h3 style={{ fontSize: "1rem", fontWeight: "900" }}>{result.company_name}</h3>
-                  <p style={{ fontSize: "0.6rem", color: "var(--muted)", marginTop: "0.25rem" }}>{cin}</p>
-                  <div style={{ marginTop: "1.5rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                     <button style={{ padding: "0.75rem", borderRadius: "0.5rem", background: "var(--background)", border: "1px solid var(--border)", color: "white", fontSize: "0.8rem", fontWeight: "700", textAlign: "left", display: "flex", alignItems: "center", gap: "0.5rem" }}><LayoutDashboard size={14}/> Dashboard</button>
-                     <button style={{ padding: "0.75rem", borderRadius: "0.5rem", background: "transparent", border: "none", color: "var(--muted)", fontSize: "0.8rem", fontWeight: "700", textAlign: "left", display: "flex", alignItems: "center", gap: "0.5rem" }}><Users size={14}/> Team (5/5)</button>
-                     <button style={{ padding: "0.75rem", borderRadius: "0.5rem", background: "transparent", border: "none", color: "var(--muted)", fontSize: "0.8rem", fontWeight: "700", textAlign: "left", display: "flex", alignItems: "center", gap: "0.5rem" }}><Key size={14}/> API Portal</button>
-                  </div>
-               </div>
-               <div style={{ background: "var(--secondary)", padding: "1.5rem", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                  <h4 style={{ fontSize: "0.7rem", fontWeight: "900", color: "var(--primary)", marginBottom: "1rem" }}>API ACCESS KEY</h4>
-                  <div style={{ padding: "0.75rem", background: "black", borderRadius: "0.5rem", color: "var(--primary)", fontSize: "0.7rem", fontFamily: "monospace", overflowX: "auto" }}>
-                    {result.api_key}
-                  </div>
-               </div>
-            </div>
+        </div>
+      </section>
 
-            {/* Main Content */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
-               {/* Summary Cards */}
-               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem" }}>
-                  <div style={{ background: "var(--secondary)", padding: "2rem", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                     <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "var(--primary)", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}><Clock size={16}/> UPCOMING COMPLIANCE</h4>
-                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                        {result.upcoming_deadlines.map((d, i) => (
-                          <div key={i} style={{ padding: "1rem", background: "var(--background)", borderRadius: "0.75rem", border: "1px solid var(--border)", fontSize: "0.85rem", fontWeight: "700" }}>{d}</div>
-                        ))}
-                     </div>
-                  </div>
-                  <div style={{ background: "var(--secondary)", padding: "2rem", borderRadius: "1.5rem", border: "1px solid var(--border)" }}>
-                     <h4 style={{ fontSize: "0.8rem", fontWeight: "900", color: "#ef4444", display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}><ShieldCheck size={16}/> RISK MONITOR</h4>
-                     <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                        {result.risk_flags.map((f, i) => (
-                          <div key={i} style={{ padding: "1rem", background: "rgba(239, 68, 68, 0.05)", borderRadius: "0.75rem", border: "1px dashed #ef4444", fontSize: "0.85rem", color: "#ef4444" }}>🚩 {f}</div>
-                        ))}
-                     </div>
-                  </div>
-               </div>
-
-               {/* Agent Access Grid */}
-               <div>
-                  <h4 style={{ fontSize: "1rem", fontWeight: "900", marginBottom: "1.5rem" }}>UNLOCK ALL AGENTS</h4>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "1.5rem" }}>
-                     {result.recommended_agents.map(id => (
-                       <div key={id} style={{ background: "var(--secondary)", padding: "1.5rem", borderRadius: "1.5rem", border: "1px solid var(--primary)", display: "flex", alignItems: "center", gap: "1rem", cursor: "pointer" }}>
-                          <Briefcase size={24} style={{ color: "var(--primary)" }} />
-                          <div>
-                            <div style={{ fontSize: "0.9rem", fontWeight: "900" }}>Agent ID: {id}</div>
-                            <div style={{ fontSize: "0.6rem", color: "var(--muted)" }}>Prioritized for Business</div>
-                          </div>
-                          <ChevronRight size={16} style={{ marginLeft: "auto", color: "var(--muted)" }} />
-                       </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-          </div>
-        )}
-      </main>
-    </div>
+    </main>
   );
 }
