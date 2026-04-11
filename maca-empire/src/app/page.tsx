@@ -274,7 +274,7 @@ export default function LandingPage() {
         html { scroll-behavior: smooth; }
       `}</style>
 
-      <main style={{ background: "var(--bg-primary)", paddingTop: "68px" }}>
+      <main style={{ background: "#000000", paddingTop: "68px" }}>
 
         <div style={{ background: "#F7F8F3" }}>
             <section 
@@ -342,6 +342,9 @@ export default function LandingPage() {
                 backgroundRepeat: "no-repeat", 
                 backgroundPosition: "center bottom", 
                 backgroundColor: "transparent", 
+                mixBlendMode: "screen",
+                filter: "contrast(1.25) brightness(0.85) grayscale(0.1)",
+                WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
               }} />
             </div>
 
