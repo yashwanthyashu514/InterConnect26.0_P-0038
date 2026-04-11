@@ -24,6 +24,8 @@ const agents = [
   { id: "A18", name: "Trade & EXIM", icon: "📦", desc: "HS codes, DGFT compliance, duty drawback.", tag: "ELITE", href: "/trade" },
   { id: "A19", name: "AI Mock Judge", icon: "🤖", desc: "Simulate arbitration. Stress-test your arguments.", tag: "ELITE", href: "/ai-judge", featured: true },
   { id: "A20", name: "Enterprise API", icon: "🏢", desc: "API access and white-label for enterprises.", tag: "ELITE", href: "/b2b" },
+  { id: "A21", name: "DPDP Shield", icon: "🛡️", desc: "DPDP Act 2023 Compliance, Gap Analysis & Audit.", tag: "ELITE", href: "/dpdp" },
+  { id: "A22", name: "CryptoTax Pro", icon: "🪙", desc: "30% VDA Tax Calculator & Schedule VDA ITR Filing.", tag: "ELITE", href: "/crypto-tax" },
 ];
 
 const marqueeItems = [

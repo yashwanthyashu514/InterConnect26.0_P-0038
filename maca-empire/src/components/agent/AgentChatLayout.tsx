@@ -1,7 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  citations?: any[];
+}
 
 interface ConversationItem {
   id: string;
@@ -13,158 +19,199 @@ interface AgentChatLayoutProps {
   agentName: string;
   agentIcon: string;
   agentDescription: string;
-  agentTagline?: string;
-  accentColor?: string;
-  children: React.ReactNode; // main chat content (messages + empty state)
-  rightPanel?: React.ReactNode; // optional right panel
+  agentId?: string;
+  children: React.ReactNode; 
+  rightPanel?: React.ReactNode; 
   extraTopBarContent?: React.ReactNode;
-  conversations?: ConversationItem[];
 }
 
-const defaultConversations: ConversationItem[] = [
-  { id: "1", preview: "Calculate my tax liability for FY...", timestamp: "2h ago" },
-  { id: "2", preview: "What deductions apply under Sec...", timestamp: "Yesterday" },
-  { id: "3", preview: "Draft a notice reply for my GST...", timestamp: "2d ago" },
-];
+const BACKEND_URL = "http://localhost:8000";
 
 export default function AgentChatLayout({
   agentName,
   agentIcon,
   agentDescription,
-  accentColor = "var(--acid)",
+  agentId,
   children,
   rightPanel,
   extraTopBarContent,
-  conversations = defaultConversations,
 }: AgentChatLayoutProps) {
-  const [activeConv, setActiveConv] = useState("1");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!inputValue.trim() || isTyping) return;
+
+    const userMsg: Message = { role: "user", content: inputValue };
+    setMessages(prev => [...prev, userMsg]);
+    setInputValue("");
+    setIsTyping(true);
+
+    try {
+      // Determine Route
+      let endpoint = `${BACKEND_URL}/ask`;
+      let payload: any = { query: userMsg.content, agent_id: agentId };
+
+      if (agentId === "A21") {
+        endpoint = `${BACKEND_URL}/api/agents/dpdp-shield/query`;
+        payload = { user_message: userMsg.content };
+      } else if (agentId === "A22") {
+        endpoint = `${BACKEND_URL}/api/agents/cryptotax-pro/query`;
+        payload = { user_message: userMsg.content };
+      }
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) throw new Error("Backend unavailable");
+
+      // Handle Streaming
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantMsg: Message = { role: "assistant", content: "" };
+      setMessages(prev => [...prev, assistantMsg]);
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+          
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const dataStr = line.replace("data: ", "").trim();
+              if (dataStr === "[DONE]") continue;
+              try {
+                const data = JSON.parse(dataStr);
+                if (data.token) {
+                  assistantMsg.content += data.token;
+                  setMessages(prev => {
+                    const newMsgs = [...prev];
+                    newMsgs[newMsgs.length - 1] = { ...assistantMsg };
+                    return newMsgs;
+                  });
+                } else if (data.citations) {
+                  assistantMsg.citations = data.citations;
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Error: Failed to connect to maCA AGI. Ensure backend is running." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-primary)" }}>
-      {/* ── Left Sidebar ── */}
+      {/* ── Left Sidebar (History & Branding) ── */}
       <aside className="chat-sidebar">
-        {/* Agent Header */}
         <div style={{ padding: "20px 16px", borderBottom: "0.5px solid var(--border-subtle)" }}>
           <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", marginBottom: "20px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
-              maCA
-            </span>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E" }}>maCA</span>
           </Link>
-
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <div style={{ width: "44px", height: "44px", background: "var(--acid-muted)", border: "0.5px solid var(--border-acid)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>
+            <div style={{ width: "44px", height: "44px", background: "rgba(181, 255, 46, 0.1)", border: "0.5px solid rgba(181, 255, 46, 0.3)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
               {agentIcon}
             </div>
             <div>
-              <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px", color: "var(--text-primary)", marginBottom: "2px" }}>{agentName}</p>
-              <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.4 }}>{agentDescription}</p>
+              <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px" }}>{agentName}</p>
+              <p style={{ fontSize: "11px", color: "var(--text-muted)" }}>{agentDescription}</p>
             </div>
           </div>
         </div>
 
-        {/* Conversations List */}
-        <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
-          <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", padding: "12px 16px 6px", fontFamily: "'DM Sans', sans-serif" }}>
-            Recent
-          </p>
-          {conversations.map((conv) => (
-            <div
-              key={conv.id}
-              onClick={() => setActiveConv(conv.id)}
-              className={`history-item ${activeConv === conv.id ? "active" : ""}`}
-              style={{ cursor: "pointer" }}
-            >
-              <p style={{ fontSize: "13px", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: "4px" }}>
-                {conv.preview}
-              </p>
-              <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>
-                {conv.timestamp}
-              </p>
-            </div>
-          ))}
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
+           <p style={{ fontSize: "10px", fontWeight: 700, opacity: 0.3, letterSpacing: "1px", textTransform: "uppercase" }}>Session Log</p>
+           {messages.filter(m => m.role === 'user').map((m, i) => (
+             <div key={i} style={{ padding: "8px 0", fontSize: "12px", opacity: 0.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+               {m.content}
+             </div>
+           ))}
         </div>
-
-        {/* Bottom Bar */}
-        <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)", display: "flex", gap: "8px" }}>
-          <button className="btn-primary" style={{ flex: 1, fontSize: "13px", padding: "10px 16px", justifyContent: "center" }}>
-            + New Chat
-          </button>
-          <Link href="/dashboard" style={{ width: "40px", height: "40px", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", fontSize: "16px", color: "var(--text-secondary)", textDecoration: "none" }}>
-            ⚙️
-          </Link>
+        
+        <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)" }}>
+          <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setMessages([])}>+ New Chat</button>
         </div>
       </aside>
 
       {/* ── Main Chat Area ── */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", position: "relative" }}>
-        {/* Top Bar */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)" }}>
         <div className="chat-topbar">
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-            <span style={{ fontSize: "20px" }}>{agentIcon}</span>
-            <div>
-              <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px", color: "var(--text-primary)" }}>{agentName}</p>
-            </div>
+             <span style={{ fontSize: "20px" }}>{agentIcon}</span>
+             <p style={{ fontWeight: 700 }}>{agentName}</p>
           </div>
-          <span className="status-online">Online</span>
           {extraTopBarContent}
-          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-            <button style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
-              Export ↑
-            </button>
-            <button style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
-              Share ⤢
-            </button>
-          </div>
         </div>
 
-        {/* Messages / Content Area */}
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div className="chat-messages" style={{ flex: 1 }}>
-            {children}
+          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "40px" }}>
+             {messages.length === 0 ? children : (
+               <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "32px" }}>
+                 {messages.map((m, i) => (
+                   <div key={i} style={{ display: "flex", gap: "20px", alignItems: "flex-start", animation: "fade-up-anim 0.3s forwards" }}>
+                     <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: m.role === "user" ? "var(--surface)" : "var(--acid)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>
+                       {m.role === "assistant" ? agentIcon : "👤"}
+                     </div>
+                     <div style={{ flex: 1 }}>
+                        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px", fontWeight: 700 }}>{m.role === "assistant" ? agentName : "You"}</p>
+                        <div style={{ fontSize: "15px", lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap" }}>{m.content}</div>
+                        {m.citations && (
+                          <div style={{ marginTop: "16px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                            {m.citations.map((c, j) => (
+                              <span key={j} style={{ padding: "4px 10px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", fontSize: "10px", color: "var(--text-muted)" }}>{c.source}</span>
+                            ))}
+                          </div>
+                        )}
+                     </div>
+                   </div>
+                 ))}
+                 {isTyping && <div style={{ fontSize: "12px", color: "var(--acid)", opacity: 0.8 }}>maCA is thinking...</div>}
+               </div>
+             )}
           </div>
-          {rightPanel && (
-            <div style={{ width: "320px", borderLeft: "0.5px solid var(--border-subtle)", overflowY: "auto", background: "var(--bg-secondary)" }}>
-              {rightPanel}
+          {rightPanel && <div style={{ width: "320px", borderLeft: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>{rightPanel}</div>}
+        </div>
+
+        {/* ── Input Bar ── */}
+        <div className="chat-input-bar">
+          <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", gap: "12px", alignItems: "flex-end" }}>
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-tertiary)", border: "1px solid var(--border-subtle)", borderRadius: "16px", padding: "12px 20px" }}>
+              <textarea
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                placeholder="Ask anything..."
+                rows={1}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", color: "var(--text-primary)", fontSize: "15px" }}
+              />
+              <button 
+                onClick={handleSend}
+                disabled={isTyping}
+                style={{ background: isTyping ? "var(--text-muted)" : "var(--acid)", color: "#000", border: "none", borderRadius: "100px", padding: "8px 16px", fontWeight: 800, fontSize: "12px", cursor: "pointer" }}
+              >
+                {isTyping ? "..." : "Send →"}
+              </button>
             </div>
-          )}
+          </div>
         </div>
-
-        {/* Input Bar */}
-        <ChatInputBar />
       </main>
-    </div>
-  );
-}
-
-function ChatInputBar() {
-  const [value, setValue] = useState("");
-
-  return (
-    <div className="chat-input-bar">
-      <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: "8px", background: "var(--bg-tertiary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", padding: "10px 14px", transition: "border-color 0.2s" }}>
-          <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "18px", padding: "2px", flexShrink: 0 }}>📎</button>
-          <textarea
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="Ask anything legal or financial..."
-            rows={1}
-            style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", color: "var(--text-primary)", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.5, maxHeight: "120px" }}
-            onInput={(e) => {
-              const el = e.currentTarget;
-              el.style.height = "auto";
-              el.style.height = el.scrollHeight + "px";
-            }}
-          />
-          <button style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: "18px", padding: "2px", flexShrink: 0 }}>🎤</button>
-        </div>
-        <button
-          className="btn-primary"
-          style={{ padding: "10px 20px", fontSize: "14px", borderRadius: "12px", flexShrink: 0 }}
-        >
-          Send →
-        </button>
-      </div>
     </div>
   );
 }

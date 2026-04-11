@@ -33,6 +33,8 @@ We have deployed a comprehensive suite of 20+ specialized agents, each fine-tune
 | **A18** | **Contract Reviewer** | Deep-scan for "Toxic Clauses" in any agreement | ✅ LIVE |
 | **A19** | **Payroll Pilot** | Gross-to-Net Salary (TDS, PF, ESI) Calculator | ✅ LIVE |
 | **A20** | **Voice CA** | Multilingual WhatsApp-style voice consultation | ✅ BETA |
+| **A21** | **DPDP Shield** | DPDP Act 2023 Gap Analysis, Consent Drafting & ₹250Cr Penalty Shield | ✅ LIVE |
+| **A22** | **CryptoTax Pro** | VDA 30% Tax Calculator, Schedule VDA ITR Filing & Live Crypto Tax Meter | ✅ LIVE |
 
 ---
 

@@ -103,6 +103,7 @@ export default function CompliancePage() {
       agentName="ComplianceBot"
       agentIcon="📅"
       agentDescription="Never miss a compliance deadline. Automated filing calendar for your business."
+      agentId="A5"
       rightPanel={<ComplianceCalendar />}
     >
       <div className="empty-state">

@@ -1,127 +1,125 @@
 import os
+import sys
 import argparse
-import requests
-import warnings
+from pathlib import Path
 from openai import OpenAI
-from supabase import create_client, Client
-from pypdf import PdfReader
+from supabase import create_client
+import pdfplumber
 from dotenv import load_dotenv
 
-# Silence SSL warnings
-warnings.filterwarnings("ignore", category=requests.packages.urllib3.exceptions.InsecureRequestWarning)
+load_dotenv()
 
-# Search for .env one folder up
-load_dotenv(os.path.join(os.path.dirname(__file__), '../.env'))
-
-# Config
-CHUNK_SIZE = 512
-OVERLAP = 50
-
-# Clients
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
-NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
-
-if not SUPABASE_URL:
-    raise ValueError("Missing SUPABASE_URL in .env")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-client = OpenAI(
-  base_url="https://integrate.api.nvidia.com/v1",
-  api_key=NVIDIA_API_KEY
+supabase = create_client(
+    os.environ['NEXT_PUBLIC_SUPABASE_URL'],
+    os.environ['SUPABASE_KEY']
 )
 
-def chunk_text(text: str, chunk_size: int, overlap: int):
-    """Semantic-aware chunking: splits by paragraphs and headers first."""
-    # Split by double newline (paragraphs) first
-    paragraphs = text.split("\n\n")
+nim_client = OpenAI(
+    base_url='https://integrate.api.nvidia.com/v1',
+    api_key=os.environ['NVIDIA_API_KEY']
+)
+
+AGENT_CONFIG = {
+    'dpdp_shield': {
+        'folder': 'backend/docs/dpdp_shield/',
+        'table': 'dpdp_shield_documents',
+        'default_category': 'DPDP Compliance'
+    },
+    'cryptotax_pro': {
+        'folder': 'backend/docs/cryptotax_pro/',
+        'table': 'cryptotax_documents',
+        'default_category': 'VDA Tax'
+    }
+}
+
+def extract_text_from_pdf(pdf_path: str) -> list[str]:
     chunks = []
-    current_chunk = ""
-    
-    for p in paragraphs:
-        if len(current_chunk) + len(p) < chunk_size:
-            current_chunk += p + "\n\n"
-        else:
-            if current_chunk:
-                chunks.append(current_chunk.strip())
-            # If a single paragraph is too big, hard cut it
-            if len(p) > chunk_size:
-                sub_start = 0
-                while sub_start < len(p):
-                    chunks.append(p[sub_start : sub_start + chunk_size])
-                    sub_start += (chunk_size - overlap)
-                current_chunk = ""
-            else:
-                current_chunk = p + "\n\n"
-                
-    if current_chunk:
-        chunks.append(current_chunk.strip())
+    with pdfplumber.open(pdf_path) as pdf:
+        full_text = ''
+        for page in pdf.pages:
+            text = page.extract_text()
+            if text:
+                full_text += text + ' '
+        words = full_text.split()
+        chunk_size = 400
+        overlap = 50
+        for i in range(0, len(words), chunk_size - overlap):
+            chunk = ' '.join(words[i:i + chunk_size])
+            if len(chunk.strip()) > 100:
+                chunks.append(chunk.strip())
     return chunks
 
-def ingest_text_or_pdf(file_path: str, source_name: str):
-    print(f"Ingesting {file_path} as '{source_name}'...")
-    text = ""
-    try:
-        if file_path.endswith('.pdf'):
-            reader = PdfReader(file_path)
-            for page in reader.pages:
-                text += page.extract_text() or ""
-        else:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                text = f.read()
+def embed_text(text: str) -> list[float]:
+    response = nim_client.embeddings.create(
+        input=[text],
+        model='nvidia/nv-embed-v1',
+        encoding_format='float',
+        extra_body={'input_type': 'passage', 'truncate': 'END'}
+    )
+    return response.data[0].embedding
 
-        if not text.strip():
-            return
+def ingest_agent(agent_name: str, folder: str = None):
+    config = AGENT_CONFIG.get(agent_name)
+    if not config:
+        print(f'Unknown agent: {agent_name}. Available: {list(AGENT_CONFIG.keys())}')
+        sys.exit(1)
 
-        chunks = chunk_text(text, CHUNK_SIZE, OVERLAP)
-        for i, chunk in enumerate(chunks[:200]): 
-            embedding_response = client.embeddings.create(input=[chunk], model="nvidia/nv-embed-v1")
-            embedding = embedding_response.data[0].embedding
-            supabase.table("documents").insert({
-                "content": chunk,
-                "embedding": embedding,
-                "metadata": {"source": source_name, "chunk_id": i}
-            }).execute()
-        print(f"✅ Successfully ingested {len(chunks[:200])} chunks.")
-    except Exception as e:
-        print(f"❌ Error ingesting {source_name}: {e}")
+    docs_folder = Path(folder or config['folder'])
+    table = config['table']
 
-def seed_tax_regimes():
-    print("\n--- 📑 GENERATING TAX REGIMES TIMELINE (2020 - 2026) ---")
-    docs_dir = os.path.join(os.path.dirname(__file__), '../docs')
-    os.makedirs(docs_dir, exist_ok=True)
-    
-    regimes_data = [
-        (2020, "Introduction of New Tax Regime (Section 115BAC). Taxpayers given a choice between Old (with exemptions) and New (lower rates, no 80C/80D)."),
-        (2021, "Optionality continues. Focus on ITR portal stability for switching between regimes during filing."),
-        (2022, "No major changes to rates, but TDS rules tightened for both regimes."),
-        (2023, "NEW REGIME REVOLUTION: New Regime made the 'Default' regime. Standard Deduction of Rs. 50,000 extended to New Regime. Rebate limit raised to Rs. 7 Lakh income (No tax up to 7L)."),
-        (2024, "Interim Budget: Continuity for both regimes. Focus on pending tax demand waivers (up to Rs. 25,000)."),
-        (2025, "Consolidation Phase: Most taxpayers transition to New Regime as exemptions in Old Regime are phased out for higher brackets."),
-        (2026, "Target State: New Regime simplified to 3 major slabs. maCA Tax agent handles automated switching and optimization for users.")
-    ]
-    
-    for year, snippet in regimes_data:
-        source = f"Tax_Regime_{year}"
-        path = os.path.join(docs_dir, f"{source}.txt")
-        with open(path, 'w', encoding='utf-8') as f:
-            f.write(snippet)
-        ingest_text_or_pdf(path, source)
+    if not docs_folder.exists():
+        print(f'Creating folder: {docs_folder}')
+        docs_folder.mkdir(parents=True, exist_ok=True)
+        print(f'Add PDF files to {docs_folder} and run again.')
+        return
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--file")
-    parser.add_argument("--source")
-    parser.add_argument("--regimes", action="store_true", help="Seed only tax regimes")
+    pdf_files = list(docs_folder.glob('*.pdf'))
+    if not pdf_files:
+        print(f'No PDF files found in {docs_folder}')
+        return
+
+    print(f'Starting ingestion for {agent_name} — {len(pdf_files)} PDFs found')
+
+    for pdf_path in pdf_files:
+        print(f'Processing: {pdf_path.name}')
+        chunks = extract_text_from_pdf(str(pdf_path))
+        print(f'  Extracted {len(chunks)} chunks')
+
+        for i, chunk in enumerate(chunks):
+            try:
+                embedding = embed_text(chunk)
+                supabase.table(table).insert({
+                    'content': chunk,
+                    'embedding': embedding,
+                    'source': pdf_path.name,
+                    'category': config['default_category']
+                }).execute()
+                if (i + 1) % 10 == 0:
+                    print(f'  Inserted {i + 1}/{len(chunks)} chunks')
+            except Exception as e:
+                print(f'  Error on chunk {i}: {e}')
+                continue
+
+        print(f'  Done: {pdf_path.name}')
+
+    print(f'Ingestion complete for {agent_name}')
+
+def main():
+    parser = argparse.ArgumentParser(description='maCA Empire Document Ingester')
+    parser.add_argument('--agent', type=str, help='Agent name: dpdp_shield or cryptotax_pro')
+    parser.add_argument('--folder', type=str, help='Override docs folder path')
+    parser.add_argument('--all', action='store_true', help='Ingest all agents')
     args = parser.parse_args()
 
-    if args.file and args.source:
-        ingest_text_or_pdf(args.file, args.source)
-    elif args.regimes:
-        seed_tax_regimes()
+    if args.all:
+        for agent_name in AGENT_CONFIG:
+            ingest_agent(agent_name)
+    elif args.agent:
+        ingest_agent(args.agent, args.folder)
     else:
-        # Default all seeds
-        seed_tax_regimes()
-    
-    print("\n✅ All Regimes (2020-2026) fully ingested! maCA is a Regime Optimizer.")
+        print('Usage: python ingester.py --agent dpdp_shield')
+        print('       python ingester.py --agent cryptotax_pro')
+        print('       python ingester.py --all')
+
+if __name__ == '__main__':
+    main()

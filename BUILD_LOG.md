@@ -37,6 +37,8 @@ Developed and optimized 20 individual agent interfaces, each with specialized lo
 18. **Contract Reviewer**: Toxic clause detection and risk scoring.
 19. **Payroll Pilot**: Indian salary gross-to-net calculator (TDS, PF, ESI).
 20. **Voice CA**: Multilingual voice-to-text legal query shell.
+21. **DPDP Shield [A21]**: DPDP Act 2023 compliance, consent audits & penalty protection.
+22. **CryptoTax Pro [A22]**: 30% VDA Tax Calculator & Schedule VDA ITR Filing.
 
 ---
 

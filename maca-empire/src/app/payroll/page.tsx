@@ -60,6 +60,7 @@ export default function PayrollPage() {
       agentName="PayrollPilot"
       agentIcon="💰"
       agentDescription="Calculate salaries, PF, ESI, TDS, and generate payslips."
+      agentId="A4"
       rightPanel={<PayrollCalculator />}
     >
       <div className="empty-state">

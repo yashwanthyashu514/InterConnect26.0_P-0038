@@ -3,17 +3,25 @@ import re
 import json
 import uuid
 import datetime
+import asyncio
+import subprocess
 from typing import Optional, List, Dict
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
+from openai import AsyncOpenAI
 from supabase import create_client, Client
 from dotenv import load_dotenv
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+# Project Modules
+from intent_classifier import classify_intent
+from live_data import fetch_live_crypto_price, build_live_crypto_injection
 
 load_dotenv()
 
-app = FastAPI(title="maCA Empire AGI Orchestrator v3")
+app = FastAPI(title="maCA Empire AGI Orchestrator — Advanced Deployment")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,175 +30,179 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# API Clients
-nim_client = OpenAI(
+# --- API Clients ---
+nim_client = AsyncOpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=os.getenv("NVIDIA_API_KEY")
 )
 
 supabase: Client = create_client(
-    os.getenv("SUPABASE_URL"),
+    os.getenv("NEXT_PUBLIC_SUPABASE_URL"),
     os.getenv("SUPABASE_KEY")
 )
 
-# --- BIG 4 PARTNER PERSONA (CONSOLIDATED LOGIC) ---
+# --- SYSTEM PROMPTS ---
 BIG_4_PARTNER_DNA = """
 ROLE: Senior CA Partner (40y exp, Big 4 Firm). 
 CLIENT TYPES: HNIs, Billionaires, Listed Corps.
-
 CORE PRINCIPLES:
-1. DIAGNOSE BEFORE PRESCRIBE: If a query is ambiguous, ASK clarifying questions before giving advice.
-2. PROACTIVE RISK FLAGGING: Always flag 2-3 material risks the user did NOT ask about (e.g., e-invoicing thresholds, GSTR-2B mismatches, FEMA limits).
-3. SETTLED VS GREY LAW: Distinguish clearly between settled law, common practice, and grey areas with conflicting AAR/HC rulings.
-4. PLANNING MINDSET: Suggest tax-saving structures (Sec 54/54F/54EC) proactively.
-5. TONE CALIBRATION:
-   - Layman: Simple English/Hindi, Rs. examples, zero jargon. 
-   - Professional: Cite specific Sections, Circulars, and Supreme Court judgments.
-   - HNI/Billionaire: Switch to Strategic M&A/FEMA/Trust mode.
-6. REFERRAL TRIGGERS: Always refer to a human CA/Advocate for:
-   - Search & Seizure (Sec 132)
-   - Criminal Prosecution
-   - Transactions > Rs. 10 Crores
-   - Formal Sign-offs (Form 15CA/CB)
-
-HALLUCINATION PREVENTION: Never guess a Section number. If uncertain, say 'I believe this is under Section X - verify on CBIC/IncomeTax.gov.in'.
+1. DIAGNOSE BEFORE PRESCRIBE: ASK clarifying questions if ambiguity exists.
+2. PROACTIVE RISK FLAGGING: Flag 2-3 material risks non-requested risks.
+3. SETTLED VS GREY LAW: Distinguish clearly between settled law and grey areas.
+4. PLANNING MINDSET: Proactively suggest tax-saving structures.
+5. REFERRAL TRIGGERS: Always refer to human CA for Search & Seizure or > Rs. 10Cr.
 """
+
+DPDP_SYSTEM_PROMPT = """You are DPDP Shield — an expert AI compliance advisor for maCA Empire, specialising exclusively in India's Digital Personal Data Protection Act 2023 and DPDP Rules 2025 notified on 14 November 2025 by MeitY. Full compliance mandatory by 13 May 2027. Penalties reach Rs.250 crore per violation for Significant Data Fiduciaries. Every response must cite the specific Rule or Section number. Compliance timeline: Phase 1 immediate, Phase 2 by November 2026, Phase 3 full compliance by 13 May 2027. Disclaimer: Not legal advice."""
+
+CRYPTOTAX_SYSTEM_PROMPT = """You are CryptoTax Pro — an expert AI tax advisor for maCA Empire, specialising exclusively in Virtual Digital Assets under the Income Tax Act 1961. Section 115BBH imposes 30% flat tax on ALL VDA gains — zero deductions except cost. Section 194S mandates 1% TDS. FIFO is the only method. VDA losses CANNOT be offset. FEMA: Auto-flag overseas exchanges (Binance, Bybit). When [LIVE_CRYPTO] data is injected, use it for calculations. Disclaimer: Consult CA for final ITR filing."""
 
 AGENT_PROMPTS = {
     # A-Series: Core
-    "A1": "Specialization: Income Tax & GST. Proactively flag ITC 2B risks and e-invoice mandates.",
-    "A2": "Specialization: Banking Law & RB-IOS 2026. Prioritize nodal officer escalations.",
-    "A3": "Specialization: Company Law & ROC. Cite exact penalty clauses for MGT-7/AOC-4 delays.",
-    "A4": "Specialization: Payroll & TDS. Prioritize Section 192/194 compliance and PF/ESI interest.",
-    "A5": "Specialization: Voice CA. Simplified Partner logic for 2-3 sentence speech output.",
-    "A6": "Specialization: Notice Defense. Deep analysis of Sec 148/142 notices. Draft cited replies.",
-    "A7": "Specialization: Audit Risk. Scrutinize GSTIN patterns for potential red flags.",
-    "A8": "Specialization: Court Petitions. Formulating Consumer Court (CPA 2019) cases.",
-    
-    # B-Series: Growth
-    "B1": "Specialization: Startups & FEMA. Focus on ESOP tax and DPIIT benefits.",
-    "B2": "Specialization: RERA. Calculate Section 18 compensation at SBI+2%.",
-    "B3": "Specialization: Labour Law. Industrial Disputes & EPF grievance handling.",
-    "B4": "Specialization: Insurance. IRDAI claim reversal logic.",
-    "B5": "Specialization: Credit Fix. CIC Act 2005 dispute drafting.",
-    "B6": "Specialization: Trade & Customs. HS Code tariff and RoDTEP rebate mapping.",
-    "B7": "Specialization: RTI. Automated Section 6 drafting.",
-    "B8": "Specialization: Pension. Gratuity Act and EPS-95 calculations.",
-    
-    # C-Series: Elite
-    "C1": "Specialization: Succession & Wills. Indian Succession Act 1925 compliance.",
-    "C2": "Specialization: Contracts. Identify Killer Clauses in NDAs/Leases.",
-    "C3": "Specialization: IP Sentinel. Trademark/Patent infringement assessment.",
-    "C4": "Specialization: Consumer King. Zomato/Amazon/Flipkart dispute drafting.",
-    "C5": "Specialization: MSME Recovery. MSME Samadhaan Section 18 procedure.",
-    "C6": "Specialization: Global Tax. DTAA, Transfer Pricing, and Foreign Remittance."
+    "A1": "Income Tax & GST. Flag ITC 2B risks.",
+    "A21": "DPDP Compliance. Expert in consent & penalty protection.",
+    "A22": "VDA Crypto Tax. Expert in Sec 115BBH & Schedule VDA."
 }
 
-# --- Request/Response Schemas ---
+# --- Request Models ---
 class ChatRequest(BaseModel):
     query: str
     gstin: Optional[str] = None
     agent_id: Optional[str] = None
     language: Optional[str] = "English"
 
-class VaultDoc(BaseModel):
-    user_id: str
-    agent_id: str
-    doc_type: str
-    content: str
+class AgentQueryRequest(BaseModel):
+    user_message: str
+    session_id: str = "default"
+    user_context: dict = {}
 
-vault_db = []
-
-def route_agent(query: str) -> str:
-    # LLM Routing for accuracy between 22 agents
+# --- RAG Helpers ---
+async def fetch_agent_rag(agent_id: str, query: str, match_count: int = 8) -> tuple[str, list]:
     try:
-        resp = nim_client.chat.completions.create(
-            model="meta/llama-3.3-70b-instruct",
-            messages=[
-                {"role": "system", "content": "Reply with ONLY one of: A1-A8, B1-B8, C1-C6. Choose the best specialist for the query."},
-                {"role": "user", "content": query[:200]}
-            ],
-            temperature=0.0,
-            max_tokens=6
-        )
-        agent = resp.choices[0].message.content.strip().upper()
-        match = re.search(r"[ABC][1-8]", agent)
-        return match.group() if match else "A1"
-    except:
-        return "A1"
+        # Check if we should use specialized tables
+        if agent_id == "A21":
+            fn_name, prefix = "match_dpdp_documents", "DPDP compliance query India"
+        elif agent_id == "A22":
+            fn_name, prefix = "match_cryptotax_documents", "India VDA crypto tax query Section 115BBH"
+        else:
+            # Fallback to generic if needed (existing logic)
+            fn_name, prefix = "match_documents", "Legal query"
 
-def fetch_rag_context(query: str):
-    try:
-        query_embedding = nim_client.embeddings.create(
-            input=[query],
+        embed_response = await nim_client.embeddings.create(
+            input=[f"{prefix}: {query}"],
             model="nvidia/nv-embed-v1",
-            encoding_format="float"
-        ).data[0].embedding
+            encoding_format="float",
+            extra_body={"input_type": "query", "truncate": "END"}
+        )
+        embedding = embed_response.data[0].embedding
 
-        res = supabase.rpc("match_documents", {
-            "query_embedding": query_embedding,
-            "match_threshold": 0.5,
-            "match_count": 3
+        result = supabase.rpc(fn_name, {
+            "query_embedding": embedding,
+            "match_count": match_count
         }).execute()
-        
-        context = "\n\n".join([r['content'] for r in res.data])
-        sources = [r['metadata'].get('source', 'Unknown') for r in res.data]
-        return context, sources
-    except:
+
+        if not result.data: return "", []
+
+        context = "\n\n".join([r['content'] for r in result.data])
+        citations = [{"source": r.get("source", "Unknown"), "ref": r.get("rule_number") or r.get("section_number", "")} for r in result.data]
+        return context, citations
+    except Exception as e:
+        print(f"RAG error: {e}")
         return "", []
 
+# --- Standard Chat Routes (Refactored to Async) ---
+
 @app.get("/health")
-def health(): return {"status": "ok", "version": "Partner_AGI_v3"}
+def health(): return {"status": "ok", "version": "AGI_Deployment_Day1"}
 
-@app.post("/ask")
-async def ask_agent(request: ChatRequest):
-    query = request.query.strip()
-    if not query: raise HTTPException(status_code=400, detail="Query empty")
+@app.post("/api/agents/dpdp-shield/query")
+async def dpdp_shield_query(request: AgentQueryRequest):
+    intent = classify_intent(request.user_message, 'A21')
+    context, citations = await fetch_agent_rag('A21', request.user_message)
 
-    # 1. Route
-    agent_id = request.agent_id or route_agent(query)
-    persona = AGENT_PROMPTS.get(agent_id, AGENT_PROMPTS["A1"])
-
-    # 2. Context
-    context, sources = fetch_rag_context(query)
-
-    # 3. Assemble Big 4 Partner Prompt
-    system_prompt = f"{BIG_4_PARTNER_DNA}\n\nSPECIALIST PERSONA: {persona}\n\nRELEVANT LAW CONTEXT:\n{context}\n\nSTRICT INSTRUCTION: Respond in {request.language}."
-
-    try:
-        resp = nim_client.chat.completions.create(
+    async def generate():
+        stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": query}
+                {"role": "system", "content": f"{DPDP_SYSTEM_PROMPT}\n\nRELEVANT CONTEXT:\n{context}"},
+                {"role": "user", "content": f"{request.user_message}\n\nIntent: {intent.intent}"}
             ],
-            temperature=0.2, # Slight creativity for 'Strategic Planning'
-            max_tokens=600
+            stream=True
         )
-        return {
-            "agent": agent_id,
-            "answer": resp.choices[0].message.content,
-            "citations": sources
-        }
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'token': chunk.choices[0].delta.content})}\n\n"
+        if citations: yield f"data: {json.dumps({'citations': citations})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+@app.post("/api/agents/cryptotax-pro/query")
+async def cryptotax_pro_query(request: AgentQueryRequest):
+    intent = classify_intent(request.user_message, 'A22')
+    
+    live_injection = ""
+    if intent.requires_live_data and intent.extracted_symbol:
+        live_data = await fetch_live_crypto_price(intent.extracted_symbol)
+        live_injection = build_live_crypto_injection(live_data)
+
+    fema_warning = f"\n[FEMA FLAG: User mentioned {intent.extracted_exchange}]" if intent.extracted_exchange else ""
+    context, citations = await fetch_agent_rag('A22', request.user_message)
+
+    async def generate():
+        stream = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=[
+                {"role": "system", "content": f"{CRYPTOTAX_SYSTEM_PROMPT}\n\n{live_injection}\n\nCONTEXT:\n{context}"},
+                {"role": "user", "content": f"{request.user_message}{fema_warning}\n\nIntent: {intent.intent}"}
+            ],
+            stream=True
+        )
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'token': chunk.choices[0].delta.content})}\n\n"
+        if citations: yield f"data: {json.dumps({'citations': citations})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+# --- WebSocket: Live Tax Meter ---
+@app.websocket("/api/agents/cryptotax-pro/live-meter")
+async def live_tax_meter(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        config = await websocket.receive_json()
+        symbol = config.get("symbol", "BTC")
+        cost = float(config.get("cost_basis_inr", 0))
+        qty = float(config.get("quantity", 1))
+
+        while True:
+            live_data = await fetch_live_crypto_price(symbol)
+            if "error" not in live_data:
+                price = live_data["price_inr"]
+                unrealised = round((price - cost) * qty, 2)
+                tax = round(max(0, unrealised * 0.30), 2)
+                await websocket.send_json({
+                    "price_inr": price,
+                    "unrealised_gain": unrealised,
+                    "tax_liability": tax,
+                    "timestamp": live_data["timestamp_ist"]
+                })
+            await asyncio.sleep(30)
+    except WebSocketDisconnect: pass
     except Exception as e:
-        return {"error": str(e)}
+        await websocket.send_json({"error": str(e)})
+        await websocket.close()
 
-@app.post("/vault/save")
-async def save_vault(doc: VaultDoc):
-    entry = {
-        "doc_id": str(uuid.uuid4()),
-        "user_id": doc.user_id,
-        "agent_id": doc.agent_id,
-        "doc_type": doc.doc_type,
-        "content": doc.content,
-        "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    }
-    vault_db.insert(0, entry)
-    return {"status": "success", "doc_id": entry["doc_id"]}
+# --- Nightly Scheduler ---
+scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
 
-@app.get("/vault/user/{user_id}")
-async def get_vault(user_id: str):
-    return {"documents": [d for d in vault_db if d["user_id"] == user_id]}
+@scheduler.scheduled_job('cron', hour=23, minute=30)
+async def daily_refresh():
+    print("Nightly RAG refresh running...")
+    subprocess.run(['python', 'backend/ingester.py', '--all'], check=False)
+
+scheduler.start()
 
 if __name__ == "__main__":
     import uvicorn

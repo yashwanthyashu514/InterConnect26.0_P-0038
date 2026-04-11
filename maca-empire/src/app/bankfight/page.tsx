@@ -65,6 +65,7 @@ export default function BankFightPage() {
       agentName="BankFight"
       agentIcon="🏦"
       agentDescription="Escalate banking disputes to RBI, nodal officers, and Banking Ombudsman."
+      agentId="A2"
       rightPanel={<EscalationPanel />}
     >
       <div className="empty-state">

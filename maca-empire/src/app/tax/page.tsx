@@ -62,6 +62,7 @@ export default function TaxPage() {
       agentName="maCA Tax"
       agentIcon="📋"
       agentDescription="Penalty clocks, ITR guidance, and real-time tax advisory."
+      agentId="A1"
       rightPanel={<TaxContextPanel />}
       extraTopBarContent={<PenaltyClock />}
     >
