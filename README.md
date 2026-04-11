@@ -1,106 +1,68 @@
-# 🏛️ maCA Empire: The Future of Indian Legal & Financial Intelligence
+# 🏛️ maCA Empire: Autonomous Legal & Financial AI Ecosystem
 
-[![Production Ready](https://img.shields.io/badge/Status-Live%20&%20Production%20Ready-teal?style=for-the-badge&logo=rocket)](https://github.com/yashwanthyashu514/InterConnect26.0_P-0038)
-[![Tech Stack](https://img.shields.io/badge/Stack-Next.js%20|%20FastAPI%20|%20NVIDIA%20NIM-black?style=for-the-badge)](https://github.com/yashwanthyashu514/InterConnect26.0_P-0038)
-
-**maCA Empire** is an elite, high-performance suite of 22 autonomous AI agents designed to replace expensive manual legal and financial jobs for 1.3 billion Indian citizens. Powered by a premium **RAG pipeline**, **NVIDIA NIM**, and **Supabase Vector**, it delivers institutional-grade intelligence for the price of a Netflix subscription.
+**Submission for InterConnect 26.0 (Department of Computer Science & Engineering, GMIT)**
+*Real-world problem solving through interdisciplinary AI integration.*
 
 ---
 
-## 🚀 The 20+ Autonomous Agents Ecosystem
+## 📌 1. About the Project
+**maCA Empire** is a 22-agent autonomous ecosystem designed to democratize access to elite-level financial, tax, and legal advisory services. Through specialized AI personas (e.g., CryptoTax Pro, DPDP Shield, BankFight), the platform acts as a digital "Big 4 Senior Partner," providing zero-latency, highly accurate guidance on complex regulations, penalty avoidance, and compliance tracking. It directly solves the real-world problem of specialized legal services being inaccessible and unaffordable for the average citizen.
 
-We have deployed a comprehensive suite of 20+ specialized agents, each fine-tuned for a specific legal or financial pillar of the Indian ecosystem.
-
-| ID | Agent | Core Capability | Status |
-|:---|:---|:---|:---|
-| **A1** | **maCA Tax** | Live Penalty Clock (Rs. 50/day) & 11-Language RAG | ✅ LIVE |
-| **A2** | **BankFight** | 30-Day RBI Deadline Timer & Nodal Officer Letters | ✅ LIVE |
-| **A3** | **ComplianceBot** | CIN-to-Deadline Calendar (AOC-4, MGT-7A) | ✅ LIVE |
-| **A4** | **AI Judge** | Pre-trial verdict forecasting & deep case analysis | ✅ LIVE |
-| **A5** | **Notice Fighter** | Instant IT & GST Notice drafting from PDF text | ✅ LIVE |
-| **A6** | **RTI Filer** | Automated Right to Information applications & tracking | ✅ LIVE |
-| **A7** | **RERA Scout** | Real Estate legal audit & developer compliance check | ✅ LIVE |
-| **A8** | **Credit Fixer** | CIBIL dispute automation & debt recovery strategy | ✅ LIVE |
-| **A9** | **The Vault** | Secure, AES-256 encrypted legal document repository | ✅ LIVE |
-| **A10** | **Labour Law** | Dispute resolution for EPF, Gratuity & ESIC | ✅ LIVE |
-| **A11** | **Court Filer** | Automated drafting for Civil and Criminal filings | ✅ LIVE |
-| **A12** | **Insurance Fighter** | Health/Motor claim rejection dispute & legal notice | ✅ LIVE |
-| **A13** | **Pension Planner** | EPF 95 strategy & government pension optimization | ✅ LIVE |
-| **A14** | **Startup Legal** | Incorporation, Term Sheets, and Founder Agreements | ✅ LIVE |
-| **A15** | **Trade Mark** | IP registration, brand protection & scout | ✅ LIVE |
-| **A16** | **NRI Counsel** | Cross-border property & investment legal aid | ✅ LIVE |
-| **A17** | **Audit Shield** | GSTIN-based audit risk scoring & profiling | ✅ LIVE |
-| **A18** | **Contract Reviewer** | Deep-scan for "Toxic Clauses" in any agreement | ✅ LIVE |
-| **A19** | **Payroll Pilot** | Gross-to-Net Salary (TDS, PF, ESI) Calculator | ✅ LIVE |
-| **A20** | **Voice CA** | Multilingual WhatsApp-style voice consultation | ✅ BETA |
-| **A21** | **DPDP Shield** | DPDP Act 2023 Gap Analysis, Consent Drafting & ₹250Cr Penalty Shield | ✅ LIVE |
-| **A22** | **CryptoTax Pro** | VDA 30% Tax Calculator, Schedule VDA ITR Filing & Live Crypto Tax Meter | ✅ LIVE |
+## 🎯 2. How it Fits the InterConnect 26.0 Objectives
+* **Innovation & Creativity (25%)**: Moves beyond generic chatbots by using specialized RAG (Retrieval-Augmented Generation), intent classification, and hard-wired agent personas. It integrates real-time web-sockets for live financial data (e.g., Live Crypto Tax Meter).
+* **Technical Implementation (25%)**: Built on a modern, high-performance stack. Utilizes Next.js 14 App Router for a lightning-fast responsive UI, paired with a FastAPI + AsyncOpenAI (NVIDIA NIM serverless) backend. The system leverages Supabase `pgvector` for localized, distinct vector embeddings.
+* **UI / UX & Design (20%)**: Designed with an ultra-premium "cinematic" aesthetic featuring dynamic dark-mode interfaces, glassmorphism, instant stream-decoding for real-time text generation, and one-click interaction 'Prompt Pills'.
+* **Impact & Feasibility (20%)**: Automates highly complex administrative clerical work, compliance checks, and legal drafting. Fully viable for modern interdisciplinary deployment bridging AI engineering and actual domain expertise.
 
 ---
 
-## ✨ Key Features & UX
+## 🏗️ 3. Architecture & Technical Stack
 
-### 💎 Premium Design System
-- **Apple-Inspired Identity**: Cinematic section rhythm, SF Pro typography with precise tracking, and glassmorphic UI components.
-- **Teal & Silver Palette**: A professional, high-trust color system tailored for the legal industry.
-- **Dynamic Interactions**: Fluid animations for agent transitions and real-time data visualization.
+### Frontend (Client)
+* **Framework**: Next.js 14 (React) with App Router
+* **Styling**: Contextual Dark Mode UI, Modular CSS, Glass-UI Sidebars
+* **Communication**: Native SSE (Server-Sent Events) for real-time streaming, WebSockets for live meters
 
-### 💬 Advanced Agent Chat (RAG)
-- **Real-Time Synergy**: Direct integration with FastAPI backend for low-latency legal queries.
-- **Source Verification**: Every answer includes clickable legal citations from official Indian Government Law PDFs.
-- **Context Awareness**: Maintains deep conversational history for complex multi-step legal processes.
+### Backend (Orchestration & Reasoning)
+* **Framework**: FastAPI (Python) running on Uvicorn
+* **AI Brain**: `meta/llama-3.3-70b-instruct` powered by NVIDIA NIM for sub-second inferencing
+* **Routing**: Custom Intent Classifier for dynamic RAG pathway selection
 
----
-
-## 🛠️ Technical Masterpiece
-
-### Frontend: The Apple-Style Experience
-- **Framework**: Next.js 14/15 (App Router)
-- **Logic**: Unified `AgentChatLayout` for consistent UX across 20+ agents.
-- **Styling**: Vanilla CSS (Global Design Tokens).
-
-### Backend: The AGI Engine
-- **Orchestrator**: FastAPI with asynchronous task handling.
-- **AI Models**: `meta/llama-3.3-70b-instruct` (Reasoning) & `nvidia/nv-embed-v1` (Embeddings).
-- **Database**: Supabase + `pgvector` (4096-dim support).
-- **Inference**: NVIDIA NIM Integration for ultra-low latency.
+### Database (Memory & Knowledge)
+* **Platform**: Supabase
+* **Vector DB**: `pgvector` extension for semantic search over specialized legal documents (DPDP Act 2023, Section 115BBH, RBI Circulars)
+* **Embedding Model**: `nvidia/nv-embed-v1` (4096-dimensional high accuracy embeddings)
 
 ---
 
-## 📦 Zero-Click Setup Instructions
+## ⚙️ 4. Local Setup & Execution
 
-### 1. Backend Integration
-```bash
-cd maca-empire/backend
-pip install -r requirements.txt
-# Run the uvicorn server
-uvicorn main:app --reload
-```
-*Note: Execute `backend/setup.sql` in your Supabase SQL Editor to initialize the vector database.*
+### Prerequisites
+* Node.js (v18+)
+* Python (3.10+)
+* PostgreSQL / Supabase account
 
-### 2. AI Training (Ingestion)
-Place your legal PDFs in the `/docs` folder and run:
-```bash
-python backend/ingester.py
-```
+### Installation
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yashwanthyashu514/InterConnect26.0_P-0038.git
+   cd InterConnect26.0_P-0038/maca-empire
+   ```
 
-### 3. Frontend Activation
-```bash
-cd maca-empire
-npm install
-npm run dev
-# URL: http://localhost:3000
-```
+2. **Backend Setup**
+   ```bash
+   pip install -r backend/requirements.txt
+   # Start the AGI Orchestrator
+   python backend/main.py
+   ```
 
----
-
-## 🔐 Environment Configuration
-Ensure your root `.env` includes:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_KEY` (Service Role)
-- `NVIDIA_API_KEY`
-- `NEXT_PUBLIC_BACKEND_URL`
+3. **Frontend Setup**
+   ```bash
+   npm install
+   # Start the Client Dashboard (Runs on localhost:3000)
+   npm run dev
+   ```
 
 ---
-© 2026 maCA Empire • Built for the 1.3 Billion.
+
+*Built with passion for InterConnect 26.0 by Team maCA. Code and content developed between 1 Apr – 18 Apr 2026.*
