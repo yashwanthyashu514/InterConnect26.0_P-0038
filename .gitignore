@@ -13,7 +13,7 @@ maca-empire/*.tsbuildinfo
 maca-empire/next-env.d.ts
 
 # Secrets & Private Strategy (Protecting "import stuff")
-# maca-empire/.env (Uncommented for private collaboration)
+maca-empire/.env*
 maca-empire/docs/
 maca-empire/supabase_check.txt
 *.local
