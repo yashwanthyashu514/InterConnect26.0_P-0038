@@ -9,12 +9,6 @@ interface Message {
   citations?: any[];
 }
 
-interface ConversationItem {
-  id: string;
-  preview: string;
-  timestamp: string;
-}
-
 interface AgentChatLayoutProps {
   agentName: string;
   agentIcon: string;
@@ -47,16 +41,16 @@ export default function AgentChatLayout({
     }
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!inputValue.trim() || isTyping) return;
+  const handleSend = async (overrideValue?: string) => {
+    const val = overrideValue || inputValue;
+    if (!val.trim() || isTyping) return;
 
-    const userMsg: Message = { role: "user", content: inputValue };
+    const userMsg: Message = { role: "user", content: val };
     setMessages(prev => [...prev, userMsg]);
     setInputValue("");
     setIsTyping(true);
 
     try {
-      // Determine Route
       let endpoint = `${BACKEND_URL}/ask`;
       let payload: any = { query: userMsg.content, agent_id: agentId };
 
@@ -76,7 +70,6 @@ export default function AgentChatLayout({
 
       if (!response.ok) throw new Error("Backend unavailable");
 
-      // Handle Streaming
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantMsg: Message = { role: "assistant", content: "" };
@@ -117,9 +110,30 @@ export default function AgentChatLayout({
     }
   };
 
+  const handleExport = () => {
+    if (messages.length === 0) {
+      alert("No conversation to export yet!");
+      return;
+    }
+    const log = messages.map(m => `[${m.role.toUpperCase()}]\n${m.content}\n`).join("\n---\n");
+    const blob = new Blob([log], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `maCA_${agentName.replace(/\s/g, "_")}_Export.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShare = () => {
+    const url = window.location.href;
+    navigator.clipboard.writeText(url).then(() => {
+      alert("Invite link copied to clipboard! 🚀");
+    });
+  };
+
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-primary)" }}>
-      {/* ── Left Sidebar (History & Branding) ── */}
       <aside className="chat-sidebar">
         <div style={{ padding: "20px 16px", borderBottom: "0.5px solid var(--border-subtle)" }}>
           <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", marginBottom: "20px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
@@ -146,11 +160,12 @@ export default function AgentChatLayout({
         </div>
         
         <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)" }}>
-          <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setMessages([])}>+ New Chat</button>
+          <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setMessages([])}>
+            + New Chat
+          </button>
         </div>
       </aside>
 
-      {/* ── Main Chat Area ── */}
       <main style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)" }}>
         <div className="chat-topbar">
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
@@ -158,6 +173,20 @@ export default function AgentChatLayout({
              <p style={{ fontWeight: 700 }}>{agentName}</p>
           </div>
           {extraTopBarContent}
+          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
+            <button 
+              onClick={handleExport}
+              style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
+            >
+              Export ↑
+            </button>
+            <button 
+              onClick={handleShare}
+              style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
+            >
+              Share ⤢
+            </button>
+          </div>
         </div>
 
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
@@ -189,7 +218,6 @@ export default function AgentChatLayout({
           {rightPanel && <div style={{ width: "320px", borderLeft: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>{rightPanel}</div>}
         </div>
 
-        {/* ── Input Bar ── */}
         <div className="chat-input-bar">
           <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", gap: "12px", alignItems: "flex-end" }}>
             <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-tertiary)", border: "1px solid var(--border-subtle)", borderRadius: "16px", padding: "12px 20px" }}>
@@ -202,7 +230,7 @@ export default function AgentChatLayout({
                 style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", color: "var(--text-primary)", fontSize: "15px" }}
               />
               <button 
-                onClick={handleSend}
+                onClick={() => handleSend()}
                 disabled={isTyping}
                 style={{ background: isTyping ? "var(--text-muted)" : "var(--acid)", color: "#000", border: "none", borderRadius: "100px", padding: "8px 16px", fontWeight: 800, fontSize: "12px", cursor: "pointer" }}
               >

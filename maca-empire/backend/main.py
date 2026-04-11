@@ -110,10 +110,44 @@ async def fetch_agent_rag(agent_id: str, query: str, match_count: int = 8) -> tu
         print(f"RAG error: {e}")
         return "", []
 
+# --- Persona Router ---
+def route_agent(query: str) -> str:
+    q = query.lower()
+    if "tax" in q or "itr" in q: return "A1"
+    if "bank" in q or "rbi" in q: return "A2"
+    if "notice" in q: return "A3"
+    if "salary" in q or "payroll" in q: return "A4"
+    if "compliance" in q: return "A5"
+    return "A1" # Default to Tax expert
+
 # --- Standard Chat Routes (Refactored to Async) ---
 
 @app.get("/health")
 def health(): return {"status": "ok", "version": "AGI_Deployment_Day1"}
+
+@app.post("/ask")
+async def ask_generic(request: ChatRequest):
+    agent_id = request.agent_id or route_agent(request.query)
+    context, citations = await fetch_agent_rag(agent_id, request.query)
+    
+    system_prompt = f"{BIG_4_PARTNER_DNA}\n\nSPECIALIST CONTEXT (ID: {agent_id}):\n{AGENT_PROMPTS.get(agent_id, 'General Legal/Financial Expert')}\n\nRELEVANT RAG CONTEXT:\n{context}"
+    
+    async def generate():
+        stream = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": request.query}
+            ],
+            stream=True
+        )
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'token': chunk.choices[0].delta.content})}\n\n"
+        if citations: yield f"data: {json.dumps({'citations': citations})}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 @app.post("/api/agents/dpdp-shield/query")
 async def dpdp_shield_query(request: AgentQueryRequest):
@@ -200,9 +234,13 @@ scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
 @scheduler.scheduled_job('cron', hour=23, minute=30)
 async def daily_refresh():
     print("Nightly RAG refresh running...")
-    subprocess.run(['python', 'backend/ingester.py', '--all'], check=False)
+    subprocess.run(['python', 'maca-empire/backend/ingester.py', '--all'], check=False)
 
-scheduler.start()
+@app.on_event("startup")
+async def start_scheduler():
+    if not scheduler.running:
+        scheduler.start()
+        print("Nightly Scheduler Started ✅")
 
 if __name__ == "__main__":
     import uvicorn

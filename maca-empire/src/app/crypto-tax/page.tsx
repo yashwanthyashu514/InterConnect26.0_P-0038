@@ -81,7 +81,24 @@ export default function CryptoTaxPage() {
         </p>
         <div className="suggested-prompts">
           {prompts.map((p, i) => (
-            <button key={i} className="prompt-pill">{p}</button>
+            <button 
+              key={i} 
+              className="prompt-pill"
+              onClick={() => {
+                const input = document.querySelector('textarea');
+                if (input) {
+                  const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+                  nativeInputValueSetter?.call(input, p);
+                  input.dispatchEvent(new Event('input', { bubbles: true }));
+                  setTimeout(() => {
+                    const sendBtn = document.querySelector('.chat-input-bar button:not([disabled])') as HTMLButtonElement;
+                    sendBtn?.click();
+                  }, 100);
+                }
+              }}
+            >
+              {p}
+            </button>
           ))}
         </div>
       </div>

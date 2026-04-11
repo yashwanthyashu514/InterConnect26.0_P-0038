@@ -9,12 +9,32 @@ function PenaltyClock() {
     const interval = setInterval(() => setPenalty((p) => p + 1), 3000);
     return () => clearInterval(interval);
   }, []);
+
+  const triggerAction = (prompt: string) => {
+    const input = document.querySelector('textarea');
+    if (input) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+      nativeInputValueSetter?.call(input, prompt);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      setTimeout(() => {
+        const sendBtn = document.querySelector('.chat-input-bar button:not([disabled])') as HTMLButtonElement;
+        sendBtn?.click();
+      }, 100);
+    }
+  };
+
   return (
     <div style={{ position: "absolute", top: "80px", right: "16px", background: "var(--glass-bg)", backdropFilter: "blur(16px)", border: "0.5px solid rgba(255,94,94,0.3)", borderRadius: "12px", padding: "14px 18px", zIndex: 10, minWidth: "220px" }}>
       <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--danger)", fontFamily: "'DM Sans', sans-serif", marginBottom: "6px" }}>⏱ Late Filing Penalty</p>
       <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "22px", color: "var(--danger)", letterSpacing: "-1px" }}>₹{penalty.toLocaleString("en-IN")}</p>
       <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "10px" }}>AY 2024-25 · Accruing now</p>
-      <button className="btn-primary btn-sm" style={{ width: "100%", justifyContent: "center", fontSize: "11px", padding: "7px" }}>File Now →</button>
+      <button 
+        className="btn-primary btn-sm" 
+        style={{ width: "100%", justifyContent: "center", fontSize: "11px", padding: "7px" }}
+        onClick={() => triggerAction("Help me file my ITR now to stop this penalty accruing.")}
+      >
+        File Now →
+      </button>
     </div>
   );
 }
@@ -57,6 +77,19 @@ const prompts = [
 ];
 
 export default function TaxPage() {
+  const triggerAction = (prompt: string) => {
+    const input = document.querySelector('textarea');
+    if (input) {
+      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value")?.set;
+      nativeInputValueSetter?.call(input, prompt);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      setTimeout(() => {
+        const sendBtn = document.querySelector('.chat-input-bar button:not([disabled])') as HTMLButtonElement;
+        sendBtn?.click();
+      }, 100);
+    }
+  };
+
   return (
     <AgentChatLayout
       agentName="maCA Tax"
@@ -74,7 +107,7 @@ export default function TaxPage() {
         </p>
         <div className="suggested-prompts">
           {prompts.map((p, i) => (
-            <button key={i} className="prompt-pill">{p}</button>
+            <button key={i} className="prompt-pill" onClick={() => triggerAction(p)}>{p}</button>
           ))}
         </div>
       </div>
