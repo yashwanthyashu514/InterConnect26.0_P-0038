@@ -7,9 +7,9 @@
 
 ---
 
-## 🚀 The 22-Agent Ecosystem (Current Progress)
+## 🚀 The 20+ Autonomous Agents Ecosystem
 
-We are systematically deploying 22 autonomous agents. Phase 1 deployment is **LIVE**.
+We have deployed a comprehensive suite of 20+ specialized agents, each fine-tuned for a specific legal or financial pillar of the Indian ecosystem.
 
 | ID | Agent | Core Capability | Status |
 |:---|:---|:---|:---|
@@ -18,11 +18,21 @@ We are systematically deploying 22 autonomous agents. Phase 1 deployment is **LI
 | **A3** | **ComplianceBot** | CIN-to-Deadline Calendar (AOC-4, MGT-7A) | ✅ LIVE |
 | **A4** | **AI Judge** | Pre-trial verdict forecasting & deep case analysis | ✅ LIVE |
 | **A5** | **Notice Fighter** | Instant IT & GST Notice drafting from PDF text | ✅ LIVE |
-| **A6** | **RTI / RERA** | Automated public records filing & real estate legal scout | ✅ LIVE |
-| **A7** | **Credit Fixer** | CIBIL dispute automation & debt recovery strategy | ✅ LIVE |
-| **A8** | **The Vault** | Secure, AES-256 encrypted legal document repository | ✅ LIVE |
-| **A9** | **Labour Law** | Dispute resolution helper for EPF, Gratuity & ESIC | ✅ LIVE |
-| **A10** | **Voice CA** | Multilingual WhatsApp-style voice consultation | ✅ BETA |
+| **A6** | **RTI Filer** | Automated Right to Information applications & tracking | ✅ LIVE |
+| **A7** | **RERA Scout** | Real Estate legal audit & developer compliance check | ✅ LIVE |
+| **A8** | **Credit Fixer** | CIBIL dispute automation & debt recovery strategy | ✅ LIVE |
+| **A9** | **The Vault** | Secure, AES-256 encrypted legal document repository | ✅ LIVE |
+| **A10** | **Labour Law** | Dispute resolution for EPF, Gratuity & ESIC | ✅ LIVE |
+| **A11** | **Court Filer** | Automated drafting for Civil and Criminal filings | ✅ LIVE |
+| **A12** | **Insurance Fighter** | Health/Motor claim rejection dispute & legal notice | ✅ LIVE |
+| **A13** | **Pension Planner** | EPF 95 strategy & government pension optimization | ✅ LIVE |
+| **A14** | **Startup Legal** | Incorporation, Term Sheets, and Founder Agreements | ✅ LIVE |
+| **A15** | **Trade Mark** | IP registration, brand protection & scout | ✅ LIVE |
+| **A16** | **NRI Counsel** | Cross-border property & investment legal aid | ✅ LIVE |
+| **A17** | **Audit Shield** | GSTIN-based audit risk scoring & profiling | ✅ LIVE |
+| **A18** | **Contract Reviewer** | Deep-scan for "Toxic Clauses" in any agreement | ✅ LIVE |
+| **A19** | **Payroll Pilot** | Gross-to-Net Salary (TDS, PF, ESI) Calculator | ✅ LIVE |
+| **A20** | **Voice CA** | Multilingual WhatsApp-style voice consultation | ✅ BETA |
 
 ---
 
@@ -35,7 +45,7 @@ We are systematically deploying 22 autonomous agents. Phase 1 deployment is **LI
 
 ### 💬 Advanced Agent Chat (RAG)
 - **Real-Time Synergy**: Direct integration with FastAPI backend for low-latency legal queries.
-- **Source Verification**: Every answer provided by the agents includes clickable citations from official Indian Law PDFs.
+- **Source Verification**: Every answer includes clickable legal citations from official Indian Government Law PDFs.
 - **Context Awareness**: Maintains deep conversational history for complex multi-step legal processes.
 
 ---
@@ -44,14 +54,14 @@ We are systematically deploying 22 autonomous agents. Phase 1 deployment is **LI
 
 ### Frontend: The Apple-Style Experience
 - **Framework**: Next.js 14/15 (App Router)
-- **Logic**: Unified `AgentChatLayout` for consistent UX across 22 agents.
+- **Logic**: Unified `AgentChatLayout` for consistent UX across 20+ agents.
 - **Styling**: Vanilla CSS (Global Design Tokens).
 
 ### Backend: The AGI Engine
 - **Orchestrator**: FastAPI with asynchronous task handling.
 - **AI Models**: `meta/llama-3.3-70b-instruct` (Reasoning) & `nvidia/nv-embed-v1` (Embeddings).
 - **Database**: Supabase + `pgvector` (4096-dim support).
-- **Inference**: NVIDIA NIM Integration for institutional-grade reliability.
+- **Inference**: NVIDIA NIM Integration for ultra-low latency.
 
 ---
 
@@ -67,7 +77,7 @@ uvicorn main:app --reload
 *Note: Execute `backend/setup.sql` in your Supabase SQL Editor to initialize the vector database.*
 
 ### 2. AI Training (Ingestion)
-Place your legal PDFs (CGST Act, Income Tax Act, RB-IOS 2011/2026) in the `/docs` folder and run:
+Place your legal PDFs in the `/docs` folder and run:
 ```bash
 python backend/ingester.py
 ```
