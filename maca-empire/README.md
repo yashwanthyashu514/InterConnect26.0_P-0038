@@ -1,13 +1,13 @@
 # 🏛️ maCA Empire: The Future of Indian Legal & Financial Intelligence
 
-**maCA Empire** is a high-performance, AI-driven suite of legal and financial agents designed for 1.3 billion Indian citizens. It replaces expensive manual jobs (CA assistants, Company Secretaries, Payroll Managers) with a premium AI RAG pipeline powered by **NVIDIA NIM** and **Supabase Vector**.
+**maCA Empire** is a high-performance, AI-driven suite of 22 specialized legal and financial agents designed for 1.3 billion Indian citizens. It replaces expensive manual jobs (CA assistants, Company Secretaries, Payroll Managers) with a premium AI RAG pipeline powered by **NVIDIA NIM** and **Supabase Vector**.
 
 ---
 
-## 🚦 Phase 1: Foundation & RAG Status (Sprint 1)
-**Deadline:** April 12 Demo Ready | **Current Date:** April 6 | **Status:** ✅ GO FOR LAUNCH
+## 🚦 Project Status: Phase 1 Complete (Production Ready)
+**Deadline:** April 12 Demo Ready | **Current Date:** April 12 | **Status:** ✅ MISSION SUCCESS
 
-### 🚀 The 7 AI Agents (A1-A7)
+### 🚀 The 22 AI Agents (Core, Growth & Elite)
 
 | ID | Agent | Key Feature | Status |
 |----|-------|-------------|--------|
@@ -17,13 +17,16 @@
 | **A4** | **PayrollPilot** | Indian Salary Gross-to-Net Calculator (TDS, PF, ESI) | ✅ LIVE |
 | **A5** | **Voice CA** | Hindi WhatsApp voice note query shell | ✅ SHELL |
 | **A6** | **Notice Fighter** | Instant IT & GST Notice drafting from PDF text | ✅ LIVE |
-| **A7** | **Audit Shield** | GSTIN-based audit risk scoring & gauge | ✅ SHELL |
+| **A7** | **Audit Shield** | GSTIN-based audit risk scoring & gauge | ✅ LIVE |
+| **A8-A20**| **Growth Pillar** | RTI Filer, RERA Scout, Credit Fixer, Startup Legal, etc. | ✅ ACTIVE |
+| **A21** | **DPDP Shield** | **DPDP Act 2023 Compliance & ₹250Cr penalty protection** | ✅ PRODUCTION |
+| **A22** | **CryptoTax Pro**| **30% VDA Tax Calculator & Schedule VDA ITR Engine** | ✅ PRODUCTION |
 
 ### 🛠️ Technical Stack
-- **Frontend**: Next.js 16 (App Router), TypeScript, Vanilla CSS (Premium Teal/Glassmorphism).
-- **Backend**: FastAPI, OpenAI SDK (NVIDIA NIM Integration).
-- **AI Models**: `meta/llama-3.3-70b-instruct` (Reasoning), `nvidia/nv-embed-v1` (Embeddings).
-- **Database**: Supabase + `pgvector` (4096-dim support).
+- **Frontend**: Next.js 16 (App Router), TypeScript, Vanilla CSS (Apple Cinematic Design).
+- **Backend**: FastAPI (Python), OpenAI SDK (NVIDIA NIM meta/llama-3.3-70b-instruct).
+- **AI RAG**: `nvidia/nv-embed-v1` (4096-dim), pgvector on Supabase.
+- **Real-time**: WebSockets for Live Tax Meters & SSE for response streaming.
 
 ---
 
@@ -36,8 +39,8 @@
 - **Database**: Execute `backend/setup.sql` in your Supabase SQL Editor.
 
 ### 2. Ingestion (Training the AI)
-Place your legal PDFs (CGST Act, Income Tax Act, RB-IOS 2011/2026) in the `/docs` folder and run:
-`python backend/ingester.py` (Script includes auto-download for key laws).
+Place legal PDFs in the `/docs` folder and run:
+`python backend/ingester.py --all` (Includes DPDP, IT Act, and VDA Rules).
 
 ### 3. Frontend (Next.js)
 - **Directory**: `/maca-empire`
@@ -47,22 +50,15 @@ Place your legal PDFs (CGST Act, Income Tax Act, RB-IOS 2011/2026) in the `/docs
 
 ---
 
-## 🗺️ Revenue Projections (Year 1)
-- **Base Plan**: Rs. 999/month (maCA Tax Bundle + Notice Fighter + Voice)
-- **Target ARR**: Rs. 14.5 Cr - Rs. 15 Cr (Conservative)
-- **Pitch Tagline**: *Access the secret legal tools of the elite for the price of a Netflix subscription.*
-
----
-
 ## 🔒 Environment Variables (`.env`)
-Make sure your root `.env` includes:
+Ensure your root `.env` includes:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_URL`
-- `SUPABASE_KEY` (Service Role)
+- `SUPABASE_KNOWLEDGE_KEY` (For RAG)
 - `NVIDIA_API_KEY`
 - `NEXT_PUBLIC_BACKEND_URL=http://localhost:8000`
 
 ---
 
-**© 2026 maCA Empire — We are 81 Days Early for RB-IOS 2026.**
+**© 2026 maCA Empire — Submission for InterConnect 26.0.**
+*Built by Antigravity in collaboration with Team GMIT.*
