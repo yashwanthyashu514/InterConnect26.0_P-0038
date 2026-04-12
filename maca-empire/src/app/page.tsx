@@ -326,7 +326,7 @@ export default function LandingPage() {
                   Start Free →
                 </Link>
                 <Link href="#agents" className="btn-ghost" style={{ fontSize: "16px", padding: "16px 32px" }}>
-                  Explore 22 Agents
+                  Explore 24 Agents
                 </Link>
               </div>
             </div>
@@ -501,7 +501,7 @@ export default function LandingPage() {
                     { bad: "₹5,000+ per hour", good: "₹999/month flat" },
                     { bad: "2-5 days response", good: "30 seconds, 24/7" },
                     { bad: "Office appointments", good: "Instant, from your phone" },
-                    { bad: "Single CA expertise", good: "22 specialized agents" },
+                    { bad: "Single CA expertise", good: "24 specialized agents" },
                     { bad: "Paper filing", good: "Digital vault + e-filing" },
                     { bad: "English only", good: "Hindi & English" },
                   ].map((row, i) => (

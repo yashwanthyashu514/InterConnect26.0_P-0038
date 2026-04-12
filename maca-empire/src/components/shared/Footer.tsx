@@ -66,7 +66,7 @@ export default function Footer() {
                 </span>
               </Link>
               <p style={{ fontSize: "14px", color: "#080B07", lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
-                Big 4 quality consulting at consumer scale. 22 autonomous AI agents for India.
+                Big 4 quality consulting at consumer scale. 24 autonomous AI agents for India.
               </p>
               <div style={{ marginTop: "24px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <span style={{ background: "rgba(0,0,0,0.05)", color: "#080B07", border: "0.5px solid rgba(0,0,0,0.1)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>DPDP Compliant</span>
