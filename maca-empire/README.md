@@ -1,13 +1,13 @@
 # 🏛️ maCA Empire: The Future of Indian Legal & Financial Intelligence
 
-**maCA Empire** is a high-performance, AI-driven suite of 22 specialized legal and financial agents designed for 1.3 billion Indian citizens. It replaces expensive manual jobs (CA assistants, Company Secretaries, Payroll Managers) with a premium AI RAG pipeline powered by **NVIDIA NIM** and **Supabase Vector**.
+**maCA Empire** is a high-performance, AI-driven suite of 24 specialized legal and financial agents designed for 1.3 billion Indian citizens. It replaces expensive manual jobs (CA assistants, Company Secretaries, Payroll Managers) with a premium AI RAG pipeline powered by **NVIDIA NIM** and **Supabase Vector**.
 
 ---
 
 ## 🚦 Project Status: Phase 1 Complete (Production Ready)
 **Deadline:** April 12 Demo Ready | **Current Date:** April 12 | **Status:** ✅ MISSION SUCCESS
 
-### 🚀 The 22 AI Agents (Core, Growth & Elite)
+### 🚀 The 24 AI Agents (Core, Growth & Elite)
 
 | ID | Agent | Key Feature | Status |
 |----|-------|-------------|--------|
@@ -19,10 +19,10 @@
 | **A6** | **Notice Fighter** | Instant IT & GST Notice drafting from PDF text | ✅ LIVE |
 | **A7** | **Audit Shield** | GSTIN-based audit risk scoring & gauge | ✅ LIVE |
 | **A8-A20**| **Growth Pillar** | RTI Filer, RERA Scout, Credit Fixer, Startup Legal, etc. | ✅ ACTIVE |
-| A21 | DPDP Shield | DPDP Act 2023 Gap Analysis, Consent Drafting & Rs.250Cr Penalty Shield | LIVE |
-| A22 | CryptoTax Pro | VDA 30% Tax Calculator, Schedule VDA ITR Filing & Live Tax Meter | LIVE |
-| A23 | ESG Compass | SEBI BRSR Core Auto-fill, GHG Calculator & EU CBAM Analyser | LIVE |
-| A24 | HeirGuard | Will Drafting, Succession Advisory & Asset Transmission Engine | LIVE |
+| **A21** | **DPDP Shield** | DPDP Act 2023 Gap Analysis, Consent Drafting & Rs.250Cr Penalty Shield | ✅ LIVE |
+| **A22** | **CryptoTax Pro** | VDA 30% Tax Calculator, Schedule VDA ITR Filing & Live Tax Meter | ✅ LIVE |
+| **A23** | **ESG Compass** | SEBI BRSR Core Auto-fill, GHG Calculator & EU CBAM Analyser | ✅ LIVE |
+| **A24** | **HeirGuard** | Will Drafting, Succession Advisory & Asset Transmission Engine | ✅ LIVE |
 | **A25** | *AI Governance Counsel* | *AI Act Compliance & Algorithmic Audit (Building Next)* | |
 | **A26** | *The Oracle* | *General Counsel AGI (Phase 5)* | |
 
@@ -40,11 +40,11 @@
 - **Directory**: `/backend`
 - **Install**: `pip install -r requirements.txt`
 - **Run**: `uvicorn main:app --reload`
-- **Database**: Execute `backend/setup.sql` in your Supabase SQL Editor.
+- **Database**: Execute `backend/setup.sql` and `backend/a23_a24_setup.sql` in your Supabase SQL Editor.
 
 ### 2. Ingestion (Training the AI)
 Place legal PDFs in the `/docs` folder and run:
-`python backend/ingester.py --all` (Includes DPDP, IT Act, and VDA Rules).
+`python backend/ingester.py --all` (Includes IT Act, DPDP, VDA Rules, ESG Standards, and Succession Acts).
 
 ### 3. Frontend (Next.js)
 - **Directory**: `/maca-empire`
