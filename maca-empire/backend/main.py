@@ -21,7 +21,7 @@ from live_data import fetch_live_crypto_price, build_live_crypto_injection
 
 load_dotenv()
 
-app = FastAPI(title="maCA Empire AGI Orchestrator — Advanced Deployment")
+app = FastAPI(title="maCA Empire AGI Orchestrator - Advanced Deployment")
 
 app.add_middleware(
     CORSMiddleware,
@@ -240,7 +240,7 @@ async def daily_refresh():
 async def start_scheduler():
     if not scheduler.running:
         scheduler.start()
-        print("Nightly Scheduler Started ✅")
+        print("Nightly Scheduler Started [OK]")
 
 if __name__ == "__main__":
     import uvicorn

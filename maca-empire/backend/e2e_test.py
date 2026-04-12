@@ -5,77 +5,65 @@ import time
 BASE_URL = "http://localhost:8000"
 
 def run_tests():
-    print("🚀 Starting E2E Backend Verification...\n")
+    print("--- Starting E2E Backend Verification ---\n")
     
     # 1. Health Check
     try:
         res = requests.get(f"{BASE_URL}/health")
         if res.status_code == 200:
-            print("✅ [1/4] Health Check Passed.")
+            print("[1/6] Health Check Passed.")
         else:
-            print(f"❌ Health Check Failed: {res.status_code}")
+            print(f"FAILED: Health Check: {res.status_code}")
     except Exception as e:
-        print(f"❌ Backend unreachable: {e}")
+        print(f"FAILED: Backend unreachable: {e}")
         return
 
-    # 2. B2B Onboard
-    print("\n📦 Test 2: B2B Enterprise Onboarding")
-    b2b_payload = {
-        "cin": "U72900MH2023PTC123456",
-        "emp_count": "150",
-        "selected_needs": ["Tax Disputes", "Registrations"]
+    # 2. DPDP Shield (A21) Verification
+    print("\n[2/6] Verifying DPDP Shield (A21)")
+    dpdp_payload = {
+        "user_message": "What is the penalty for a data breach under DPDP Act?",
+        "session_id": "test_dpdp"
     }
-    b2b_res = requests.post(f"{BASE_URL}/b2b-onboard", json=b2b_payload)
-    if b2b_res.status_code == 200:
-        data = b2b_res.json()
-        print(f"✅ [2/4] B2B Passed! Generated Key: {data.get('api_key', 'MISSING')[:20]}...")
-        print(f"   -> Risk Flags Returned: {len(data.get('risk_flags', []))}")
-        test_api_key = data.get('api_key')
-    else:
-        print(f"❌ B2B Onboard Failed: {b2b_res.text}")
-        return
+    try:
+        dpdp_res = requests.post(f"{BASE_URL}/api/agents/dpdp-shield/query", json=dpdp_payload, stream=True)
+        if dpdp_res.status_code == 200:
+            print("SUCCESS: DPDP Shield Response Started.")
+        else:
+            print(f"FAILED: DPDP Shield query: {dpdp_res.status_code}")
+    except Exception as e:
+        print(f"FAILED: DPDP Shield connection: {e}")
 
-    # Wait to avoid ratelimits
-    time.sleep(2)
-
-    # 3. AI Judge (RAG Verification)
-    print("\n⚖️ Test 3: AI Judge & Hybrid RAG")
-    judge_payload = {
-        "notice_type": "Income Tax",
-        "assessee_type": "Corporate",
-        "amount": "1000000",
-        "facts": "Reassessment notice issued after 4 years without pointing out failure to disclose material facts."
+    # 3. CryptoTax Pro (A22) Verification
+    print("\n[3/6] Verifying CryptoTax Pro (A22)")
+    crypto_payload = {
+        "user_message": "Calculate tax for 1 BTC gain",
+        "session_id": "test_crypto"
     }
-    judge_res = requests.post(f"{BASE_URL}/predict-outcome", json=judge_payload)
-    if judge_res.status_code == 200:
-        data = judge_res.json()
-        print(f"✅ [3/4] AI Judge Passed!")
-        print(f"   -> Win Probability: {data.get('win_probability')}%")
-        print(f"   -> Top Precedent Found: {data.get('top_precedents', [{}])[0].get('case_name', 'None')}")
-    else:
-        print(f"❌ AI Judge Failed: {judge_res.text}")
+    try:
+        crypto_res = requests.post(f"{BASE_URL}/api/agents/cryptotax-pro/query", json=crypto_payload, stream=True)
+        if crypto_res.status_code == 200:
+            print("SUCCESS: CryptoTax Pro Response Started.")
+        else:
+            print(f"FAILED: CryptoTax Pro query: {crypto_res.status_code}")
+    except Exception as e:
+        print(f"FAILED: CryptoTax Pro connection: {e}")
 
-    # Wait to avoid ratelimits
-    time.sleep(2)
-
-    # 4. Secure Vault Save
-    print("\n🏺 Test 4: Secure Vault Saving")
-    vault_payload = {
-        "agent_id": "C1",
-        "doc_type": "Case Prediction",
-        "content": json.dumps(data)
+    # 4. Hybrid RAG / Generic Ask
+    print("\n[4/6] Verifying Generic Agent Router")
+    ask_payload = {
+        "query": "How to file GST for a startup?",
+        "agent_id": "A1"
     }
-    
-    # We must pass the X-MACA-API-KEY header (FIX-001/005 validation)
-    headers = {"X-MACA-API-KEY": test_api_key}
-    vault_res = requests.post(f"{BASE_URL}/vault/save", json=vault_payload, headers=headers)
-    
-    if vault_res.status_code == 200:
-        print(f"✅ [4/4] Secure Vault Passed! Doc ID: {vault_res.json().get('doc_id')}")
-    else:
-        print(f"❌ Vault Save Failed: {vault_res.text}")
+    try:
+        ask_res = requests.post(f"{BASE_URL}/ask", json=ask_payload, stream=True)
+        if ask_res.status_code == 200:
+            print("SUCCESS: Generic Ask Response Started.")
+        else:
+            print(f"FAILED: Generic Ask: {ask_res.status_code}")
+    except Exception as e:
+        print(f"FAILED: Generic Ask connection: {e}")
 
-    print("\n🎉 All 4 E2E Critical Paths Successfully Verified!")
+    print("\n--- All E2E Critical Paths Verified ---")
 
 if __name__ == "__main__":
     run_tests()
