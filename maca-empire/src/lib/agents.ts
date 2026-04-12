@@ -29,6 +29,11 @@ export const agents: Agent[] = [
   { id: "B7", name: "RTI Agent", icon: "📄", description: "Automated RTI application drafting (Act 2005).", category: "GROWTH", status: "LIVE", href: "/rti" },
   { id: "B8", name: "Pension Agent", icon: "👵", description: "Gratuity formula & EPS-95 pension disputes.", category: "GROWTH", status: "LIVE", href: "/pension" },
 
+  { id: "A21", name: "DPDP Shield", icon: "🛡️", description: "DPDP Act 2023 Compliance, Gap Analysis & Audit.", category: "EMPIRE", status: "LIVE", href: "/dpdp" },
+  { id: "A22", name: "CryptoTax Pro", icon: "🪙", description: "30% VDA Tax Calculator & Schedule VDA ITR Filing.", category: "EMPIRE", status: "LIVE", href: "/crypto-tax" },
+  { id: "A23", name: "ESG Compass", icon: "🍃", description: "SEBI BRSR Core Auto-fill, GHG Scope & EU CBAM.", category: "EMPIRE", status: "LIVE", href: "/esg-compass" },
+  { id: "A24", name: "HeirGuard", icon: "📜", description: "Will Drafting, Succession Advisory & Assets.", category: "EMPIRE", status: "LIVE", href: "/heirguard" },
+
   // C-Series: The Empire Suite (Phase 4)
   { id: "C1", name: "AI Judge", icon: "⚖️", description: "Predict win probability using Supreme Court precedents.", category: "EMPIRE", status: "LIVE", href: "/ai-judge" },
   { id: "C2", name: "Contract Reviewer", icon: "📄", description: "Upload contract → Red flag detection in 30s.", category: "EMPIRE", status: "LIVE", href: "/contract-reviewer" },

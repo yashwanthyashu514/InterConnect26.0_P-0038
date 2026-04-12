@@ -46,8 +46,99 @@ CRYPTO_INTENTS = {
     'notice': ['it notice', 'tax notice', 'scrutiny', '143(2)', 'demand notice',
                'high value transaction', 'cbdt notice', 'income tax notice crypto'],
     'nft': ['nft', 'non-fungible', 'sold nft', 'nft income', 'nft gains', 'nft tax'],
-    'advance_tax': ['advance tax', 'quarterly tax', 'self assessment tax',
+    'advance_tax': ['advance_tax', 'quarterly tax', 'self assessment tax',
                     'tax planning crypto', 'quarterly instalment']
+}
+
+# ============================================================
+# ADD to intent_classifier.py — A23 ESG Compass Intents
+# ============================================================
+
+ESG_INTENTS = {
+    'brsr_filing': [
+        'brsr', 'business responsibility', 'sustainability report',
+        'brsr core', 'sebi reporting', 'esg disclosure', 'annual report esg',
+        'listed company reporting', 'top 1000 companies'
+    ],
+    'ghg_calculation': [
+        'ghg', 'greenhouse gas', 'scope 1', 'scope 2', 'scope 3',
+        'carbon emissions', 'emission calculation', 'carbon footprint',
+        'co2 emissions', 'net zero', 'carbon neutral'
+    ],
+    'cbam_analysis': [
+        'cbam', 'carbon border', 'eu carbon tax', 'carbon adjustment',
+        'export to eu', 'european carbon', 'cbam compliance',
+        'carbon levy', 'eu exports tax'
+    ],
+    'esg_rating': [
+        'esg rating', 'esg score', 'esg assessment', 'sustainability score',
+        'esg report card', 'environmental rating', 'social governance score'
+    ],
+    'supply_chain_esg': [
+        'supply chain esg', 'vendor esg', 'supplier sustainability',
+        'value chain emissions', 'supplier risk esg', 'supply chain carbon'
+    ],
+    'board_esg_report': [
+        'board report esg', 'esg board narrative', 'annual esg summary',
+        'directors esg report', 'management discussion esg'
+    ],
+    'carbon_credit': [
+        'carbon credit', 'carbon market', 'recs', 'renewable energy certificate',
+        'voluntary carbon offset', 'carbon trading india', 'credit trading'
+    ],
+    'esg_policy_draft': [
+        'esg policy', 'sustainability policy', 'climate policy',
+        'environmental policy', 'csr policy esg', 'green policy'
+    ]
+}
+
+# ============================================================
+# ADD to intent_classifier.py — A24 HeirGuard Intents
+# ============================================================
+
+HEIRGUARD_INTENTS = {
+    'will_drafting': [
+        'draft a will', 'write my will', 'make a will', 'last will',
+        'testament', 'will document', 'write will india', 'legal will'
+    ],
+    'succession_advisory': [
+        'succession', 'inheritance', 'who inherits', 'legal heir',
+        'class 1 heir', 'class 2 heir', 'coparcener', 'ancestral property',
+        'intestate', 'dying without will'
+    ],
+    'probate_application': [
+        'probate', 'letter of administration', 'probate court',
+        'probate application', 'grant of probate', 'succession certificate'
+    ],
+    'asset_transmission': [
+        'transfer shares', 'transmission of shares', 'demat transmission',
+        'mutual fund transmission', 'property transfer death',
+        'bank account death', 'nominee transmission', 'asset transfer death'
+    ],
+    'nominee_update': [
+        'nominee', 'update nominee', 'add nominee', 'nomination form',
+        'epf nominee', 'demat nominee', 'mutual fund nominee', 'insurance nominee'
+    ],
+    'hindu_succession': [
+        'hindu succession', 'hindu law', 'huf', 'hindu undivided family',
+        'coparcenary', 'daughters right', 'ancestral property hindu'
+    ],
+    'muslim_succession': [
+        'muslim succession', 'muslim law', 'islamic inheritance',
+        'sharia inheritance', 'wasiyat', 'muslim will', 'muslim heir'
+    ],
+    'digital_inheritance': [
+        'crypto inheritance', 'digital asset will', 'password inheritance',
+        'social media death', 'digital will', 'online account inheritance'
+    ],
+    'estate_planning': [
+        'estate plan', 'wealth transfer', 'generational wealth',
+        'trust setup india', 'private trust', 'family trust india'
+    ],
+    'nri_succession': [
+        'nri will', 'nri inheritance', 'foreign property india',
+        'nri property succession', 'overseas asset india'
+    ]
 }
 
 CRYPTO_SYMBOLS = [
@@ -115,6 +206,34 @@ def classify_intent(user_message: str, agent_id: str = None) -> IntentResult:
             extracted_exchange=exchange
         )
 
+    if agent_id == 'A23':
+        for intent, keywords in ESG_INTENTS.items():
+            for keyword in keywords:
+                if keyword in msg_lower:
+                    return IntentResult(
+                        agent='A23',
+                        intent=intent,
+                        confidence='HIGH',
+                        requires_live_data=False
+                    )
+        return IntentResult(agent='A23', intent='general_esg_query',
+                           confidence='LOW', requires_live_data=False)
+
+    if agent_id == 'A24':
+        for intent, keywords in HEIRGUARD_INTENTS.items():
+            for keyword in keywords:
+                if keyword in msg_lower:
+                    religion = detect_religion_context(msg_lower)
+                    return IntentResult(
+                        agent='A24',
+                        intent=intent,
+                        confidence='HIGH',
+                        requires_live_data=False,
+                        extracted_symbol=religion
+                    )
+        return IntentResult(agent='A24', intent='general_succession_query',
+                           confidence='LOW', requires_live_data=False)
+
     for intent, keywords in DPDP_INTENTS.items():
         for keyword in keywords:
             if keyword in msg_lower:
@@ -128,3 +247,12 @@ def classify_intent(user_message: str, agent_id: str = None) -> IntentResult:
 
     return IntentResult(agent='UNKNOWN', intent='general',
                        confidence='LOW', requires_live_data=False)
+
+def detect_religion_context(msg_lower: str) -> str:
+    if any(k in msg_lower for k in ['hindu', 'huf', 'coparcenary', 'ancestral']):
+        return 'HINDU'
+    if any(k in msg_lower for k in ['muslim', 'islamic', 'sharia', 'wasiyat']):
+        return 'MUSLIM'
+    if any(k in msg_lower for k in ['christian', 'parsi', 'jewish']):
+        return 'CHRISTIAN'
+    return 'GENERAL'

@@ -29,6 +29,16 @@ AGENT_CONFIG = {
         'folder': 'backend/docs/cryptotax_pro/',
         'table': 'cryptotax_documents',
         'default_category': 'VDA Tax'
+    },
+    'esg_compass': {
+        'folder': 'backend/docs/esg_compass/',
+        'table': 'esg_compass_documents',
+        'default_category': 'ESG Compliance'
+    },
+    'heirguard': {
+        'folder': 'backend/docs/heirguard/',
+        'table': 'heirguard_documents',
+        'default_category': 'Succession Law'
     }
 }
 

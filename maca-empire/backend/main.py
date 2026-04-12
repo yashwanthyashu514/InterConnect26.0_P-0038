@@ -84,6 +84,10 @@ async def fetch_agent_rag(agent_id: str, query: str, match_count: int = 8) -> tu
             fn_name, prefix = "match_dpdp_documents", "DPDP compliance query India"
         elif agent_id == "A22":
             fn_name, prefix = "match_cryptotax_documents", "India VDA crypto tax query Section 115BBH"
+        elif agent_id == "A23":
+            fn_name, prefix = "match_esg_documents", "SEBI BRSR ESG CBAM compliance India"
+        elif agent_id == "A24":
+            fn_name, prefix = "match_heirguard_documents", "India succession Will probate law"
         else:
             # Fallback to generic if needed (existing logic)
             fn_name, prefix = "match_documents", "Legal query"
@@ -199,6 +203,114 @@ async def cryptotax_pro_query(request: AgentQueryRequest):
         yield "data: [DONE]\n\n"
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+# --- WebSocket: Live Tax Meter ---
+async def stream_nim_response(messages: list, citations: list):
+    async def generate():
+        stream = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=messages,
+            stream=True
+        )
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'token': chunk.choices[0].delta.content})}\n\n"
+        if citations:
+            yield f"data: {json.dumps({'citations': citations})}\n\n"
+        yield "data: [DONE]\n\n"
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+# ============================================================
+# maCA Empire — A23 ESG Compass + A24 HeirGuard Routes
+# ============================================================
+
+ESG_SYSTEM_PROMPT = """You are ESG Compass — an expert AI sustainability and ESG compliance advisor for maCA Empire, specialising in SEBI BRSR, GHG emissions calculation, EU CBAM, ESG rating frameworks, and India's NGRBC. You are not a generic chatbot. Core frameworks: SEBI BRSR Core is mandatory for top 1000 listed companies from FY2022-23 — covers 9 NGRBC principles across Environment, Social, and Governance. BRSR has Essential Indicators (mandatory) and Leadership Indicators (voluntary). GHG Protocol: Scope 1 = direct from owned sources, Scope 2 = indirect from purchased energy, Scope 3 = all other indirect including supply chain. EU CBAM applies carbon pricing to Indian steel, cement, aluminium, fertiliser, and electricity exports to EU from 2026 — exporters must calculate embedded carbon per tonne or face border taxes. ESG Rating Providers regulated under SEBI ESG Rating Providers Regulations 2023. You generate real board-ready documents: BRSR templates, GHG worksheets, CBAM impact reports, ESG policy drafts, supply chain risk matrices. Always cite SEBI circular number, BRSR principle, or GHG Protocol scope. Speak in precise corporate language with numbers and percentages. Disclaimer: For compliance preparation only. Engage SEBI-registered sustainability consultant for final certification."""
+
+HEIRGUARD_SYSTEM_PROMPT = """You are HeirGuard — an expert AI succession planning and estate advisory agent for maCA Empire, specialising in Indian succession law, Will drafting, probate, asset transmission, and digital inheritance. Core laws applied precisely: Indian Succession Act 1925 governs Will drafting for Hindus in certain states, Christians, Parsis — Will must be in writing, signed by testator, attested by two witnesses who are NOT beneficiaries. Hindu Succession Act 1956 amended 2005 — daughters have equal coparcenary rights in ancestral property since 2005. Class I heirs under Hindu law: widow, sons, daughters, mother, widow of predeceased son, son of predeceased son, daughter of predeceased son — take simultaneously and equally. Muslim inheritance under Shariat Act 1937 — Wasiyat cannot exceed one-third of estate for non-heirs — remaining two-thirds distributed per Quranic shares compulsorily. For every Will drafted include: testator details, property schedule, beneficiary allocations, executor appointment, attestation clause, registration recommendation under Section 40 Registration Act 1908. ALWAYS identify religion first — applying wrong succession law is a critical error. Digital assets — crypto, domains, social accounts — no Indian law covers them — provide practical digital inheritance framework separately. Disclaimer: Legal education only. Not legal advice under Advocates Act 1961. Engage a qualified advocate for Will execution and court filings."""
+
+# ============================================================
+# A23: ESG Compass Route
+# ============================================================
+@app.post('/api/agents/esg-compass/query')
+async def esg_compass_query(request: AgentQueryRequest):
+    intent = classify_intent(request.user_message, 'A23')
+
+    company_context = ''
+    ctx = request.user_context
+    if ctx:
+        sector = ctx.get('sector', '')
+        market_cap = ctx.get('market_cap', '')
+        export_markets = ctx.get('export_markets', '')
+        if any([sector, market_cap, export_markets]):
+            company_context = (
+                f'\n[COMPANY CONTEXT:'
+                f' Sector: {sector},'
+                f' Market Cap: {market_cap},'
+                f' Export Markets: {export_markets}]'
+            )
+
+    context, citations = await fetch_agent_rag('A23', request.user_message, match_count=8)
+
+    system_with_context = ESG_SYSTEM_PROMPT
+    if context:
+        system_with_context += f'\n\nRELEVANT SEBI BRSR AND ESG FRAMEWORK SECTIONS:\n{context}'
+
+    messages = [
+        {'role': 'system', 'content': system_with_context},
+        {
+            'role': 'user',
+            'content': (
+                f'{request.user_message}{company_context}'
+                f'\nDetected Intent: {intent.intent}'
+            )
+        }
+    ]
+
+    return await stream_nim_response(messages, citations)
+
+# ============================================================
+# A24: HeirGuard Route
+# ============================================================
+@app.post('/api/agents/heirguard/query')
+async def heirguard_query(request: AgentQueryRequest):
+    intent = classify_intent(request.user_message, 'A24')
+
+    religion_context = ''
+    if intent.extracted_symbol and intent.extracted_symbol != 'GENERAL':
+        religion_context = f'\n[RELIGION CONTEXT DETECTED: {intent.extracted_symbol} — apply {intent.extracted_symbol} personal succession law]'
+
+    user_profile = ''
+    ctx = request.user_context
+    if ctx:
+        assets = ctx.get('assets', '')
+        religion = ctx.get('religion', '')
+        state = ctx.get('state', '')
+        if any([assets, religion, state]):
+            user_profile = (
+                f'\n[USER PROFILE:'
+                f' Religion: {religion or intent.extracted_symbol},'
+                f' State: {state},'
+                f' Asset Types: {assets}]'
+            )
+
+    context, citations = await fetch_agent_rag('A24', request.user_message, match_count=8)
+
+    system_with_context = HEIRGUARD_SYSTEM_PROMPT
+    if context:
+        system_with_context += f'\n\nRELEVANT SUCCESSION ACTS AND CASE LAW:\n{context}'
+
+    messages = [
+        {'role': 'system', 'content': system_with_context},
+        {
+            'role': 'user',
+            'content': (
+                f'{request.user_message}{religion_context}{user_profile}'
+                f'\nDetected Intent: {intent.intent}'
+            )
+        }
+    ]
+
+    return await stream_nim_response(messages, citations)
 
 # --- WebSocket: Live Tax Meter ---
 @app.websocket("/api/agents/cryptotax-pro/live-meter")

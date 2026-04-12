@@ -19,8 +19,12 @@
 | **A6** | **Notice Fighter** | Instant IT & GST Notice drafting from PDF text | ✅ LIVE |
 | **A7** | **Audit Shield** | GSTIN-based audit risk scoring & gauge | ✅ LIVE |
 | **A8-A20**| **Growth Pillar** | RTI Filer, RERA Scout, Credit Fixer, Startup Legal, etc. | ✅ ACTIVE |
-| **A21** | **DPDP Shield** | **DPDP Act 2023 Compliance & ₹250Cr penalty protection** | ✅ PRODUCTION |
-| **A22** | **CryptoTax Pro**| **30% VDA Tax Calculator & Schedule VDA ITR Engine** | ✅ PRODUCTION |
+| A21 | DPDP Shield | DPDP Act 2023 Gap Analysis, Consent Drafting & Rs.250Cr Penalty Shield | LIVE |
+| A22 | CryptoTax Pro | VDA 30% Tax Calculator, Schedule VDA ITR Filing & Live Tax Meter | LIVE |
+| A23 | ESG Compass | SEBI BRSR Core Auto-fill, GHG Calculator & EU CBAM Analyser | LIVE |
+| A24 | HeirGuard | Will Drafting, Succession Advisory & Asset Transmission Engine | LIVE |
+| **A25** | *AI Governance Counsel* | *AI Act Compliance & Algorithmic Audit (Building Next)* | |
+| **A26** | *The Oracle* | *General Counsel AGI (Phase 5)* | |
 
 ### 🛠️ Technical Stack
 - **Frontend**: Next.js 16 (App Router), TypeScript, Vanilla CSS (Apple Cinematic Design).

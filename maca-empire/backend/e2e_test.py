@@ -48,8 +48,40 @@ def run_tests():
     except Exception as e:
         print(f"FAILED: CryptoTax Pro connection: {e}")
 
-    # 4. Hybrid RAG / Generic Ask
-    print("\n[4/6] Verifying Generic Agent Router")
+    # 4. ESG Compass (A23) Verification
+    print("\n[4/6] Verifying ESG Compass (A23)")
+    esg_payload = {
+        "user_message": "Auto-fill my BRSR Core template",
+        "session_id": "test_esg",
+        "user_context": {"sector": "Manufacturing", "market_cap": "15000 Cr", "export_markets": "EU"}
+    }
+    try:
+        esg_res = requests.post(f"{BASE_URL}/api/agents/esg-compass/query", json=esg_payload, stream=True)
+        if esg_res.status_code == 200:
+            print("SUCCESS: ESG Compass Response Started.")
+        else:
+            print(f"FAILED: ESG Compass query: {esg_res.status_code}")
+    except Exception as e:
+        print(f"FAILED: ESG Compass connection: {e}")
+
+    # 5. HeirGuard (A24) Verification
+    print("\n[5/6] Verifying HeirGuard (A24)")
+    heirguard_payload = {
+        "user_message": "Who are my legal heirs under Hindu Succession Act?",
+        "session_id": "test_heirguard",
+        "user_context": {"religion": "HINDU", "assets": "Property, Stocks"}
+    }
+    try:
+        heirguard_res = requests.post(f"{BASE_URL}/api/agents/heirguard/query", json=heirguard_payload, stream=True)
+        if heirguard_res.status_code == 200:
+            print("SUCCESS: HeirGuard Response Started.")
+        else:
+            print(f"FAILED: HeirGuard query: {heirguard_res.status_code}")
+    except Exception as e:
+        print(f"FAILED: HeirGuard connection: {e}")
+
+    # 6. Hybrid RAG / Generic Ask
+    print("\n[6/6] Verifying Generic Agent Router")
     ask_payload = {
         "query": "How to file GST for a startup?",
         "agent_id": "A1"

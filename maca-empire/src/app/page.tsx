@@ -26,6 +26,8 @@ const agents = [
   { id: "A20", name: "Enterprise API", icon: "🏢", desc: "API access and white-label for enterprises.", tag: "ELITE", href: "/b2b" },
   { id: "A21", name: "DPDP Shield", icon: "🛡️", desc: "DPDP Act 2023 Compliance, Gap Analysis & Audit.", tag: "ELITE", href: "/dpdp" },
   { id: "A22", name: "CryptoTax Pro", icon: "🪙", desc: "30% VDA Tax Calculator & Schedule VDA ITR Filing.", tag: "ELITE", href: "/crypto-tax" },
+  { id: "A23", name: "ESG Compass", icon: "🍃", desc: "SEBI BRSR Core Auto-fill, GHG Scope & EU CBAM.", tag: "ELITE", href: "/esg-compass" },
+  { id: "A24", name: "HeirGuard", icon: "📜", desc: "Will Drafting, Succession Advisory & Assets.", tag: "ELITE", href: "/heirguard" },
 ];
 
 const marqueeItems = [
@@ -56,7 +58,7 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Animated counter
-    const targets = { cases: 12000, agents: 22, saving: 80 };
+    const targets = { cases: 12000, agents: 24, saving: 80 };
     const duration = 1800;
     const steps = 60;
     const interval = duration / steps;
