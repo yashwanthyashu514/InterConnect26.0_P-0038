@@ -61,7 +61,7 @@ export const AGENTS: Agent[] = [
   {
     id: "A6",
     name: "Voice CA",
-    description: "Flagship multimodal AI — Talk to your personal CA in Hindi or English.",
+    description: "Multilingual Legal Orchestrator — Conversational advisory in 6 languages with auto-detection and notice drafting.",
     icon: "Mic",
     category: "GROWTH",
     path: "/voice",

@@ -134,6 +134,11 @@ export default function DashboardPage() {
                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--acid)" }} />
                <span style={{ fontSize: "10px", fontWeight: 800, color: "var(--acid)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Kernel Stable</span>
             </div>
+            {/* Multilingual Engine Badge */}
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}>
+               <Globe2 size={12} color="rgba(255,255,255,0.4)" />
+               <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase" }}>Responding in English · EN-IN</span>
+            </div>
           </div>
 
           <div style={{ position: "relative" }}>
@@ -184,9 +189,26 @@ export default function DashboardPage() {
           <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
             
             {/* Header Section */}
-            <div style={{ marginBottom: "60px" }}>
-               <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "52px", color: "var(--acid)", letterSpacing: "-2px", marginBottom: "8px", textTransform: "uppercase" }}>Orchestrator</h1>
-               <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px" }}>Universal Intelligence Architecture Control</p>
+            <div style={{ marginBottom: "60px", display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+               <div>
+                  <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "52px", color: "var(--acid)", letterSpacing: "-2px", marginBottom: "8px", textTransform: "uppercase" }}>Orchestrator</h1>
+                  <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.3)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "2px" }}>Universal Intelligence Architecture Control</p>
+               </div>
+
+               {/* Global Compliance Index (GCI) Gauge */}
+               <div style={{ display: "flex", alignItems: "center", gap: "24px", background: "#080808", border: "0.5px solid #1a1a1a", padding: "20px 28px", borderRadius: "16px" }}>
+                 <div style={{ position: "relative", width: "52px", height: "52px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                   <svg width="52" height="52" viewBox="0 0 52 52">
+                     <circle cx="26" cy="26" r="23" fill="none" stroke="#111" strokeWidth="4" />
+                     <circle cx="26" cy="26" r="23" fill="none" stroke="var(--acid)" strokeWidth="4" strokeDasharray="144.5" strokeDashoffset="28.9" strokeLinecap="round" style={{ transform: "rotate(-90deg)", transformOrigin: "50% 50%" }} />
+                   </svg>
+                   <span style={{ position: "absolute", fontSize: "14px", fontWeight: 900, color: "var(--acid)" }}>82</span>
+                 </div>
+                 <div>
+                   <p style={{ fontSize: "10px", fontWeight: 800, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Compliance Index</p>
+                   <p style={{ fontSize: "14px", fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: "0.5px" }}>Stable</p>
+                 </div>
+               </div>
             </div>
 
             {/* Architecture Feed (Active Vectors) */}
@@ -223,6 +245,32 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      </div>
+
+      {/* Intelligence News Ticker */}
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, height: "40px", background: "#000", borderTop: "0.5px solid #1a1a1a", display: "flex", alignItems: "center", overflow: "hidden", zIndex: 9000 }}>
+        <div style={{ background: "var(--acid)", height: "100%", padding: "0 16px", display: "flex", alignItems: "center", gap: "8px", zIndex: 10 }}>
+          <Activity size={14} color="#000" />
+          <span style={{ fontSize: "10px", fontWeight: 900, color: "#000", textTransform: "uppercase", letterSpacing: "0.5px" }}>Live Feed</span>
+        </div>
+        <div className="ticker-scroll" style={{ display: "flex", whiteSpace: "nowrap", alignItems: "center", gap: "40px", padding: "0 40px" }}>
+          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>• <b>ORACLE:</b> Market sentiment shift detected in BFSI sector. Volatility hedge recommended.</span>
+          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>• <b>AUDIT-SHIELD:</b> GST filing deadline in 48 hours for GSTIN-XX21. Auto-drafting response A6...</span>
+          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>• <b>DPDP-SAFE:</b> New regulation update in EU AI Act. Processing cross-border compliance gap...</span>
+          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>• <b>HEIRGUARD:</b> 3 Digital Wills finalized for Elite-Tier households in Sector-04.</span>
+          <span style={{ fontSize: "11px", color: "rgba(255,255,255,0.6)" }}>• <b>VOICE-CA:</b> Language lock active (EN-IN). Multinodal interface ready...</span>
+        </div>
+      </div>
+
+      <style jsx global>{`
+        @keyframes ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .ticker-scroll {
+          animation: ticker 40s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
