@@ -27,9 +27,11 @@
 | **A26** | **The Oracle** | Live Market Pulse & 50-year Global Knowledge Graph | ✅ LIVE |
 
 ### 🛠️ Technical Stack
-- **Frontend**: Next.js 16 (App Router), TypeScript, Vanilla CSS (Apple Cinematic Design).
+- **Frontend**: Next.js 16 (App Router), TypeScript, Vanilla CSS (High-Authority Cinematic Design).
+- **Search Engine**: Real-time Global Intelligence Search (Filters 26+ Agents).
 - **Backend**: FastAPI (Python), OpenAI SDK (NVIDIA NIM meta/llama-3.3-70b-instruct).
 - **AI RAG**: `nvidia/nv-embed-v1` (4096-dim), pgvector on Supabase.
+- **Navigation**: Zero-Shift Overlay Sidebar & Persistent Command Top-Navbar.
 - **Real-time**: WebSockets for Live Tax Meters & SSE for response streaming.
 
 ---

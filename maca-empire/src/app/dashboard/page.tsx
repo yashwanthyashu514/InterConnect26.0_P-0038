@@ -45,6 +45,15 @@ const topAgents = AGENTS.slice(0, 4).map(agent => ({
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [data, setData] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  const filteredAgents = searchQuery.trim() === "" 
+    ? [] 
+    : AGENTS.filter(a => 
+        a.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        a.description.toLowerCase().includes(searchQuery.toLowerCase())
+      ).slice(0, 5);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -127,9 +136,39 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div style={{ background: "#080808", border: "0.5px solid #1a1a1a", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px", padding: "8px 16px", width: "400px" }}>
-            <Search size={14} color="rgba(255,255,255,0.2)" />
-            <input placeholder="Search intelligence architecture..." style={{ background: "transparent", border: "none", outline: "none", fontSize: "12px", color: "#fff", width: "100%" }} />
+          <div style={{ position: "relative" }}>
+            <div style={{ background: "#080808", border: isSearchFocused ? "0.5px solid var(--acid)" : "0.5px solid #1a1a1a", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px", padding: "8px 16px", width: "400px", transition: "all 0.2s" }}>
+              <Search size={14} color={isSearchFocused ? "var(--acid)" : "rgba(255,255,255,0.2)"} />
+              <input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
+                placeholder="Search intelligence architecture..." 
+                style={{ background: "transparent", border: "none", outline: "none", fontSize: "12px", color: "#fff", width: "100%" }} 
+              />
+            </div>
+
+            {/* Live Search Results Overlay */}
+            {isSearchFocused && searchQuery.trim() !== "" && (
+              <div style={{ position: "absolute", top: "110%", left: 0, right: 0, background: "#080808", border: "0.5px solid #1a1a1a", borderRadius: "12px", padding: "8px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", zIndex: 10000 }}>
+                {filteredAgents.length > 0 ? (
+                  filteredAgents.map(a => (
+                    <Link key={a.id} href={a.path} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", borderRadius: "8px", textDecoration: "none", transition: "all 0.1s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#111"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
+                      <div style={{ width: "32px", height: "32px", background: "#000", border: "0.5px solid #222", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>
+                        {getAgentIcon(a.id, 14)}
+                      </div>
+                      <div>
+                        <p style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>{a.name}</p>
+                        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "260px" }}>{a.description}</p>
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <div style={{ padding: "16px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>No operational vectors found.</div>
+                )}
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
