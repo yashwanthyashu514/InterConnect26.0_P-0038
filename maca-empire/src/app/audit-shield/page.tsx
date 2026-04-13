@@ -81,10 +81,11 @@ export default function AuditShieldPage() {
       agentName="Audit Shield"
       agentIcon="🔒"
       agentDescription="Score your GSTIN audit risk and fix vulnerabilities before they find you."
+      agentId="A12"
       rightPanel={<AuditPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">🔒</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Audit Shield</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Know your audit risk before the taxman does. Score your GSTIN and fix vulnerabilities proactively.

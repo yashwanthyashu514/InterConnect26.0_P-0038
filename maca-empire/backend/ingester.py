@@ -39,6 +39,16 @@ AGENT_CONFIG = {
         'folder': 'backend/docs/heirguard/',
         'table': 'heirguard_documents',
         'default_category': 'Succession Law'
+    },
+    'ai_governance_counsel': {
+        'folder': 'backend/docs/ai_governance_counsel/',
+        'table': 'ai_governance_documents',
+        'default_category': 'AI Governance'
+    },
+    'the_oracle': {
+        'folder': 'backend/docs/the_oracle/',
+        'table': 'oracle_static_kb',
+        'default_category': 'Financial Intelligence'
     }
 }
 
@@ -57,6 +67,19 @@ def extract_text_from_pdf(pdf_path: str) -> list[str]:
             chunk = ' '.join(words[i:i + chunk_size])
             if len(chunk.strip()) > 100:
                 chunks.append(chunk.strip())
+    return chunks
+
+def extract_text_from_txt(txt_path: str) -> list[str]:
+    chunks = []
+    with open(txt_path, 'r', encoding='utf-8') as f:
+        full_text = f.read()
+    words = full_text.split()
+    chunk_size = 400
+    overlap = 50
+    for i in range(0, len(words), chunk_size - overlap):
+        chunk = ' '.join(words[i:i + chunk_size])
+        if len(chunk.strip()) > 100:
+            chunks.append(chunk.strip())
     return chunks
 
 def embed_text(text: str) -> list[float]:
@@ -84,15 +107,24 @@ def ingest_agent(agent_name: str, folder: str = None):
         return
 
     pdf_files = list(docs_folder.glob('*.pdf'))
-    if not pdf_files:
-        print(f'No PDF files found in {docs_folder}')
+    txt_files = list(docs_folder.glob('*.txt'))
+    all_files = pdf_files + txt_files
+    if not all_files:
+        print(f'No PDF or TXT files found in {docs_folder}')
         return
 
-    print(f'Starting ingestion for {agent_name} — {len(pdf_files)} PDFs found')
+    print(f'Starting ingestion for {agent_name} — {len(pdf_files)} PDFs + {len(txt_files)} TXT files found')
 
-    for pdf_path in pdf_files:
-        print(f'Processing: {pdf_path.name}')
-        chunks = extract_text_from_pdf(str(pdf_path))
+    for file_path in all_files:
+        print(f'Processing: {file_path.name}')
+        try:
+            if file_path.suffix.lower() == '.pdf':
+                chunks = extract_text_from_pdf(str(file_path))
+            else:
+                chunks = extract_text_from_txt(str(file_path))
+        except Exception as e:
+            print(f'  Error reading {file_path.name}: {e}')
+            continue
         print(f'  Extracted {len(chunks)} chunks')
 
         for i, chunk in enumerate(chunks):
@@ -101,7 +133,7 @@ def ingest_agent(agent_name: str, folder: str = None):
                 supabase.table(table).insert({
                     'content': chunk,
                     'embedding': embedding,
-                    'source': pdf_path.name,
+                    'source': file_path.name,
                     'category': config['default_category']
                 }).execute()
                 if (i + 1) % 10 == 0:
@@ -110,7 +142,7 @@ def ingest_agent(agent_name: str, folder: str = None):
                 print(f'  Error on chunk {i}: {e}')
                 continue
 
-        print(f'  Done: {pdf_path.name}')
+        print(f'  Done: {file_path.name}')
 
     print(f'Ingestion complete for {agent_name}')
 

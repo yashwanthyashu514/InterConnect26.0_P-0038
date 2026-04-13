@@ -78,7 +78,7 @@ export default function StartupLegalPage() {
     >
       {!selectedTool ? (
         <div className="empty-state">
-          <div className="empty-state-icon">🚀</div>
+          
           <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Startup Legal Toolkit</h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
             Everything a founder needs — from incorporation to ESOP, term sheets to shareholder agreements.

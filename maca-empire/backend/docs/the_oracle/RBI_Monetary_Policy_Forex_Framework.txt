@@ -1,0 +1,47 @@
+RBI Monetary Policy and Forex Management — Oracle Knowledge Base
+Sources: RBI Act 1934, FEMA 1999, RBI Master Directions
+
+MONETARY POLICY FRAMEWORK:
+Inflation Target: 4% CPI (Consumer Price Index) with +/-2% tolerance band
+Above 6%: RBI must explain to government in writing — triggers tightening bias
+Below 2%: Underlies economic weakness — triggers easing bias
+
+MONETARY POLICY INSTRUMENTS:
+Repo Rate: Rate at which RBI lends to banks (key policy rate)
+SDF Rate: Standing Deposit Facility — floor of interest rate corridor (50 bps below repo)
+MSF Rate: Marginal Standing Facility — ceiling (50 bps above repo)
+CRR: Cash Reserve Ratio — % of deposits banks must hold with RBI (currently 4%)
+SLR: Statutory Liquidity Ratio — % in liquid assets (currently 18%)
+OMO: Open Market Operations — RBI buys/sells G-Secs to manage liquidity
+
+RATE TRANSMISSION MECHANISM:
+Repo rate change → MCLR (Marginal Cost of Lending Rate) changes in 1-3 months
+MCLR change → floating rate loan EMIs change in 3-6 months
+Full transmission to economy: 3-4 quarters
+
+FOREIGN EXCHANGE MANAGEMENT:
+FEMA 1999 governs all forex transactions in India
+Current Account: Fully convertible — imports, exports, invisibles (services, remittances)
+Capital Account: Partially convertible — FDI, FII, ECB (External Commercial Borrowing)
+
+LRS (Liberalised Remittance Scheme):
+Resident individuals can remit up to USD 250,000 per year for:
+- Overseas investments (stocks, property)
+- Education and travel
+- Medical expenses
+- Gift remittances
+TCS (Tax Collected at Source): 20% on LRS remittances above Rs. 7 lakh (Budget 2023)
+Investment in foreign stocks via LRS: Must be declared in ITR Schedule FA
+
+USDINR DYNAMICS:
+Current account deficit widens INR negative
+FII equity inflows strengthen INR
+DXY (Dollar Index) rise = INR weakness
+RBI intervention: Sells dollars to stabilise INR; has ~$650 billion forex reserves
+INR has depreciated from 45/USD (2008) to ~83/USD (2024) — structural depreciation trend
+
+FEMA COMPLIANCE FOR RETAIL INVESTORS:
+Cannot hold foreign currency in India beyond permitted limits
+Must declare foreign assets in Schedule FA of ITR
+Capital gains on foreign stocks taxed as per Indian IT Act
+Crypto held on foreign platforms may have FEMA implications if value > LRS limit

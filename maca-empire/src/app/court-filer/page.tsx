@@ -65,7 +65,7 @@ export default function CourtFilerPage() {
     >
       {!selected ? (
         <div className="empty-state">
-          <div className="empty-state-icon">⚖️</div>
+          
           <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Select Document Type</h2>
           <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "400px" }}>
             Choose your document type to get a court-ready draft in proper legal format.

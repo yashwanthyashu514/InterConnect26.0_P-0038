@@ -92,7 +92,7 @@ export default function TaxPage() {
 
   return (
     <AgentChatLayout
-      agentName="maCA Tax"
+      agentName="Supreme Tax"
       agentIcon="📋"
       agentDescription="Penalty clocks, ITR guidance, and real-time tax advisory."
       agentId="A1"
@@ -100,8 +100,8 @@ export default function TaxPage() {
       extraTopBarContent={<PenaltyClock />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">📋</div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>maCA Tax</h2>
+        
+        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Supreme Tax</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Your AI tax advisor for ITR filing, GST, deductions, and notices. Get expert-level guidance instantly.
         </p>

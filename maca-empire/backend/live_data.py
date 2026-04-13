@@ -107,3 +107,90 @@ async def calculate_live_tax(
         'tax_liability_inr': tax_liability,
         'effective_rate': '30% flat — Section 115BBH'
     }
+
+# ============================================================
+# ADD to live_data.py — A26 The Oracle live market data
+# ============================================================
+
+NSE_INDICES = {
+    'NIFTY': 'NIFTY 50',
+    'BANKNIFTY': 'NIFTY BANK',
+    'SENSEX': 'SENSEX'
+}
+
+async def fetch_live_equity_price(symbol: str) -> dict:
+    """Fetch live Indian equity / index price via Yahoo Finance yfinance-compatible endpoint"""
+    yf_symbol_map = {
+        'NIFTY': '^NSEI', 'BANKNIFTY': '^NSEBANK', 'SENSEX': '^BSESN',
+        'RELIANCE': 'RELIANCE.NS', 'TCS': 'TCS.NS', 'INFY': 'INFY.NS',
+        'HDFC': 'HDFCBANK.NS', 'ICICI': 'ICICIBANK.NS'
+    }
+    yf_sym = yf_symbol_map.get(symbol.upper(), f'{symbol.upper()}.NS')
+    url = f'https://query1.finance.yahoo.com/v8/finance/chart/{yf_sym}?interval=1d&range=1d'
+
+    async with httpx.AsyncClient(timeout=10.0, headers={'User-Agent': 'Mozilla/5.0'}) as client:
+        try:
+            r = await client.get(url)
+            data = r.json()
+            result = data['chart']['result'][0]
+            meta = result['meta']
+            price = round(meta.get('regularMarketPrice', 0), 2)
+            prev_close = round(meta.get('previousClose', price), 2)
+            change_pct = round(((price - prev_close) / prev_close) * 100, 2) if prev_close else 0
+            timestamp_ist = datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d %b %Y %I:%M %p IST')
+            return {
+                'symbol': symbol.upper(),
+                'price': price,
+                'prev_close': prev_close,
+                'change_pct': change_pct,
+                'currency': 'INR',
+                'source': 'Yahoo Finance',
+                'timestamp_ist': timestamp_ist
+            }
+        except Exception as e:
+            return {'error': str(e), 'symbol': symbol}
+
+async def fetch_live_market_overview() -> dict:
+    """Fetch Nifty 50, Bank Nifty, DXY, Gold, Oil snapshot for Oracle macro context"""
+    results = {}
+    symbols = {
+        'nifty50': '^NSEI',
+        'banknifty': '^NSEBANK',
+        'gold_inr': 'GC=F',
+        'crude_usd': 'CL=F',
+        'dxy': 'DX-Y.NYB'
+    }
+    async with httpx.AsyncClient(timeout=15.0, headers={'User-Agent': 'Mozilla/5.0'}) as client:
+        for key, sym in symbols.items():
+            try:
+                r = await client.get(
+                    f'https://query1.finance.yahoo.com/v8/finance/chart/{sym}?interval=1d&range=1d'
+                )
+                meta = r.json()['chart']['result'][0]['meta']
+                results[key] = {
+                    'price': round(meta.get('regularMarketPrice', 0), 2),
+                    'change_pct': round(
+                        ((meta.get('regularMarketPrice', 0) - meta.get('previousClose', 1))
+                         / meta.get('previousClose', 1)) * 100, 2
+                    )
+                }
+            except Exception:
+                results[key] = {'price': 0, 'change_pct': 0}
+    return results
+
+def build_oracle_live_injection(market_data: dict, asset_data: dict = None) -> str:
+    """Build the [LIVE_MARKET] injection block for Oracle prompt"""
+    overview = market_data
+    lines = [
+        f"[LIVE_MARKET] {{",
+        f"  nifty50: {overview.get('nifty50', {}).get('price', 'N/A')} ({overview.get('nifty50', {}).get('change_pct', 0):+.2f}%),",
+        f"  banknifty: {overview.get('banknifty', {}).get('price', 'N/A')} ({overview.get('banknifty', {}).get('change_pct', 0):+.2f}%),",
+        f"  gold_inr: {overview.get('gold_inr', {}).get('price', 'N/A')},",
+        f"  crude_usd: {overview.get('crude_usd', {}).get('price', 'N/A')},",
+        f"  dxy: {overview.get('dxy', {}).get('price', 'N/A')},",
+        f"  timestamp_ist: {datetime.now(ZoneInfo('Asia/Kolkata')).strftime('%d %b %Y %I:%M %p IST')}",
+        "} [/LIVE_MARKET]"
+    ]
+    if asset_data and 'error' not in asset_data:
+        lines.insert(1, f"  queried_asset: {asset_data.get('symbol')} @ {asset_data.get('price')} INR ({asset_data.get('change_pct', 0):+.2f}%),")
+    return '\n'.join(lines)

@@ -1,0 +1,51 @@
+Digital Personal Data Protection Act 2023 — Algorithmic Accountability Guide
+Source: Ministry of Electronics and Information Technology, Government of India
+
+OVERVIEW
+The Digital Personal Data Protection Act 2023 (DPDP Act) received Presidential assent on August 11, 2023. Full compliance mandatory by May 13, 2027 (18 months from Rules notification on November 14, 2025).
+
+KEY DEFINITIONS AFFECTING AI SYSTEMS:
+- Data Principal: Individual whose personal data is processed
+- Data Fiduciary: Entity determining purpose and means of data processing
+- Significant Data Fiduciary (SDF): Data Fiduciary notified by Central Government based on volume, sensitivity, risk to rights, national security, or public order implications
+- Consent Manager: Registered entity through which individuals manage consent
+
+SECTION 16 — ADDITIONAL OBLIGATIONS OF SIGNIFICANT DATA FIDUCIARIES:
+Significant Data Fiduciaries must:
+(a) Appoint a Data Protection Officer based in India
+(b) Appoint an independent Data Auditor
+(c) Undertake periodic Data Protection Impact Assessments (DPIA)
+(d) Address any other matter as prescribed
+
+ALGORITHMIC ACCOUNTABILITY UNDER DPDP:
+Rule 12 (DPDP Rules 2025) mandates:
+- SDFs must conduct DPIA for any AI system processing personal data for automated decision-making
+- Automated decisions significantly affecting data principals require human review mechanism
+- Algorithmic systems must be auditable by appointed Data Auditor
+- Explanation must be provided when automated decision affects legal or significant interests
+- AI training data must have proper consent basis if using personal data
+
+SECTION 17 — RIGHTS OF DATA PRINCIPALS:
+Data principals have right to:
+- Access information about personal data being processed
+- Correction and erasure of personal data
+- Grievance redressal (response within 30 days)
+- Nomination of another person to exercise rights upon death/incapacity
+
+PENALTIES (Section 33):
+- Failure to implement safeguards: Up to Rs. 250 crore
+- Failure to address data breach: Up to Rs. 200 crore
+- Violation of children's data provisions: Up to Rs. 200 crore
+- Breach of SDF obligations (Section 16): Up to Rs. 150 crore
+- Other violations: Up to Rs. 50 crore
+
+AI AUDIT REQUIREMENTS:
+Data Auditors appointed by SDFs must assess:
+1. Adequacy of consent mechanisms for AI training data
+2. Algorithmic bias and discriminatory outcomes
+3. Data minimisation compliance in AI pipelines
+4. Retention and deletion practices for AI training datasets
+5. Cross-border data transfer safeguards if AI models trained overseas
+
+CHILDREN'S DATA AND AI:
+Section 9 prohibits processing children's personal data without verifiable parental consent. AI systems targeting children or likely to access children's data must implement age verification. Tracking, behavioural monitoring, or targeted advertising to children is prohibited.

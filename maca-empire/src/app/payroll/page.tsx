@@ -64,7 +64,7 @@ export default function PayrollPage() {
       rightPanel={<PayrollCalculator />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">💰</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>PayrollPilot</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Instant salary breakdowns, payslip generation, and PF/ESI/TDS calculations. Use the live calculator on the right.

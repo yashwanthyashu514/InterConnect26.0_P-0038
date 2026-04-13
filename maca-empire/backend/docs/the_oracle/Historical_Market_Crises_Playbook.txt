@@ -1,0 +1,47 @@
+The Oracle's Crisis Playbook — 50 Years of Market Memory
+Compiled crisis patterns for pattern recognition and historical context
+
+1. BLACK MONDAY — OCTOBER 19, 1987
+Dow fell 22.6% in single day — largest single-day percentage decline in history
+Cause: Portfolio insurance strategies, program trading, overvalued markets
+Recovery: Dow recovered all losses within 2 years
+Oracle lesson: When everyone uses same hedge strategy, the hedge becomes the crash. Correlation goes to 1 in crisis — diversification fails when you need it most.
+India impact: BSE fell ~13% in sympathy — Indian markets connected even before liberalisation
+
+2. DOT-COM CRASH 2000-2002
+Nasdaq fell 78% peak to trough over 30 months
+Cause: Valuations disconnected from fundamentals; revenue and profit ignored
+Recovery: Nasdaq took 15 years to recover nominal peak (2015)
+Oracle lesson: Price-to-earnings matters. Revenue growth without profit path is financial fiction. "Eyeballs" and "clicks" are not earnings. India tech stocks (Infosys, Wipro) recovered faster than US tech — fundamentals protected them
+India's IT sector: Fell 60-70% but companies had real earnings — recovered in 24 months
+
+3. GLOBAL FINANCIAL CRISIS 2008-2009
+S&P 500 fell 57% from October 2007 to March 2009
+Nifty fell from 6,357 (January 2008) to 2,252 (March 2009) — 64.5% decline
+Cause: US subprime mortgage crisis, CDO complexity, leverage in banking system
+RBI response: Cut repo rate 425 bps to 4.75% by 2009. Fiscal stimulus Rs. 30,000 crore
+Recovery: Nifty recovered to pre-crisis levels by November 2010 — 19 months
+Oracle lesson: Liquidity crises are survivable. Position sizing saved portfolios. Those who held quality Indian banks (HDFC, Kotak) outperformed. Never use margin in falling markets.
+
+4. EUROZONE CRISIS 2011-2012
+Nifty fell from 6,100 to 4,500 (25% decline)
+India-specific factors: Rupee depreciation, high current account deficit, policy paralysis
+FII outflows: Rs. 2.7 lakh crore exit in 2011
+Oracle lesson: India is not immune to global risk-off. Current account deficit makes rupee vulnerable. RBI intervention has limits when global dollar strengthens.
+
+5. COVID CRASH 2020
+Nifty fell from 12,360 to 7,511 in 40 days — fastest 40% decline in history
+Recovery: Fastest recovery too — Nifty at all-time high by December 2020
+Oracle lesson: Liquidity injections by central banks create V-shaped recoveries. Policy response speed determines recovery speed. Those who bought at 7,500-8,500 made 100%+ in 18 months.
+
+6. IL&FS CRISIS 2018
+NBFCs (Non-Banking Financial Companies) froze
+IL&FS defaulted on Rs. 91,000 crore debt
+Contagion to liquid mutual funds — DHFL, Yes Bank, Reliance Capital collapsed later
+Oracle lesson: Credit crises in India propagate slowly then suddenly. Mutual fund debt exposure must be checked. Infrastructure financing is politically sensitive but structurally risky.
+
+7. CRYPTO WINTER 2022
+Bitcoin fell from $69,000 (November 2021) to $15,500 (November 2022) — 78% decline
+Triggered by: Luna/Terra collapse in May 2022, FTX collapse October 2022
+India tax impact: 30% flat tax + 1% TDS made Indian crypto trading uneconomical
+Oracle lesson: Leverage in crypto is existential risk. Counterparty risk is enormous. Regulatory clarity reduces but does not eliminate cyclical boom-bust. Bitcoin halvings historically (2012, 2016, 2020) preceded 12-18 month bull runs.

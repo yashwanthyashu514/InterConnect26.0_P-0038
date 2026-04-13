@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Home, Bot, Wallet, Zap, Activity, CheckCircle, AlertTriangle, Clock, Menu, Bell, ArrowLeft, X } from "lucide-react";
 
 const tabs = ["Overview", "API Keys", "Documentation", "Usage Analytics", "Webhooks"];
 
@@ -22,10 +23,10 @@ const apiKeys = [
 ];
 
 const overviewStats = [
-  { label: "Total API Calls", value: "48,291", delta: "+12% this month", icon: "📡" },
-  { label: "Successful Calls", value: "47,834", delta: "99.05% success rate", icon: "✅" },
-  { label: "Error Rate", value: "0.95%", delta: "-0.3% vs last month", icon: "⚠️" },
-  { label: "Avg Response Time", value: "1.2s", delta: "-200ms improvement", icon: "⚡" },
+  { label: "Total API Calls", value: "48,291", delta: "+12% this month", icon: <Activity size={20} /> },
+  { label: "Successful Calls", value: "47,834", delta: "99.05% success rate", icon: <CheckCircle size={20} /> },
+  { label: "Error Rate", value: "0.95%", delta: "-0.3% vs last month", icon: <AlertTriangle size={20} /> },
+  { label: "Avg Response Time", value: "1.2s", delta: "-200ms improvement", icon: <Clock size={20} /> },
 ];
 
 const curlExample = `curl -X POST https://api.macaempire.in/v1/agents/tax/query \\
@@ -67,6 +68,7 @@ export default function APIPortalPage() {
   const [showNewKeyModal, setShowNewKeyModal] = useState(false);
   const [codeLanguage, setCodeLanguage] = useState<"curl" | "python" | "node">("curl");
   const [copied, setCopied] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const getCode = () => {
     if (codeLanguage === "curl") return curlExample;
@@ -81,53 +83,90 @@ export default function APIPortalPage() {
   };
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-primary)" }}>
+    <div style={{ display: "flex", width: "100%", minHeight: "100vh", background: "#ffffff", position: "relative", overflowX: "hidden" }}>
+
+      {/* ── Sidebar Backdrop ── */}
+      <div 
+        className={`sidebar-backdrop ${isSidebarOpen ? "active" : ""}`} 
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
       {/* ── Dashboard Sidebar ── */}
-      <aside style={{ width: "240px", minWidth: "240px", background: "var(--bg-secondary)", borderRight: "0.5px solid var(--border-subtle)", display: "flex", flexDirection: "column", padding: "24px 0", position: "fixed", top: 0, bottom: 0, left: 0, zIndex: 10 }}>
-        <div style={{ padding: "0 20px 20px", borderBottom: "0.5px solid var(--border-subtle)" }}>
-          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
-              maCA
+      <aside className="dash-sidebar" style={{ 
+        transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
+        boxShadow: isSidebarOpen ? "20px 0 50px rgba(0,0,0,0.5)" : "none"
+      }}>
+        <div style={{ padding: "0 20px 24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "transparent", padding: "6px 0", borderRadius: "none", border: "none" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "18px", color: "var(--acid)", letterSpacing: "-0.5px", whiteSpace: "nowrap" }}>
+              maCA Empire
             </span>
           </Link>
+          <button onClick={() => setIsSidebarOpen(false)} style={{ background: "rgba(0,0,0,0.05)", border: "none", color: "#000", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.1)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}>
+            <X size={18} />
+          </button>
         </div>
-        <nav style={{ padding: "12px 0", flex: 1 }}>
+        <nav style={{ padding: "0", flex: 1, overflowY: "auto" }}>
+          <p className="sidebar-section-title">Menus</p>
           {[
-            { icon: "🏠", label: "Dashboard", href: "/dashboard" },
-            { icon: "🤖", label: "All Agents", href: "/dashboard#agents" },
-            { icon: "🗄️", label: "Vault", href: "/vault" },
-            { icon: "⚡", label: "API Portal", href: "/api-portal", active: true },
+            { icon: <Home size={18} />, label: "Dashboard", href: "/dashboard" },
+            { icon: <Bot size={18} />, label: "All Agents", href: "/agents" },
+            { icon: <Wallet size={18} />, label: "Vault", href: "/vault" },
+          ].map((item) => (
+            <Link key={item.label} href={item.href} className="nav-item">
+              <span style={{ fontSize: "18px" }}>{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
+          <p className="sidebar-section-title">Service</p>
+          {[
+            { icon: <Zap size={18} />, label: "API Portal", href: "/api-portal", active: true },
           ].map((item) => (
             <Link key={item.label} href={item.href} className={`nav-item ${item.active ? "active" : ""}`}>
-              <span style={{ fontSize: "16px" }}>{item.icon}</span>
+              <span style={{ fontSize: "18px" }}>{item.icon}</span>
               {item.label}
             </Link>
           ))}
         </nav>
-        <div style={{ padding: "16px 20px", borderTop: "0.5px solid var(--border-subtle)" }}>
-          <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>API Plan</p>
-          <span className="badge badge-acid">Enterprise</span>
+        {/* Big Premium Action Pill */}
+        <div style={{ padding: "16px 20px" }}>
+          <Link href="/onboarding" style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#ffffff", borderRadius: "24px", padding: "28px 20px", textDecoration: "none", boxShadow: "0 12px 32px rgba(0,0,0,0.08)", transition: "transform 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-3px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
+            <div style={{ width: "32px", height: "32px", background: "#000000", color: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", marginBottom: "16px" }}>+</div>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#080B07", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px", textAlign: "center" }}>Upgrade to Enterprise</p>
+            <p style={{ fontSize: "11px", color: "rgba(8,11,7,0.5)", fontFamily: "'DM Sans', sans-serif", textAlign: "center" }}>Or view <span style={{ fontWeight: 700, color: "#080B07" }}>Plans</span></p>
+          </Link>
         </div>
       </aside>
 
       {/* ── Main ── */}
-      <div style={{ marginLeft: "240px", flex: 1 }}>
-        {/* Header */}
-        <div style={{ padding: "32px 32px 0" }}>
-          <span className="section-tag" style={{ marginBottom: "12px" }}>Enterprise</span>
-          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "32px", letterSpacing: "-1.5px", marginBottom: "8px" }}>API Portal</h1>
-          <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "28px" }}>
+      <div className="dash-main" style={{ width: "100%", flex: 1, overflow: "hidden", background: "var(--bg-primary)", display: "flex", flexDirection: "column", paddingLeft: 0 }}>
+        {/* Top Bar */}
+        <div style={{ height: "64px", borderBottom: "0.5px solid var(--border-subtle)", display: "flex", alignItems: "center", padding: "0 32px", gap: "16px", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", width: "120px", gap: "12px" }}>
+            <Link href="/dashboard" style={{ background: "none", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "6px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+              <ArrowLeft size={18} />
+            </Link>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: "none", border: "none", color: "var(--text-primary)", cursor: "pointer", display: "flex", padding: "4px" }}>
+              <Menu size={24} />
+            </button>
+          </div>
+          <span className="badge" style={{ background: "var(--bg-secondary)", color: "var(--text-secondary)", border: "0.5px solid var(--border-subtle)", fontSize: "11px", fontWeight: 700, padding: "4px 14px", borderRadius: "100px", textTransform: "uppercase", letterSpacing: "1px", marginLeft: "auto" }}>Enterprise</span>
+          <button style={{ background: "none", border: "none", color: "var(--acid)", cursor: "pointer", display: "flex", padding: "4px" }}><Bell size={20} /></button>
+        </div>
+
+        <div style={{ padding: "48px 32px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "42px", color: "var(--acid)", letterSpacing: "-1.5px", marginBottom: "8px" }}>API Portal</h1>
+          <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "28px", maxWidth: "600px" }}>
             Integrate maCA Empire agents into your own products via REST API.
           </p>
 
           {/* Tabs */}
-          <div style={{ display: "flex", gap: "2px", borderBottom: "0.5px solid var(--border-subtle)" }}>
+          <div style={{ display: "flex", gap: "2px", borderBottom: "0.5px solid var(--border-subtle)", width: "100%", justifyContent: "center" }}>
             {tabs.map((tab) => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                style={{ padding: "10px 18px", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: activeTab === tab ? "var(--acid)" : "var(--text-muted)", borderBottom: activeTab === tab ? "2px solid var(--acid)" : "2px solid transparent", transition: "color 0.2s", marginBottom: "-0.5px" }}
+                style={{ padding: "10px 18px", background: "none", border: "none", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: activeTab === tab ? "var(--text-primary)" : "var(--text-muted)", borderBottom: activeTab === tab ? "2px solid var(--text-primary)" : "2px solid transparent", transition: "color 0.2s", marginBottom: "-0.5px" }}
               >
                 {tab}
               </button>
@@ -135,7 +174,7 @@ export default function APIPortalPage() {
           </div>
         </div>
 
-        <div style={{ padding: "28px 32px" }}>
+        <div style={{ padding: "0 32px 32px" }}>
 
           {/* ── Overview Tab ── */}
           {activeTab === "Overview" && (
@@ -148,7 +187,7 @@ export default function APIPortalPage() {
                     </div>
                     <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "28px", letterSpacing: "-1px", marginBottom: "4px" }}>{s.value}</p>
                     <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>{s.label}</p>
-                    <p style={{ fontSize: "11px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>{s.delta}</p>
+                    <p style={{ fontSize: "11px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif" }}>{s.delta}</p>
                   </div>
                 ))}
               </div>
@@ -161,13 +200,13 @@ export default function APIPortalPage() {
                     {endpoints.map((ep, i) => (
                       <tr key={i}>
                         <td>
-                          <span style={{ background: ep.method === "GET" ? "rgba(181,255,46,0.1)" : "rgba(255,184,0,0.1)", color: ep.method === "GET" ? "var(--acid)" : "var(--warning)", border: `0.5px solid ${ep.method === "GET" ? "rgba(181,255,46,0.25)" : "rgba(255,184,0,0.25)"}`, borderRadius: "6px", padding: "3px 8px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>
+                          <span style={{ background: "var(--bg-primary)", color: "var(--text-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "3px 8px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>
                             {ep.method}
                           </span>
                         </td>
                         <td style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)" }}>{ep.path}</td>
                         <td>{ep.desc}</td>
-                        <td style={{ color: "var(--acid)" }}>{ep.rateLimit}</td>
+                        <td style={{ color: "var(--text-secondary)" }}>{ep.rateLimit}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -180,16 +219,16 @@ export default function APIPortalPage() {
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "0.5px solid var(--border-subtle)" }}>
                   <div style={{ display: "flex", gap: "4px" }}>
                     {(["curl", "python", "node"] as const).map((lang) => (
-                      <button key={lang} onClick={() => setCodeLanguage(lang)} style={{ padding: "5px 14px", borderRadius: "6px", border: "none", cursor: "pointer", background: codeLanguage === lang ? "var(--acid)" : "var(--bg-primary)", color: codeLanguage === lang ? "var(--bg-primary)" : "var(--text-muted)", fontSize: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
+                      <button key={lang} onClick={() => setCodeLanguage(lang)} style={{ padding: "5px 14px", borderRadius: "6px", border: "none", cursor: "pointer", background: codeLanguage === lang ? "var(--bg-secondary)" : "var(--bg-primary)", color: codeLanguage === lang ? "var(--text-primary)" : "var(--text-muted)", fontSize: "12px", fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
                         {lang === "node" ? "Node.js" : lang.charAt(0).toUpperCase() + lang.slice(1)}
                       </button>
                     ))}
                   </div>
-                  <button onClick={handleCopy} style={{ fontSize: "12px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "5px 14px", color: copied ? "var(--acid)" : "var(--text-muted)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                  <button onClick={handleCopy} style={{ fontSize: "12px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "5px 14px", color: copied ? "var(--text-primary)" : "var(--text-muted)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
                     {copied ? "✓ Copied" : "Copy"}
                   </button>
                 </div>
-                <pre className="code-block" style={{ borderRadius: 0, border: "none", background: "#0a0d09" }}>
+                <pre className="code-block" style={{ borderRadius: 0, border: "none", background: "#0a0d09", color: "var(--text-secondary)" }}>
                   <code>{getCode()}</code>
                 </pre>
               </div>
@@ -218,7 +257,7 @@ export default function APIPortalPage() {
                         <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px" }}>{key.prefix}</p>
                         <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
                           {key.permissions.map((p) => (
-                            <span key={p} className="badge badge-acid" style={{ fontSize: "10px" }}>{p}</span>
+                            <span key={p} className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{p}</span>
                           ))}
                         </div>
                       </div>
@@ -237,10 +276,10 @@ export default function APIPortalPage() {
               {/* New Key Modal */}
               {showNewKeyModal && (
                 <div style={{ position: "fixed", inset: 0, background: "rgba(8,11,7,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
-                  <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "20px", padding: "32px", width: "440px" }}>
+                  <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "20px", padding: "32px", width: "440px" }}>
                     <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>New API Key Generated</h3>
-                    <p style={{ fontSize: "13px", color: "var(--warning)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>⚠️ This is shown only once. Copy it now.</p>
-                    <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "10px", padding: "14px 16px", fontFamily: "monospace", fontSize: "13px", color: "var(--acid)", marginBottom: "20px", wordBreak: "break-all" }}>
+                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>This is shown only once. Copy it now.</p>
+                    <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "14px 16px", fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)", marginBottom: "20px", wordBreak: "break-all" }}>
                       mca_prod_sk_live_abcdef1234567890xyz...complete_key_here
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>
@@ -264,7 +303,7 @@ export default function APIPortalPage() {
                   {Array.from({ length: 30 }, (_, i) => {
                     const h = Math.floor(40 + Math.random() * 120);
                     return (
-                      <div key={i} style={{ flex: 1, background: `rgba(181,255,46,${0.3 + (h / 160) * 0.7})`, borderRadius: "3px 3px 0 0", height: `${h}px`, minWidth: "4px", transition: "opacity 0.2s", cursor: "pointer" }}
+                      <div key={i} style={{ flex: 1, background: `rgba(255,255,255,${0.1 + (h / 160) * 0.4})`, borderRadius: "3px 3px 0 0", height: `${h}px`, minWidth: "4px", transition: "opacity 0.2s", cursor: "pointer" }}
                         title={`${800 + h * 30} calls`} />
                     );
                   })}
@@ -290,10 +329,10 @@ export default function APIPortalPage() {
                     <div key={i}>
                       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
                         <span style={{ fontFamily: "monospace", fontSize: "12px", color: "var(--text-secondary)" }}>{item.label}</span>
-                        <span style={{ fontSize: "12px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>{item.calls}</span>
+                        <span style={{ fontSize: "12px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif" }}>{item.calls}</span>
                       </div>
                       <div className="progress-bar">
-                        <div className="progress-fill" style={{ width: `${item.pct}%` }} />
+                        <div className="progress-fill" style={{ width: `${item.pct}%`, background: "var(--text-secondary)" }} />
                       </div>
                     </div>
                   ))}
@@ -304,14 +343,14 @@ export default function APIPortalPage() {
 
           {/* ── Documentation Tab ── */}
           {activeTab === "Documentation" && (
-            <div style={{ maxWidth: "800px" }}>
+            <div style={{ maxWidth: "800px", margin: "0 auto" }}>
               <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-acid)", borderRadius: "14px", padding: "32px" }}>
                 <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", marginBottom: "16px" }}>Getting Started</h3>
                 <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65, marginBottom: "20px" }}>
-                  The maCA Empire API gives you programmatic access to all 22 AI agents. All requests must be authenticated using your API key in the Authorization header.
+                  The maCA Empire API gives you programmatic access to all 15 AI agents. All requests must be authenticated using your API key in the Authorization header.
                 </p>
                 <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "16px", marginBottom: "20px" }}>
-                  <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--acid)" }}>Base URL: https://api.macaempire.in/v1</p>
+                  <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)" }}>Base URL: https://api.macaempire.in/v1</p>
                 </div>
                 {[
                   { title: "Authentication", content: "Pass your API key as a Bearer token in the Authorization header: `Authorization: Bearer your_api_key`" },
@@ -340,11 +379,11 @@ export default function APIPortalPage() {
                 </div>
                 <button className="btn-primary" style={{ fontSize: "13px" }}>+ Add Endpoint</button>
               </div>
-              <div style={{ background: "var(--bg-secondary)", border: "0.5px dashed var(--border-acid)", borderRadius: "14px", padding: "48px", textAlign: "center" }}>
-                <p style={{ fontSize: "32px", marginBottom: "12px" }}>🔗</p>
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px dashed var(--border-subtle)", borderRadius: "14px", padding: "48px", textAlign: "center" }}>
+                <p style={{ display: "flex", justifyContent: "center", marginBottom: "12px", color: "var(--text-secondary)" }}><Zap size={32} /></p>
                 <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", color: "var(--text-primary)", marginBottom: "8px" }}>No webhooks configured</p>
                 <p style={{ fontSize: "14px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "20px" }}>Add a webhook endpoint to receive events when agents complete tasks</p>
-                <button className="btn-primary" style={{ fontSize: "13px" }}>Configure Webhook →</button>
+                <button className="btn-ghost" style={{ fontSize: "13px" }}>Configure Webhook →</button>
               </div>
             </div>
           )}

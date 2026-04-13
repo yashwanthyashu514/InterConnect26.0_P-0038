@@ -66,7 +66,7 @@ export default function CreditFixerPage() {
       rightPanel={<CreditPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">📈</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Credit Fixer</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Dispute CIBIL errors, get a personalized credit repair roadmap, and improve your score systematically.

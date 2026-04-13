@@ -1,0 +1,54 @@
+Indian Financial Market Structure — Complete Guide for The Oracle
+Sources: SEBI, NSE, BSE, RBI regulations and market data
+
+NSE MARKET STRUCTURE:
+Nifty 50: Benchmark index of 50 largest companies by free-float market cap
+Bank Nifty: 12 most liquid banking stocks
+Nifty IT: Technology sector benchmark
+Nifty Midcap 150: Mid-cap universe
+Nifty Smallcap 250: Small-cap universe
+
+CIRCUIT BREAKERS (SEBI Circular MRD/DoP/SE/Cir-07/2012):
+Market-wide circuit breakers triggered at Nifty movement:
+- 10% movement: 45-minute halt (before 1pm), 15-minute halt (1-2:30pm), no halt after 2:30pm
+- 15% movement: 1 hour 45 minutes halt (before 1pm), 45-minute halt (1-2pm), rest of day halt after 2pm
+- 20% movement: Trading halted for remainder of day
+Individual stock circuit breakers: 2%, 5%, 10%, 20% bands depending on volatility
+
+DERIVATIVES MARKET:
+F&O lot sizes range from Rs. 5-10 lakh contract value
+Weekly expiry: Every Thursday for Nifty, monthly for stocks
+Options premium: India follows Black-Scholes with Indian market adjustments
+Open Interest: Key indicator of market positioning
+PCR (Put-Call Ratio): Below 0.7 = bullish; Above 1.3 = bearish consensus
+
+FII/DII FLOWS (Critical Oracle Data):
+FII (Foreign Institutional Investors): Largest market movers. Net FII buying = bullish signal
+DII (Domestic Institutional Investors): Includes MFs, insurance. Counter-cyclical to FIIs
+Retail: Increasingly significant post COVID — participates via F&O and direct equity
+India's market cap to GDP ratio: ~120% (as of 2024) — elevated vs historical 60%
+
+SEBI INVESTMENT ADVISERS REGULATIONS 2013:
+Oracle critical compliance note — these regulations define who can give "investment advice."
+Registered Investment Advisers (RIAs): Must register with SEBI, maintain qualifications, cannot charge trading commissions
+Intelligence tools and research platforms: Can provide market education and analysis if they do NOT:
+1. Make specific buy/sell recommendations as a personalised service
+2. Claim to be a registered investment adviser
+3. Charge fees for investment advice as a primary service
+
+The Oracle provides financial education and market intelligence — not regulated investment advice.
+
+SEBI LODR REGULATIONS 2015:
+Listed companies must disclose material events within 24 hours. Price-sensitive information restrictions apply to insiders. Quarterly results disclosure mandatory within 60 days of quarter end.
+
+RBI MONETARY POLICY FRAMEWORK:
+Flexible Inflation Targeting: CPI target 4% +/- 2% band
+MPC (Monetary Policy Committee): 6 members, meets 6 times yearly
+Rate decisions: Repo rate (key policy rate), SDF rate (floor), MSF rate (ceiling)
+Transmission: Rate changes take 3-4 quarters to fully transmit to economy
+
+KEY MARKET INDICATORS FOR ORACLE:
+VIX India: Fear index — above 20 = elevated fear, above 30 = extreme fear
+India-VIX below 12: Complacency, potential for correction
+Advance-Decline Ratio: >2 = breadth positive; <0.5 = breadth very negative
+NIFTY PE ratio: Historical mean ~20x; above 25x = expensive; below 15x = value zone

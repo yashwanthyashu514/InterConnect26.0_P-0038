@@ -7,7 +7,7 @@ import Footer from "@/components/shared/Footer";
 export const metadata: Metadata = {
   title: "maCA Empire — The Future of Indian Legal & Financial Intelligence",
   description:
-    "Big 4 quality consulting at consumer scale. 22 autonomous AI agents for tax, compliance, legal disputes, and financial matters. From just ₹999/month.",
+    "Big 4 quality consulting at consumer scale. 15 autonomous AI agents for tax, compliance, legal disputes, and financial matters. From just ₹1,499/month.",
   keywords: [
     "Indian legal AI",
     "GST compliance",
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "maCA Empire — AI-Powered Legal & Financial Intelligence",
     description:
-      "22 autonomous AI agents for tax, compliance, legal disputes. India-first. DPDP Compliant.",
+      "15 autonomous AI agents for tax, compliance, legal disputes. India-first. DPDP Compliant.",
     type: "website",
   },
 };
@@ -43,7 +43,6 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         <GlobalNav />
         {children}
-        <Footer />
       </body>
     </html>
   );

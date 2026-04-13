@@ -2,39 +2,44 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Footer from "@/components/shared/Footer";
+import { 
+  FileText, Landmark, Scale, Briefcase, Globe, Shield, 
+  Wallet, DollarSign, Calendar, Lock, Mic, Search, 
+  TrendingUp, HardHat, FileSignature, Rocket, Package, Bot, 
+  Building2, ShieldAlert, Coins, Leaf, ScrollText, PenTool,
+  Clock, AlertTriangle, Brain, Ban, Gavel, Timer, Zap
+} from "lucide-react";
 
 const agents = [
-  { id: "A1", name: "maCA Tax", icon: "📋", desc: "Penalty clocks, ITR guidance & real-time tax advisory.", tag: "CORE", href: "/tax" },
-  { id: "A2", name: "BankFight", icon: "🏦", desc: "Escalate banking disputes to RBI & Banking Ombudsman.", tag: "CORE", href: "/bankfight" },
-  { id: "A3", name: "Notice Fighter", icon: "📝", desc: "Draft legally sound replies to IT & GST notices.", tag: "CORE", href: "/notice" },
-  { id: "A4", name: "PayrollPilot", icon: "💰", desc: "Calculate salaries, PF, ESI, TDS and generate payslips.", tag: "CORE", href: "/payroll" },
-  { id: "A5", name: "ComplianceBot", icon: "📅", desc: "Never miss a compliance deadline. Automated filing calendar.", tag: "CORE", href: "/compliance" },
-  { id: "A6", name: "Audit Shield", icon: "🔒", desc: "Score your GSTIN audit risk before the taxman does.", tag: "CORE", href: "/audit-shield" },
-  { id: "A7", name: "Voice CA", icon: "🎤", desc: "Ask anything. Out loud. In Hindi or English.", tag: "CORE", href: "/voice" },
-  { id: "A8", name: "Contract Reviewer", icon: "📄", desc: "AI redlining, risk flags, and plain-English summaries.", tag: "GROWTH", href: "/contract-reviewer" },
-  { id: "A9", name: "Court Filer", icon: "⚖️", desc: "Generate court-ready petitions and legal notices.", tag: "GROWTH", href: "/court-filer" },
-  { id: "A10", name: "Credit Fixer", icon: "📈", desc: "Dispute CIBIL errors and build a repair roadmap.", tag: "GROWTH", href: "/credit-fixer" },
-  { id: "A11", name: "Insurance Fighter", icon: "🛡️", desc: "Fight wrongful claim rejections with IRDAI letters.", tag: "GROWTH", href: "/insurance-fighter" },
-  { id: "A12", name: "Labour Law", icon: "👷", desc: "Protect your rights and resolve workplace disputes.", tag: "GROWTH", href: "/labour-law" },
-  { id: "A13", name: "NRI Advisor", icon: "🌏", desc: "FEMA, DTAA, and NRE/NRO advisory for Indians abroad.", tag: "GROWTH", href: "/nri" },
-  { id: "A14", name: "Pension Pilot", icon: "🏖️", desc: "EPF withdrawals, EPS claims, and retirement planning.", tag: "GROWTH", href: "/pension" },
-  { id: "A15", name: "RERA Fighter", icon: "🏘️", desc: "Fight builder delays and real estate violations.", tag: "GROWTH", href: "/rera" },
-  { id: "A16", name: "RTI Drafter", icon: "📨", desc: "File RTI applications to any government body.", tag: "GROWTH", href: "/rti" },
-  { id: "A17", name: "Startup Legal", icon: "🚀", desc: "Incorporation, ESOP, term sheets for founders.", tag: "ELITE", href: "/startup-legal" },
-  { id: "A18", name: "Trade & EXIM", icon: "📦", desc: "HS codes, DGFT compliance, duty drawback.", tag: "ELITE", href: "/trade" },
-  { id: "A19", name: "AI Mock Judge", icon: "🤖", desc: "Simulate arbitration. Stress-test your arguments.", tag: "ELITE", href: "/ai-judge", featured: true },
-  { id: "A20", name: "Enterprise API", icon: "🏢", desc: "API access and white-label for enterprises.", tag: "ELITE", href: "/b2b" },
-  { id: "A21", name: "DPDP Shield", icon: "🛡️", desc: "DPDP Act 2023 Compliance, Gap Analysis & Audit.", tag: "ELITE", href: "/dpdp" },
-  { id: "A22", name: "CryptoTax Pro", icon: "🪙", desc: "30% VDA Tax Calculator & Schedule VDA ITR Filing.", tag: "ELITE", href: "/crypto-tax" },
-  { id: "A23", name: "ESG Compass", icon: "🍃", desc: "SEBI BRSR Core Auto-fill, GHG Scope & EU CBAM.", tag: "ELITE", href: "/esg-compass" },
-  { id: "A24", name: "HeirGuard", icon: "📜", desc: "Will Drafting, Succession Advisory & Assets.", tag: "ELITE", href: "/heirguard" },
+  // CORE
+  { id: "A1", name: "Supreme Tax", icon: <FileText size={18} />, desc: "Integrated Income Tax, GST & TDS intelligence.", tag: "CORE", href: "/tax" },
+  { id: "A2", name: "Banking & Credit", icon: <Landmark size={18} />, desc: "Dispute resolution and credit score restoration.", tag: "CORE", href: "/bankfight" },
+  { id: "A3", name: "Notice & Disputes", icon: <AlertTriangle size={18} />, desc: "Notice reply drafting and legal risk simulation.", tag: "CORE", href: "/notice" },
+  { id: "A4", name: "Payroll & HR", icon: <DollarSign size={18} />, desc: "Automated payroll and labor law compliance.", tag: "CORE", href: "/payroll" },
+  { id: "A6", name: "Voice CA", icon: <Mic size={18} />, desc: "Multimodal AI — Talk to your personal CA.", tag: "CORE", href: "/voice", featured: true },
+  
+  // GROWTH
+  { id: "A5", name: "Corporate Counsel", icon: <Rocket size={18} />, desc: "Startup legal, ROC, and IP/Trademark protection.", tag: "GROWTH", href: "/compliance" },
+  { id: "A7", name: "Deal Reviewer", icon: <Search size={18} />, desc: "AI redlining for SHA/SPA and high-stakes contracts.", tag: "GROWTH", href: "/contract-reviewer" },
+  { id: "A8", name: "Filing Ops", icon: <Scale size={18} />, desc: "E-court filing automation and RTI drafting.", tag: "GROWTH", href: "/court-filer" },
+  { id: "A12", name: "Forensic Audit", icon: <Lock size={18} />, desc: "Investigative auditing for fraud and leakage.", tag: "GROWTH", href: "/audit-shield" },
+  { id: "A13", name: "Trade & Forex", icon: <Globe size={18} />, desc: "FEMA compliance and EXIM logistics intelligence.", tag: "GROWTH", href: "/trade" },
+
+  // EMPIRE / ELITE
+  { id: "A23", name: "ESG Compass", icon: <Leaf size={18} />, desc: "SEBI BRSR Core Auto-fill and GHG Scope tracking.", tag: "ELITE", href: "/esg-compass" },
+  { id: "A24", name: "HeirGuard", icon: <ScrollText size={18} />, desc: "Will Drafting and Succession Planning.", tag: "ELITE", href: "/heirguard" },
+  { id: "A22", name: "CryptoTax Pro", icon: <Coins size={18} />, desc: "30% VDA Tax and live TDS monitoring.", tag: "ELITE", href: "/crypto-tax" },
+  { id: "A25", name: "Data & AI Safety", icon: <Brain size={18} />, desc: "DPDP Act and EU AI Act Governance.", tag: "ELITE", href: "/ai-governance" },
+  { id: "A26", name: "The Oracle", icon: <TrendingUp size={18} />, desc: "50-Year Market Wisdom with Live Feeds.", tag: "ELITE", href: "/the-oracle", featured: true },
 ];
 
+
 const marqueeItems = [
-  "Tax Advisory", "RBI Escalation", "GST Compliance", "Court Filing",
-  "NRI Taxation", "Audit Shield", "Credit Repair", "RERA Disputes",
-  "RTI Drafting", "Startup Legal", "Mock Judge AI", "Insurance Disputes",
-  "Labour Rights", "EPF Withdrawal", "Trade & EXIM",
+  "Supreme Tax", "Banking Intelligence", "Notice Defense", "Corporate Ops",
+  "Forensic Audit", "Trade & FEMA", "Succession Planning", "AI Governance",
+  "The Oracle", "Court Automation", "RTI Intelligence", "Crypto Tax",
+  "ESG Reporting", "Contract Redlining", "Mock Judge AI",
 ];
 
 const tagColors: Record<string, { bg: string; color: string; dot: string }> = {
@@ -58,7 +63,7 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll, { passive: true });
 
     // Animated counter
-    const targets = { cases: 12000, agents: 24, saving: 80 };
+    const targets = { cases: 12000, agents: 15, saving: 80 };
     const duration = 1800;
     const steps = 60;
     const interval = duration / steps;
@@ -95,188 +100,7 @@ export default function LandingPage() {
 
   return (
     <>
-      <style>{`
-        .agent-card-link {
-          background: rgba(14,18,13,0.9);
-          border: 0.5px solid rgba(255,255,255,0.07);
-          border-radius: 16px;
-          padding: 24px;
-          text-decoration: none;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-          transition: border-color 0.25s, transform 0.25s, background 0.25s;
-          position: relative;
-          overflow: hidden;
-        }
-        .agent-card-link::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(circle at 50% 0%, rgba(181,255,46,0.06), transparent 70%);
-          opacity: 0;
-          transition: opacity 0.3s;
-        }
-        .agent-card-link:hover {
-          border-color: rgba(181,255,46,0.3);
-          transform: translateY(-3px);
-          background: rgba(20,26,18,0.95);
-        }
-        .agent-card-link:hover::before { opacity: 1; }
 
-        .filter-btn {
-          padding: 8px 18px;
-          border-radius: 100px;
-          font-size: 11px;
-          font-weight: 700;
-          font-family: 'DM Sans', sans-serif;
-          cursor: pointer;
-          letter-spacing: 0.5px;
-          transition: all 0.2s ease;
-          border: 0.5px solid rgba(255,255,255,0.07);
-        }
-
-        .hero-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          background: rgba(181, 255, 46, 0.1);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
-          border: 1px solid rgba(181, 255, 46, 0.3);
-          border-radius: 100px;
-          padding: 8px 18px;
-          font-size: 13px;
-          font-family: 'DM Sans', sans-serif;
-          color: #B5FF2E;
-          font-weight: 600;
-          margin-bottom: 24px;
-        }
-        .pill-link {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          background: rgba(14,18,13,0.9);
-          border: 0.5px solid rgba(255,255,255,0.07);
-          border-radius: 100px;
-          padding: 6px 14px;
-          font-size: 12px;
-          font-family: 'DM Sans', sans-serif;
-          color: rgba(240,244,232,0.55);
-          text-decoration: none;
-          transition: border-color 0.2s, color 0.2s;
-          white-space: nowrap;
-        }
-        .pill-link:hover {
-          border-color: rgba(181,255,46,0.3);
-          color: #B5FF2E;
-        }
-        .pricing-card {
-          background: rgba(14,18,13,0.9);
-          border: 0.5px solid rgba(255,255,255,0.07);
-          border-radius: 20px;
-          padding: 36px;
-          display: flex;
-          flex-direction: column;
-          gap: 0;
-          transition: border-color 0.25s;
-        }
-        .pricing-card:hover { border-color: rgba(181,255,46,0.3); }
-        .pricing-card.featured {
-          background: #B5FF2E;
-          border-color: #B5FF2E;
-        }
-        .pricing-card.featured p, .pricing-card.featured h3, .pricing-card.featured span, .pricing-card.featured li {
-          color: #080B07 !important;
-        }
-        .marquee-track {
-          display: flex;
-          gap: 24px;
-          white-space: nowrap;
-          animation: marquee-scroll 30s linear infinite;
-          width: max-content;
-        }
-        .marquee-track:hover { animation-play-state: paused; }
-        @keyframes marquee-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        .section-divider {
-          width: 100%;
-          height: 0.5px;
-          background: rgba(255,255,255,0.07);
-        }
-        .stat-number {
-          font-family: 'Syne', sans-serif;
-          font-weight: 800;
-          font-size: clamp(40px, 5vw, 64px);
-          letter-spacing: -2px;
-          line-height: 1;
-          color: #F0F4E8;
-        }
-        .glow-line {
-          width: 60px;
-          height: 3px;
-          background: #B5FF2E;
-          border-radius: 2px;
-          box-shadow: 0 0 12px rgba(181,255,46,0.6);
-        }
-        @keyframes fade-up-anim {
-          from { opacity: 0; transform: translateY(28px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .fade-up { opacity: 0; transform: translateY(40px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .fade-up.visible { opacity: 1; transform: translateY(0); }
-
-        .btn-primary {
-          position: relative;
-          overflow: hidden;
-        }
-        .btn-primary::after {
-          content: "";
-          position: absolute;
-          top: -50%; left: -50%;
-          width: 200%; height: 200%;
-          background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
-          transform: rotate(45deg);
-          animation: shimmer 3s infinite;
-          pointer-events: none;
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-150%) rotate(45deg); }
-          50% { transform: translateX(150%) rotate(45deg); }
-          100% { transform: translateX(150%) rotate(45deg); }
-        }
-
-        .parallax-target {
-          will-change: transform;
-          transition: transform 0.1s linear;
-        }
-
-        .hero-title-reveal span {
-          display: inline-block;
-          overflow: hidden;
-          vertical-align: top;
-        }
-        .hero-title-reveal span b {
-          display: inline-block;
-          transform: translateY(110%);
-          animation: title-slide-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes title-slide-up {
-          to { transform: translateY(0); }
-        }
-
-        .hero-entrance {
-          animation: entrance-rise 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-        @keyframes entrance-rise {
-          from { opacity: 0; transform: translateY(120px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        html { scroll-behavior: smooth; }
-      `}</style>
 
       <main style={{ background: "#000000", paddingTop: "68px" }}>
 
@@ -304,29 +128,20 @@ export default function LandingPage() {
                 zIndex: 20 
               }}
             >
-              {/* Mouse Follow Glow */}
-              <div style={{
-                position: "absolute",
-                inset: 0,
-                background: `radial-gradient(800px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(181, 255, 46, 0.04), transparent 80%)`,
-                pointerEvents: "none",
-                zIndex: 5
-              }} />
-
               <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "1000px", height: "600px", background: "none", pointerEvents: "none" }} />
             
             <div style={{ width: "100%", textAlign: "center", paddingTop: "100px", paddingLeft: "5%", paddingRight: "5%", boxSizing: "border-box", position: "relative", zIndex: 10, display: "flex", flexDirection: "column", alignItems: "center" }}>
               <h1 className="hero-title-reveal" style={{ fontFamily: "'Syne', sans-serif", fontSize: "5.5vw", fontWeight: 800, lineHeight: 0.9, letterSpacing: "-3.5px", marginBottom: "32px", textTransform: "uppercase", display: "flex", flexDirection: "column", alignItems: "center", gap: "0" }}>
-                <span><b style={{ color: "#F5F5DC", whiteSpace: "nowrap" }}>YOUR PERSONAL</b></span>
-                <span style={{ color: "#B5FF2E", whiteSpace: "nowrap", textShadow: "none", filter: "none" }}>LEGAL EMPIRE</span>
+                <span><b className="title-slide-up" style={{ color: "#F5F5DC", whiteSpace: "nowrap" }}>YOUR PERSONAL</b></span>
+                <span className="title-slide-up" style={{ color: "#B5FF2E", whiteSpace: "nowrap", textShadow: "none", filter: "none", animationDelay: "0.15s" }}>LEGAL EMPIRE</span>
               </h1>
 
               <div className="fade-up visible hero-cta-group" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", paddingLeft: "clamp(2rem, 8vw, 10rem)", paddingRight: "clamp(2rem, 8vw, 10rem)", marginTop: "32px", animationDelay: "0.4s" }}>
-                <Link href="/onboarding" className="btn-primary" style={{ fontSize: "16px", padding: "16px 36px" }}>
-                  Start Free →
+                <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "16px", padding: "16px 36px" }}>
+                  Registration →
                 </Link>
                 <Link href="#agents" className="btn-ghost" style={{ fontSize: "16px", padding: "16px 32px" }}>
-                  Explore 24 Agents
+                  Explore 15 Agents
                 </Link>
               </div>
             </div>
@@ -348,27 +163,12 @@ export default function LandingPage() {
                 backgroundColor: "transparent", 
                 mixBlendMode: "screen",
                 filter: "contrast(1.25) brightness(0.85) grayscale(0.1)",
+                // @ts-ignore
                 WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
               }} />
             </div>
 
-            <style jsx>{`
-              @media (max-width: 1024px) {
-                h1 { font-size: 8vw !important; }
-                .hero-girl { width: 500px !important; }
-              }
-              @media (max-width: 768px) {
-                h1 { font-size: 10vw !important; letter-spacing: -1.5px !important; }
-                .hero-girl { width: 320px !important; height: 50vh !important; }
-                .hero-cta-group { flex-direction: column; gap: 12px; width: 100%; max-width: 320px; margin: 32px auto 0 !important; align-items: stretch !important; }
-                .hero-cta-group a { width: 100%; text-align: center; }
-                .section-container { padding: 80px 20px !important; }
-                .radius-container { border-radius: 80px !important; }
-                .stats-grid { grid-template-columns: 1fr !important; }
-                .stat-item { border-right: none !important; border-bottom: 1px solid rgba(0,0,0,0.05); }
-                .stat-item:last-child { border-bottom: none !important; }
-              }
-            `}</style>
+
           </section>
         </div>
 
@@ -394,7 +194,7 @@ export default function LandingPage() {
             <div className="stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0", borderRadius: "32px", border: "1px solid rgba(0,0,0,0.05)", overflow: "hidden", background: "#fff" }}>
               {[
                 { value: `${counter.agents}+`, label: "Autonomous AI Agents", sub: "Covering every legal domain" },
-                { value: "₹999", label: "Starting Price / Month", sub: "vs ₹5,000/hr traditional" },
+                { value: "₹1,499", label: "Starting Price / Month", sub: "vs ₹5,000/hr traditional" },
                 { value: "30s", label: "Average Response Time", sub: "Faster than any CA consultation" },
                 { value: "100%", label: "India-First Architecture", sub: "DPDP compliant · Hindi supported" },
               ].map((s, i) => (
@@ -438,19 +238,21 @@ export default function LandingPage() {
                   In India, legal and financial expertise costs ₹5,000/hr or more — accessible only to the privileged few. 140 crore people deserve better.
                 </p>
                 <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-                  <div style={{ width: "40px", height: "40px", background: "#B5FF2E", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>⚡</div>
+                  <div style={{ width: "40px", height: "40px", background: "#B5FF2E", borderRadius: "10px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Zap size={20} color="#080B07" />
+                  </div>
                   <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: "rgba(8,11,7,0.7)" }}>maCA Empire is the equalizer.</p>
                 </div>
               </div>
 
               <div className="fade-up" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {[
-                  { icon: "💸", title: "Prohibitive Costs", body: "₹5,000/hr fees price out citizens, founders, and MSMEs from quality legal and financial advice." },
-                  { icon: "⚖️", title: "Asymmetry of Power", body: "Individuals lose disputes against banks and institutions due to legal illiteracy and lack of expert guidance." },
-                  { icon: "🐌", title: "Manual Inefficiency", body: "GST, ITR, payroll compliance — all error-prone manual processes that cost time, money, and peace of mind." },
+                  { icon: <Ban size={22} color="#080B07" />, title: "Prohibitive Costs", body: "₹5,000/hr fees price out citizens, founders, and MSMEs from quality legal and financial advice." },
+                  { icon: <Gavel size={22} color="#080B07" />, title: "Asymmetry of Power", body: "Individuals lose disputes against banks and institutions due to legal illiteracy and lack of expert guidance." },
+                  { icon: <Timer size={22} color="#080B07" />, title: "Manual Inefficiency", body: "GST, ITR, payroll compliance — all error-prone manual processes that cost time, money, and peace of mind." },
                 ].map((card, i) => (
                   <div key={i} style={{ background: "#fff", border: "0.5px solid rgba(8,11,7,0.1)", borderRadius: "14px", padding: "24px", display: "flex", gap: "16px", alignItems: "flex-start" }}>
-                    <div style={{ width: "44px", height: "44px", background: "rgba(181,255,46,0.15)", border: "0.5px solid rgba(181,255,46,0.3)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px", flexShrink: 0 }}>{card.icon}</div>
+                    <div style={{ width: "44px", height: "44px", background: "rgba(181,255,46,0.15)", border: "0.5px solid rgba(181,255,46,0.3)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>{card.icon}</div>
                     <div>
                       <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "#080B07", marginBottom: "6px" }}>{card.title}</h3>
                       <p style={{ fontSize: "13px", color: "rgba(8,11,7,0.6)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.6 }}>{card.body}</p>
@@ -474,15 +276,15 @@ export default function LandingPage() {
                 <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(32px, 4vw, 56px)", letterSpacing: "-2.5px", lineHeight: 1.05, marginBottom: "24px" }}>
                   Big 4 quality
                   <br />
-                  at <span style={{ color: "#B5FF2E" }}>₹999</span>
+                  at <span style={{ color: "#B5FF2E" }}>₹1,499</span>
                   <br />
                   per month.
                 </h2>
                 <p style={{ fontSize: "16px", color: "rgba(240,244,232,0.55)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.7, marginBottom: "32px" }}>
                   Every agent in maCA Empire is trained to think like a Big 4 Senior Partner — proactive risk analysis, precedent-aware responses, and legally accurate drafts.
                 </p>
-                <Link href="/onboarding" className="btn-primary" style={{ fontSize: "15px", padding: "13px 28px", display: "inline-flex" }}>
-                  Get Started Free →
+                <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "15px", padding: "13px 28px", display: "inline-flex" }}>
+                  Start Registration →
                 </Link>
               </div>
 
@@ -498,10 +300,10 @@ export default function LandingPage() {
                     </div>
                   </div>
                   {[
-                    { bad: "₹5,000+ per hour", good: "₹999/month flat" },
+                    { bad: "₹5,000+ per hour", good: "₹1,499/month flat" },
                     { bad: "2-5 days response", good: "30 seconds, 24/7" },
                     { bad: "Office appointments", good: "Instant, from your phone" },
-                    { bad: "Single CA expertise", good: "24 specialized agents" },
+                    { bad: "Single CA expertise", good: "15 specialized agents" },
                     { bad: "Paper filing", good: "Digital vault + e-filing" },
                     { bad: "English only", good: "Hindi & English" },
                   ].map((row, i) => (
@@ -530,7 +332,7 @@ export default function LandingPage() {
               <div>
                 <span className="section-tag fade-up" style={{ marginBottom: "12px" }}>The Platform</span>
                 <h2 className="fade-up" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px, 4vw, 48px)", letterSpacing: "-2px" }}>
-                  {filteredAgents.length} agents. Every legal need.
+                  15 agents. Every legal need.
                 </h2>
               </div>
               <div style={{ display: "flex", gap: "10px" }}>
@@ -551,46 +353,61 @@ export default function LandingPage() {
               </div>
             </div>
 
-            <div className="agent-grid">
-              <style jsx>{`
-                .agent-grid {
-                  display: grid;
-                  grid-template-columns: repeat(4, 1fr);
-                  gap: 12px;
-                }
-                @media (max-width: 1024px) {
-                  .agent-grid { grid-template-columns: repeat(2, 1fr); }
-                }
-                @media (max-width: 640px) {
-                  .agent-grid { grid-template-columns: 1fr; }
-                }
-              `}</style>
-              {filteredAgents.map((agent, i) => {
-                const tc = tagColors[agent.tag];
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: "24px" }}>
+              {[
+                { name: "Tax & Banking", icon: <FileText size={28} />, category: "CORE" },
+                { name: "Legal & Corporate", icon: <Scale size={28} />, category: "GROWTH" },
+                { name: "Specialized Intelligence", icon: <Globe size={28} />, category: "ELITE" },
+              ].map((group, idx) => {
+                // Only show the group if it matches the active filter or if filter is "ALL"
+                if (activeFilter !== "ALL" && activeFilter !== group.category) return null;
+                
+                const chunk = agents.filter(a => a.tag === group.category);
+                
                 return (
-                  <Link 
-                    key={agent.id} 
-                    href={agent.href} 
-                    className="agent-card-link fade-up" 
-                    style={{ 
-                      transitionDelay: `${(i % 4) * 0.1}s`,
-                      transform: "translateZ(0)"
-                    }}
+                  <Link key={idx} href="/onboarding" className="fade-up" style={{ 
+                    textDecoration: "none",
+                    background: "rgba(14,18,13,0.9)", 
+                    border: "0.5px solid rgba(255,255,255,0.07)", 
+                    borderRadius: "24px", 
+                    padding: "32px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "24px",
+                    transition: "all 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(181,255,46,0.3)";
+                    e.currentTarget.style.transform = "translateY(-8px)";
+                    e.currentTarget.style.background = "rgba(20,26,18,1)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.background = "rgba(14,18,13,0.9)";
+                  }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div style={{ width: "44px", height: "44px", background: "rgba(181,255,46,0.08)", border: "0.5px solid rgba(181,255,46,0.15)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
-                        {agent.icon}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                        <span style={{ fontSize: "24px" }}>{group.icon}</span>
+                        <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "16px", color: "#B5FF2E", textTransform: "uppercase", letterSpacing: "1px", margin: 0 }}>
+                          {group.name}
+                        </h3>
                       </div>
-                      <span style={{ padding: "3px 8px", borderRadius: "6px", fontSize: "10px", fontWeight: 700, letterSpacing: "0.5px", fontFamily: "'DM Sans', sans-serif", background: tc.bg, color: tc.color, display: "flex", alignItems: "center", gap: "4px" }}>
-                        <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: tc.dot, display: "inline-block" }} />
-                        {agent.tag}
-                      </span>
                     </div>
-                    <div>
-                      <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px", color: "#F0F4E8", marginBottom: "4px" }}>{agent.name}</p>
-                      <p style={{ fontSize: "12px", color: "rgba(240,244,232,0.45)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.55 }}>{agent.desc}</p>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "14px", opacity: 0.7 }}>
+                      {chunk.map((agent) => (
+                        <div key={agent.id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                          <span style={{ fontSize: "16px" }}>{agent.icon}</span>
+                          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#F0F4E8" }}>{agent.name}</span>
+                        </div>
+                      ))}
                     </div>
-                    <span style={{ fontSize: "12px", color: "#B5FF2E", fontFamily: "'DM Sans', sans-serif" }}>Open Agent →</span>
+
+                    <div style={{ marginTop: "auto", paddingTop: "20px", borderTop: "0.5px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#B5FF2E", letterSpacing: "0.5px" }}>LAUNCH BUNDLE →</span>
+                    </div>
                   </Link>
                 );
               })}
@@ -635,32 +452,31 @@ export default function LandingPage() {
                   name: "Starter",
                   price: "0",
                   period: "/month",
-                  desc: "For individuals exploring AI legal help.",
-                  features: ["3 agent queries/day", "Basic ITR guidance", "Notice templates", "Community support"],
-                  cta: "Start Free",
-                  href: "/onboarding",
+                  desc: "Essential access for individual users.",
+                  features: ["3 Essential agents", "Supreme Tax access", "Basic notice support", "Community help"],
+                  cta: "Registration",
+                  href: "/login?mode=signup",
                   featured: false,
                 },
                 {
-                  name: "Pro",
-                  price: "999",
+                  name: "Growth",
+                  price: "1499",
                   period: "/month",
-                  desc: "Full access for serious legal needs.",
-                  features: ["Unlimited queries", "All 22 agents", "Document vault 25GB", "Priority AI responses", "Hindi support", "Download drafts as PDF"],
-                  cta: "Start Pro →",
-                  href: "/onboarding",
-                  featured: true,
-                  badge: "Most Popular",
+                  desc: "Power tools for MSMEs & Founders.",
+                  features: ["7 Core agents", "Unlimited queries", "Full ITR & GST support", "Banking & Credit recovery", "Vault access 10GB"],
+                  cta: "Start Growth →",
+                  href: "/login?mode=signup",
+                  featured: false,
                 },
                 {
-                  name: "Enterprise",
-                  price: "Custom",
-                  period: "",
-                  desc: "API access and white-label for organizations.",
-                  features: ["Full REST API access", "White-label deployment", "SLA guarantees", "Dedicated CSM", "DPDP compliance", "Custom integrations"],
-                  cta: "Contact Sales →",
-                  href: "/b2b",
-                  featured: false,
+                  name: "Empire",
+                  price: "2999",
+                  period: "/month",
+                  desc: "Total access for elite legal/finance needs.",
+                  features: ["All 15 AI agents", "The Oracle Market Feeds", "ESG & AI Governance", "Priority AI processing", "Hindi & English support", "Download drafts as PDF"],
+                  cta: "Unleash Empire →",
+                  href: "/login?mode=signup",
+                  featured: true,
                 },
               ].map((plan, i) => (
                 <div key={i} 
@@ -685,13 +501,9 @@ export default function LandingPage() {
                     e.currentTarget.style.boxShadow = "0 24px 48px rgba(0,0,0,0.04)";
                   }}
                 >
-                  {plan.featured && (
-                    <div style={{ background: "#080B07", color: "#B5FF2E", padding: "10px 0", borderRadius: "100px", fontSize: "11px", fontWeight: 800, fontFamily: "'DM Sans', sans-serif", textAlign: "center", marginBottom: "32px" }}>
-                      {plan.badge}
-                    </div>
-                  )}
                   
                   <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "28px", color: "#080B07", marginBottom: "16px" }}>{plan.name}</h3>
+
                   
                   <div style={{ display: "flex", alignItems: "baseline", gap: "2px", marginBottom: "8px" }}>
                     <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 900, fontSize: "64px", letterSpacing: "-4px", lineHeight: 1, color: "#080B07" }}>{plan.price === "Custom" ? "Custom" : `₹${plan.price}`}</span>
@@ -747,7 +559,7 @@ export default function LandingPage() {
           <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
             <div className="hero-badge">
               <span style={{ width: "8px", height: "8px", background: "#B5FF2E", borderRadius: "50%", boxShadow: "0 0 10px #B5FF2E" }} />
-              22 AI Agents · India
+              15 AI Agents · India
             </div>
             <h2 className="fade-up" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(36px, 5vw, 68px)", letterSpacing: "-2.5px", lineHeight: 1.05, marginBottom: "24px", color: "#F0F4E8" }}>
               India deserves
@@ -758,8 +570,8 @@ export default function LandingPage() {
               Join 12,000+ Indians using maCA Empire to take on banks, file taxes, fight notices, and build businesses with confidence.
             </p>
             <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-              <Link href="/onboarding" className="btn-primary" style={{ fontSize: "16px", padding: "15px 36px" }}>
-                Start Free →
+              <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "16px", padding: "15px 36px" }}>
+                Registration →
               </Link>
               <Link href="/b2b" className="btn-ghost" style={{ fontSize: "16px", padding: "15px 32px" }}>
                 B2B & Enterprise
@@ -769,6 +581,7 @@ export default function LandingPage() {
         </section>
       </div>
     </main>
+    <Footer />
     </>
   );
 }

@@ -1,0 +1,34 @@
+Indian Law on Deepfakes and Synthetic Media
+Sources: IT Act 2000, IT Amendment Rules 2023, IPC, BNS 2023
+
+SECTION 66E — PUNISHMENT FOR VIOLATION OF PRIVACY:
+Whoever intentionally or knowingly captures, publishes or transmits the image of a private area of any person without their consent shall be punished with imprisonment of up to three years and fine up to Rs. 2 lakh. Applied by courts to synthetic intimate images (deepfake pornography).
+
+IT AMENDMENT RULES 2023 — RULE 3(1)(b):
+Intermediaries (social media platforms) must ensure users do not host or share content that:
+- Impersonates another person including through synthetic media
+- Threatens unity, integrity, defence, security of India
+- Contains sexually explicit material depicting real individuals synthetically
+
+TAKEDOWN OBLIGATIONS:
+Platforms must remove deepfake content within 36 hours of government notification. Failure attracts loss of safe harbour protection under Section 79 IT Act. Platforms must establish grievance officer with 15-day grievance resolution obligation.
+
+BHARATIYA NYAYA SANHITA 2023 (REPLACED IPC):
+- Section 303 (equivalent to IPC 420): Cheating using deepfakes
+- Section 69: Wrongful confinement/harassment via synthetic media  
+- Section 95: Assault — deepfake used to threaten or intimidate
+- Section 316: Criminal breach of trust — deepfake in impersonation fraud
+
+ELECTION COMMISSION GUIDELINES 2024:
+Political deepfakes are prohibited. Candidates and political parties must label AI-generated content in political advertising. MCMC can direct removal of AI-generated election misinformation within 3 hours during election period.
+
+LEGAL RESPONSE FRAMEWORK FOR DEEPFAKE VICTIMS:
+1. Document immediately — screenshot, preserve URL, metadata
+2. File complaint at cybercrime.gov.in or nearest cyber cell
+3. Send platform notice citing Rule 3(1)(b) IT Amendment Rules 2023
+4. Section 66E complaint to police if intimate deepfake
+5. Seek civil injunction under Section 9 CPC
+6. Damages claim under tort law — reasonable expectation of privacy
+
+CORPORATE DEEPFAKE RISKS:
+CEO voice cloning for fraud — financial institution liability if controls inadequate. AI-generated fake board resolutions — Companies Act 2013 liability. Synthetic customer testimonials — Consumer Protection Act unfair trade practice. Deepfake KYC bypass — PML Act and RBI KYC norms violation.

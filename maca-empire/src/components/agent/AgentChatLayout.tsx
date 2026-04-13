@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { User, Share2, Download, FileText, Landmark, Scale, Briefcase, Globe, Shield, Coins, Leaf, ScrollText, AlertTriangle, ShieldAlert, Rocket, Mic, PenTool, Files, TrendingUp, Bot, Building2, ShieldCheck, Wallet, Lock, MessageSquare, ArrowLeft, Menu, Home, X } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -11,7 +12,7 @@ interface Message {
 
 interface AgentChatLayoutProps {
   agentName: string;
-  agentIcon: string;
+  agentIcon: React.ReactNode;
   agentDescription: string;
   agentId?: string;
   children: React.ReactNode; 
@@ -30,10 +31,47 @@ export default function AgentChatLayout({
   rightPanel,
   extraTopBarContent,
 }: AgentChatLayoutProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const getIcon = (id: string | undefined) => {
+    switch (id) {
+      case "A1": return <FileText size={22} />;
+      case "A2": return <Landmark size={22} />;
+      case "A3": return <Scale size={22} />;
+      case "A4": return <Briefcase size={22} />;
+      case "A5": return <Rocket size={22} />;
+      case "A6": return <Mic size={22} />;
+      case "A7": return <PenTool size={22} />;
+      case "A8": return <Files size={22} />;
+      case "A12": return <ShieldAlert size={22} />;
+      case "A13": return <Globe size={22} />;
+      case "A14": return <Building2 size={22} />;
+      case "A15": return <Lock size={22} />;
+      case "A16": return <MessageSquare size={22} />;
+      case "A17": return <ShieldCheck size={22} />;
+      case "A18": return <Wallet size={22} />;
+      case "A21": return <Shield size={22} />; /* DPDP shielding */
+      case "A22": return <Coins size={22} />;
+      case "A23": return <Leaf size={22} />;
+      case "A24": return <ScrollText size={22} />;
+      case "A25": return <Shield size={22} />;
+      case "A26": return <TrendingUp size={22} />;
+      default: return <Bot size={22} />;
+    }
+  };
+
+  const finalIcon = agentId ? getIcon(agentId) : agentIcon;
+
+  const renderIcon = (icon: React.ReactNode, size: number) => {
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon as React.ReactElement<any>, { size });
+    }
+    return <span style={{ fontSize: `${size}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</span>;
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -59,6 +97,18 @@ export default function AgentChatLayout({
         payload = { user_message: userMsg.content };
       } else if (agentId === "A22") {
         endpoint = `${BACKEND_URL}/api/agents/cryptotax-pro/query`;
+        payload = { user_message: userMsg.content };
+      } else if (agentId === "A23") {
+        endpoint = `${BACKEND_URL}/api/agents/esg-compass/query`;
+        payload = { user_message: userMsg.content };
+      } else if (agentId === "A24") {
+        endpoint = `${BACKEND_URL}/api/agents/heirguard/query`;
+        payload = { user_message: userMsg.content };
+      } else if (agentId === "A25") {
+        endpoint = `${BACKEND_URL}/api/agents/ai-governance/query`;
+        payload = { user_message: userMsg.content };
+      } else if (agentId === "A26") {
+        endpoint = `${BACKEND_URL}/api/agents/the-oracle/query`;
         payload = { user_message: userMsg.content };
       }
 
@@ -133,15 +183,25 @@ export default function AgentChatLayout({
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-primary)" }}>
-      <aside className="chat-sidebar">
+    <div style={{ width: "100%", height: "100vh", overflow: "hidden", background: "var(--bg-primary)", position: "relative" }}>
+      {/* Backdrop */}
+      <div 
+        className={`sidebar-backdrop ${isSidebarOpen ? 'active' : ''}`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+
+      <aside className="dash-sidebar" style={{ 
+        transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
+        boxShadow: isSidebarOpen ? "20px 0 50px rgba(0,0,0,0.5)" : "none",
+        zIndex: 10000
+      }}>
         <div style={{ padding: "20px 16px", borderBottom: "0.5px solid var(--border-subtle)" }}>
           <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", marginBottom: "20px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
             <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E" }}>maCA</span>
           </Link>
           <div style={{ display: "flex", gap: "12px", alignItems: "flex-start" }}>
-            <div style={{ width: "44px", height: "44px", background: "rgba(181, 255, 46, 0.1)", border: "0.5px solid rgba(181, 255, 46, 0.3)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "22px" }}>
-              {agentIcon}
+            <div style={{ width: "44px", height: "44px", background: "rgba(181, 255, 46, 0.1)", border: "0.5px solid rgba(181, 255, 46, 0.3)", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>
+              {finalIcon}
             </div>
             <div>
               <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px" }}>{agentName}</p>
@@ -166,37 +226,58 @@ export default function AgentChatLayout({
         </div>
       </aside>
 
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)" }}>
-        <div className="chat-topbar">
-          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-             <span style={{ fontSize: "20px" }}>{agentIcon}</span>
-             <p style={{ fontWeight: 700 }}>{agentName}</p>
+      <main className="dash-main" style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)", position: "relative", zIndex: 1, marginLeft: 0, paddingLeft: 0, transform: "none", transition: "none" }}>
+        <header className="chat-topbar top-navbar" style={{ gap: "24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <button 
+              onClick={() => setIsSidebarOpen(true)}
+              style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "#fff", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+            >
+               <Menu size={20} />
+            </button>
+            <Link href="/" style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+               <Home size={16} />
+            </Link>
+            <Link href="/dashboard" style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+               <ArrowLeft size={16} />
+            </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--acid)" }}>
+               <span>{finalIcon}</span>
+               <p style={{ fontWeight: 700, color: "var(--text-primary)" }}>{agentName}</p>
+            </div>
           </div>
           {extraTopBarContent}
           <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
             <button 
               onClick={handleExport}
-              style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
             >
-              Export ↑
+              <Download size={14} /> Export
             </button>
             <button 
               onClick={handleShare}
-              style={{ padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
             >
-              Share ⤢
+              <Share2 size={14} /> Share
             </button>
           </div>
-        </div>
+        </header>
 
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "40px" }}>
-             {messages.length === 0 ? children : (
+             {messages.length === 0 ? (
+               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyItems: "center", textAlign: "center", padding: "40px" }}>
+                 <div style={{ width: "64px", height: "64px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", color: "var(--acid)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
+                   {renderIcon(finalIcon, 32)}
+                 </div>
+                 {children}
+               </div>
+             ) : (
                <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "32px" }}>
                  {messages.map((m, i) => (
                    <div key={i} style={{ display: "flex", gap: "20px", alignItems: "flex-start", animation: "fade-up-anim 0.3s forwards" }}>
-                     <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: m.role === "user" ? "var(--surface)" : "var(--acid)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>
-                       {m.role === "assistant" ? agentIcon : "👤"}
+                     <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: m.role === "user" ? "var(--surface)" : "var(--acid)", display: "flex", alignItems: "center", justifyContent: "center", color: m.role === "user" ? "var(--text-primary)" : "#000", flexShrink: 0 }}>
+                       {m.role === "assistant" ? renderIcon(finalIcon, 16) : <User size={16} />}
                      </div>
                      <div style={{ flex: 1 }}>
                         <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px", fontWeight: 700 }}>{m.role === "assistant" ? agentName : "You"}</p>

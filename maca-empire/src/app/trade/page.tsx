@@ -53,7 +53,7 @@ export default function TradePage() {
       rightPanel={<TradePanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">📦</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Trade & EXIM</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Navigate India&apos;s import-export landscape. HS codes, duty drawback, DGFT licensing, and EXIM documentation made simple.

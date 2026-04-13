@@ -22,7 +22,7 @@ const agentPaths = [
 export default function GlobalNav() {
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const isAgentPage = agentPaths.some((p) => pathname.startsWith(p));
+  const isExcludedPage = agentPaths.some((p) => pathname?.startsWith(p)) || pathname?.startsWith("/login") || pathname?.startsWith("/onboarding");
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
@@ -30,7 +30,8 @@ export default function GlobalNav() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isAgentPage) return null;
+  if (isExcludedPage) return null;
+
 
   return (
     <>
@@ -101,7 +102,7 @@ export default function GlobalNav() {
           {/* Right CTAs */}
           <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "24px" }}>
             <Link href="/login" style={{ fontSize: "12px", padding: "8px 16px", borderRadius: "100px", color: "#080B07", textDecoration: "none", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Login</Link>
-            <Link href="/onboarding" style={{ fontSize: "12px", padding: "8px 16px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", textDecoration: "none", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Start Free →</Link>
+            <Link href="/login?mode=signup" style={{ fontSize: "12px", padding: "8px 16px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", textDecoration: "none", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Registration →</Link>
           </div>
         </nav>
       </div>

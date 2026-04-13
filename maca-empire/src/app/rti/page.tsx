@@ -57,7 +57,7 @@ export default function RTIPage() {
       rightPanel={<RTIPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">📨</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>RTI Drafter</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Information is power. File RTI applications to any government department in correct statutory format.

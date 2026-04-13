@@ -1,0 +1,49 @@
+Crypto Market Intelligence — The Oracle India Playbook
+Sources: CBDT VDA circulars, RBI guidance, SEBI consultations
+
+INDIA'S VDA TAX FRAMEWORK (Budget 2022 onwards):
+30% flat tax on all Virtual Digital Asset (VDA) gains — Section 115BBH
+1% TDS on each transaction above Rs. 10,000 — Section 194S
+No deduction allowed except cost of acquisition
+Losses cannot be offset against any other income
+Losses from one VDA cannot offset gains from another VDA
+
+BITCOIN HALVING CYCLE — HISTORICAL PATTERN:
+Bitcoin supply halves every ~4 years (210,000 blocks)
+Halving 1 (2012): Price went from $12 to $1,200 (100x) over 12 months post-halving
+Halving 2 (2016): Price went from $650 to $20,000 (30x) over 18 months post-halving
+Halving 3 (2020): Price went from $8,000 to $69,000 (8x) over 18 months post-halving
+Halving 4 (April 2024): Oracle thesis — reduced supply + spot ETF demand = structural price floor lift
+Post-halving median cycle top: 12-18 months after halving
+
+KEY CRYPTO METRICS THE ORACLE USES:
+MVRV (Market Value to Realized Value):
+- MVRV > 3.7: Historical cycle tops (overvalued)
+- MVRV < 1: Historical cycle bottoms (accumulation zone)
+- MVRV 1-2: Fair value range
+
+NVT (Network Value to Transactions):
+- High NVT = network overvalued relative to usage
+- Low NVT = network undervalued (opportunity)
+
+Funding Rate:
+- Positive: Long-tilted market (bull bias)
+- Negative: Short-tilted market (capitulation or bear)
+- Extreme positive (+0.1%/8hr): Market overheating, correction likely
+
+Open Interest:
+- Rising OI + rising price = strong uptrend (confirmation)
+- Rising OI + falling price = strong downtrend (distribution)
+- Falling OI + price change = trend exhaustion
+
+ALTCOIN SEASON INDICATORS:
+Bitcoin dominance below 40%: Historically signals peak altcoin season
+BTC.D rising: Capital rotating back to Bitcoin (risk-off within crypto)
+ETH/BTC ratio: Rising ETH.BTC = confidence in ecosystem; falling = Bitcoin maximalism phase
+
+INDIA RETAIL CRYPTO BEHAVIOUR:
+Heavy concentration in BTC, ETH, and Indian exchange tokens
+DOGE and Shiba Inu popularity driven by social media (high correlation with Twitter sentiment)
+WazirX, CoinDCX, Zebpay are primary India on-ramps
+After WazirX hack (2024) — Rs. 2,000 crore lost — exchange risk awareness increased
+FEMA concerns around Binance, Bybit, OKX — foreign exchange = potential FEMA violation for large positions

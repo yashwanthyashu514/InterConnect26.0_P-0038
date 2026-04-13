@@ -1,0 +1,43 @@
+The Oracle's Mental Models — Billionaire Investor Frameworks Applied to India
+
+WARREN BUFFETT — VALUE INVESTING PRINCIPLES:
+"Price is what you pay, value is what you get."
+Moat analysis: Only invest in businesses with durable competitive advantages
+India application: HDFC Bank (distribution moat), Asian Paints (brand + distribution), Pidilite (Fevicol brand)
+Circle of competence: Never invest in what you do not understand
+Margin of safety: Buy at 30-40% discount to intrinsic value
+India warning: Too many Indian stocks trade at premium to fair value — patience is the edge
+
+CHARLIE MUNGER — MENTAL MODELS:
+Inversion: "What would I need to do to destroy this business?" Then avoid doing it.
+Lollapalooza effect: Multiple biases reinforcing same wrong decision = disaster
+India application: Never buy a stock just because "everyone is buying it" (social proof + in-group bias + FOMO = Lollapalooza)
+
+GEORGE SOROS — REFLEXIVITY THEORY:
+Markets are not efficient — participant beliefs change fundamentals, which change beliefs (feedback loop)
+India application: FII sentiment → Nifty direction → corporate investment → actual earnings → FII sentiment. Breaking this loop requires RBI/government intervention.
+"Markets can stay irrational longer than you can stay solvent" — respect momentum even when fundamentals disagree
+
+STANLEY DRUCKENMILLER — MACRO TRADING:
+"The key is not to be right, but to know when you're right how much to bet."
+Conviction-based sizing: When macro thesis is clear, size up significantly
+India macro triggers: RBI rate cycle, monsoon (agriculture = 14% GDP), oil prices (India imports 85% of crude), US Fed decision
+Never fight the Fed: When US Fed tightens aggressively, FII outflows from India are inevitable
+
+RAKESH JHUNJHUNWALA — INDIA-SPECIFIC WISDOM:
+"Buy right, sit tight." Long conviction in Indian growth story — 15-20 year horizon
+Cyclicals: Titanium, metals, shipping — buy at cycle bottom, sell at top
+Consumer + financial services as India's core wealth creators over 30 years
+Market corrections are buying opportunities in India's structural growth story
+
+PETER LYNCH — GROWTH AT REASONABLE PRICE (GARP):
+PEG ratio: PE divided by growth rate — PEG < 1 is undervalued growth
+Invest in what you understand as a consumer
+India GARP opportunities: QSR (Quick Service Restaurants), diagnostics, specialty chemicals
+
+POSITION SIZING FRAMEWORK (The Oracle's Rule):
+No single stock > 10% of portfolio (unless conviction is extreme and thesis is clear)
+No single sector > 30% of portfolio
+Speculative positions (F&O, small-caps): Never > 5% of portfolio
+Cash reserve: Maintain 10-20% for opportunities
+Stop loss: Maximum 8-10% from purchase price on individual positions

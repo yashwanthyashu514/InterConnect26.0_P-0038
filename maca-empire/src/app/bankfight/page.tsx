@@ -69,7 +69,7 @@ export default function BankFightPage() {
       rightPanel={<EscalationPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">🏦</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>BankFight</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Fight back against your bank. Generate RBI complaints, escalation letters, and ombudsman filings.

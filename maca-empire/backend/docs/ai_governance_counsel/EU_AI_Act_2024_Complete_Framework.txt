@@ -1,0 +1,60 @@
+EU AI Act 2024 — Complete Framework for Indian AI Practitioners
+Source: Official Journal of the European Union L 2024/1689
+
+ARTICLE 1 — SUBJECT MATTER
+The EU Artificial Intelligence Act establishes a harmonised legal framework for the development, placing on the market, putting into service and use of AI systems within the European Union. The Act applies to providers placing AI systems on the EU market regardless of their establishment location — this includes Indian SaaS companies exporting AI products to Europe.
+
+RISK CLASSIFICATION SYSTEM (Articles 5-51)
+
+UNACCEPTABLE RISK — Prohibited AI Practices (Article 5):
+The following AI systems are strictly prohibited:
+- Social scoring systems by public authorities
+- Real-time remote biometric identification in public spaces (with narrow exceptions)
+- AI systems exploiting vulnerabilities of specific groups
+- Subliminal manipulation techniques
+- Predictive policing based solely on profiling
+- Emotion recognition in workplaces and educational institutions
+- Biometric categorisation inferring race, political opinions, religious beliefs
+
+HIGH RISK AI SYSTEMS (Annex III):
+High-risk AI systems require conformity assessment before market placement:
+1. Biometric identification and categorisation systems
+2. Critical infrastructure management (roads, water, energy, transport)
+3. Educational/vocational training (exam scoring, admission decisions)
+4. Employment and worker management (CV sorting, interview AI, performance monitoring)
+5. Essential private and public services (credit scoring, life/health insurance risk assessment)
+6. Law enforcement (evidence evaluation, crime prediction, polygraph)
+7. Migration and asylum management
+8. Administration of justice and democratic processes
+
+OBLIGATIONS FOR HIGH-RISK AI (Articles 9-15):
+- Risk management system throughout lifecycle
+- Data governance and training data standards
+- Technical documentation before market placement
+- Automatic logging of operations (audit trail)
+- Transparency and information to users
+- Human oversight measures — operators must be able to override
+- Accuracy, robustness and cybersecurity standards
+- Conformity assessment (self-assessment or third-party)
+- CE marking after successful conformity assessment
+- Registration in EU database
+
+LIMITED RISK — Transparency Obligations (Article 50):
+- Chatbots must disclose they are AI to users
+- Deep fakes must be labelled as AI-generated
+- AI-generated audio/video/text must be marked
+
+MINIMAL RISK (No Obligations):
+- AI-enabled video games
+- Spam filters
+- Most recommendation systems
+
+INDIA-SPECIFIC COMPLIANCE NOTES:
+Indian companies providing AI to EU customers must comply from August 2026 (high-risk) and February 2025 (unacceptable risk prohibitions). GPAI (General Purpose AI) models with systemic risk face additional obligations. Indian SaaS founders must conduct EU AI Act gap assessment before selling AI products in European market.
+
+CONFORMITY ASSESSMENT PROCEDURE (Article 43):
+High-risk AI systems must undergo conformity assessment. For most high-risk AI, providers can self-assess against harmonised standards. For biometric identification and law enforcement AI, notified body assessment is mandatory.
+
+PROHIBITED PRACTICES IMPLEMENTATION DATE: February 2, 2025
+HIGH-RISK OBLIGATIONS DATE: August 2, 2026
+GPAI MODEL RULES DATE: August 2, 2025

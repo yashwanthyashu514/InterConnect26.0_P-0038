@@ -64,7 +64,7 @@ export default function InsuranceFighterPage() {
       rightPanel={<InsurancePanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">🛡️</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Insurance Fighter</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Don&apos;t let your insurer get away with wrongful rejections. File IRDAI complaints and ombudsman appeals.

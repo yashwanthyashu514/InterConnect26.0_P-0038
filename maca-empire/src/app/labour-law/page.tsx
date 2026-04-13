@@ -44,7 +44,7 @@ export default function LabourLawPage() {
       rightPanel={<LabourPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">👷</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>Labour Law Agent</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Navigate Indian labour law whether you&apos;re an employee fighting for your rights or an employer ensuring compliance.

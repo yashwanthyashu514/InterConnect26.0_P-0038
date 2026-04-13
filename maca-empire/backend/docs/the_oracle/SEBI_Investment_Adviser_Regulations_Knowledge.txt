@@ -1,0 +1,34 @@
+SEBI Investment Advisers Regulations 2013 — Oracle Compliance Framework
+Source: SEBI IA Regulations 2013, Amended 2020 and 2021
+
+PURPOSE AND SCOPE:
+Regulates persons who provide investment advice for consideration. Defines "investment advice" as advice relating to investing in, purchasing, selling or otherwise dealing in securities or investment products.
+
+WHO IS A REGISTERED INVESTMENT ADVISER:
+Any person who provides investment advice for consideration must register with SEBI. This includes: individuals, firms, companies, body corporates providing portfolio advice, financial planning, or asset allocation services.
+
+WHAT IS NOT REGULATED INVESTMENT ADVICE (Intelligence Tools):
+Research analysts registered under SEBI RA Regulations 2014 can provide research reports.
+Financial education and market information is not regulated investment advice.
+General commentary on market conditions is permitted.
+Historical analysis and pattern identification is educational content.
+Disclaimer-protected educational content from non-RIAs is permitted.
+
+KEY REGULATIONS FOR REGISTERED INVESTMENT ADVISERS:
+1. Registration mandatory before commencement of activity
+2. Minimum net worth: Rs. 50 lakh for non-individuals, Rs. 5 lakh for individuals
+3. Professional qualification: Post-graduate or NISM certification
+4. Fiduciary duty to client — suitability assessment mandatory
+5. Fee-only model: Cannot charge distribution fees AND advisory fees simultaneously
+6. Risk profiling: Mandatory before any advice
+7. Contract with client: Written agreement mandatory
+8. Complaint resolution: Within 30 days
+
+RESEARCH ANALYST REGULATIONS 2014:
+Different from IA — can publish research reports for general public
+Must disclose conflicts of interest (holdings in stock being covered)
+Analysts cannot trade against their published recommendations for 30 days
+Disclaimer must state "not a personalised investment recommendation"
+
+THE ORACLE COMPLIANCE POSITION:
+The Oracle provides financial market intelligence and education. All outputs are clearly labelled as educational analysis, not regulated investment advice. Users are encouraged to consult a SEBI-registered Investment Adviser or Research Analyst for personalised portfolio decisions. The Oracle does not maintain client accounts, does not recommend specific securities for specific individuals based on suitability assessment, and does not charge fees for investment advice as primary service.

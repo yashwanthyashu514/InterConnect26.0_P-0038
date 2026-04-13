@@ -1,43 +1,145 @@
+import { 
+  FileText, Landmark, Scale, Rocket, Globe, 
+  ShieldCheck, ShieldAlert, Cpu, Gavel, 
+  Mic2, FileSearch, Coins, PieChart, Users,
+  Gem, HeartHandshake, TrendingUp
+} from "lucide-react";
+
 export interface Agent {
   id: string;
   name: string;
-  icon: string;
   description: string;
-  category: "CORE" | "GROWTH" | "EMPIRE";
-  status: "LIVE" | "BETA" | "DEV";
-  href: string;
+  icon: string;
+  category: "CORE" | "GROWTH" | "ELITE" | "EMPIRE";
+  path: string;
 }
 
-export const agents: Agent[] = [
-  // A-Series: The Core 8
-  { id: "A1", name: "maCA Tax", icon: "⚖️", description: "GST, IT, TDS. Penalty clock + GSTR-1 draft.", category: "CORE", status: "LIVE", href: "/tax" },
-  { id: "A2", name: "BankFight", icon: "⚔️", description: "RB-IOS 2026. Automated nodal officer letters.", category: "CORE", status: "LIVE", href: "/bankfight" },
-  { id: "A3", name: "ComplianceBot", icon: "🏢", description: "GIN → Deadline calendar. AOC-4 automation.", category: "CORE", status: "LIVE", href: "/compliance" },
-  { id: "A4", name: "PayrollPilot", icon: "💸", description: "TDS, PF, ESI. One-tap payslip PDFs.", category: "CORE", status: "LIVE", href: "/payroll" },
-  { id: "A5", name: "Voice CA", icon: "🗣️", description: "Hindi/English voice LAW interaction.", category: "CORE", status: "LIVE", href: "/voice" },
-  { id: "A6", name: "Notice Fighter", icon: "🏰", description: "Upload IT/GST notice PDF → Cited reply.", category: "CORE", status: "LIVE", href: "/notice" },
-  { id: "A7", name: "Audit Shield", icon: "🛡️", description: "GSTIN audit risk score and fix logic.", category: "CORE", status: "LIVE", href: "/audit-shield" },
-  { id: "A8", name: "Court Filer", icon: "🏛️", description: "Bank→RBI→Court escalation petitions.", category: "CORE", status: "LIVE", href: "/court-filer" },
-  
-  // B-Series: The Growth 8
-  { id: "B1", name: "Startup Legal", icon: "🚀", description: "Term sheet analysis & FEMA/DPIIT compliance.", category: "GROWTH", status: "LIVE", href: "/startup-legal" },
-  { id: "B2", name: "RERA Agent", icon: "🏗️", description: "Builder delay compensation & RERA Section 18.", category: "GROWTH", status: "LIVE", href: "/rera" },
-  { id: "B3", name: "Labour Law", icon: "💼", description: "Worker rights, PF disputes, wrongful termination.", category: "GROWTH", status: "LIVE", href: "/labour-law" },
-  { id: "B4", name: "Insurance Fighter", icon: "🛡️", description: "Rejection reversal & IRDAI complaint drafting.", category: "GROWTH", status: "LIVE", href: "/insurance-fighter" },
-  { id: "B5", name: "Credit Fixer", icon: "💳", description: "CIBIL dispute letters & CIC Act accuracy.", category: "GROWTH", status: "LIVE", href: "/credit-fixer" },
-  { id: "B6", name: "Trade Agent", icon: "🚢", description: "Customs duty calc & Export RoDTEP rebates.", category: "GROWTH", status: "LIVE", href: "/trade" },
-  { id: "B7", name: "RTI Agent", icon: "📄", description: "Automated RTI application drafting (Act 2005).", category: "GROWTH", status: "LIVE", href: "/rti" },
-  { id: "B8", name: "Pension Agent", icon: "👵", description: "Gratuity formula & EPS-95 pension disputes.", category: "GROWTH", status: "LIVE", href: "/pension" },
+export const AGENTS: Agent[] = [
+  // CORE BLOCK
+  {
+    id: "A1",
+    name: "Supreme Tax",
+    description: "Integrated Income Tax, GST & TDS intelligence with predictive optimization.",
+    icon: "FileText",
+    category: "CORE",
+    path: "/tax",
+  },
+  {
+    id: "A2",
+    name: "Banking & Credit",
+    description: "Dispute resolution for banking transactions and credit score restoration.",
+    icon: "Landmark",
+    category: "CORE",
+    path: "/bankfight",
+  },
+  {
+    id: "A3",
+    name: "Notice & Disputes",
+    description: "AI-powered notice reply drafting and legal risk simulation (Mock Judge).",
+    icon: "Scale",
+    category: "CORE",
+    path: "/notice",
+  },
+  {
+    id: "A4",
+    name: "Payroll & HR",
+    description: "Automated payroll compliance, ESOP management, and labor law advisor.",
+    icon: "Users",
+    category: "CORE",
+    path: "/payroll",
+  },
 
-  { id: "A21", name: "DPDP Shield", icon: "🛡️", description: "DPDP Act 2023 Compliance, Gap Analysis & Audit.", category: "EMPIRE", status: "LIVE", href: "/dpdp" },
-  { id: "A22", name: "CryptoTax Pro", icon: "🪙", description: "30% VDA Tax Calculator & Schedule VDA ITR Filing.", category: "EMPIRE", status: "LIVE", href: "/crypto-tax" },
-  { id: "A23", name: "ESG Compass", icon: "🍃", description: "SEBI BRSR Core Auto-fill, GHG Scope & EU CBAM.", category: "EMPIRE", status: "LIVE", href: "/esg-compass" },
-  { id: "A24", name: "HeirGuard", icon: "📜", description: "Will Drafting, Succession Advisory & Assets.", category: "EMPIRE", status: "LIVE", href: "/heirguard" },
+  // GROWTH BLOCK
+  {
+    id: "A5",
+    name: "Corporate Counsel",
+    description: "Startup legal, ROC compliance, and IP/Trademark protection.",
+    icon: "Rocket",
+    category: "GROWTH",
+    path: "/compliance",
+  },
+  {
+    id: "A6",
+    name: "Voice CA",
+    description: "Flagship multimodal AI — Talk to your personal CA in Hindi or English.",
+    icon: "Mic",
+    category: "GROWTH",
+    path: "/voice",
+  },
+  {
+    id: "A7",
+    name: "Deal Reviewer",
+    description: "Deep-link analysis for SPA, SHA, and high-stakes commercial contracts.",
+    icon: "Search",
+    category: "GROWTH",
+    path: "/contract-reviewer",
+  },
+  {
+    id: "A8",
+    name: "Filing Ops",
+    description: "E-court filing automation and professional RTI drafting.",
+    icon: "Files",
+    category: "GROWTH",
+    path: "/court-filer",
+  },
 
-  // C-Series: The Empire Suite (Phase 4)
-  { id: "C1", name: "AI Judge", icon: "⚖️", description: "Predict win probability using Supreme Court precedents.", category: "EMPIRE", status: "LIVE", href: "/ai-judge" },
-  { id: "C2", name: "Contract Reviewer", icon: "📄", description: "Upload contract → Red flag detection in 30s.", category: "EMPIRE", status: "LIVE", href: "/contract-reviewer" },
-  { id: "C3", name: "B2B Legal Ops", icon: "💼", description: "Full legal department for SMEs. One-tap dashboard.", category: "EMPIRE", status: "LIVE", href: "/b2b" },
-  { id: "C4", name: "maCA API", icon: "⚡", description: "Embed legal AI into fintech with 5 lines of code.", category: "EMPIRE", status: "LIVE", href: "/api-portal" },
-  { id: "C5", name: "NRI Agent", icon: "🌍", description: "Cross-border Tax & FEMA compliance for 32M NRIs.", category: "EMPIRE", status: "LIVE", href: "/nri" }
+  // ELITE BLOCK
+  {
+    id: "A12",
+    name: "Forensic Audit",
+    description: "AI-driven investigative auditing for corporate fraud and leakage.",
+    icon: "ShieldAlert",
+    category: "ELITE",
+    path: "/audit-shield",
+  },
+  {
+    id: "A13",
+    name: "Trade & Forex",
+    description: "Cross-border FEMA compliance and EXIM logistics intelligence.",
+    icon: "Globe",
+    category: "ELITE",
+    path: "/trade",
+  },
+
+  // EMPIRE BLOCK (Specialized High-Stakes)
+  {
+    id: "A23",
+    name: "ESG Compass",
+    description: "BRSR reporting, carbon credit tracking, and sustainability audits.",
+    icon: "Leaf",
+    category: "EMPIRE",
+    path: "/esg-compass",
+  },
+  {
+    id: "A24",
+    name: "HeirGuard",
+    description: "Personal succession planning, digital wills, and trust management.",
+    icon: "ScrollText",
+    category: "EMPIRE",
+    path: "/heirguard",
+  },
+  {
+    id: "A22",
+    name: "CryptoTax Pro",
+    description: "30% VDA tax calculation and 1% TDS monitoring with live meter.",
+    icon: "Coins",
+    category: "EMPIRE",
+    path: "/crypto-tax",
+  },
+  {
+    id: "A25",
+    name: "Data & AI Safety",
+    description: "DPDP Act compliance and EU AI Act Governance framework.",
+    icon: "ShieldCheck",
+    category: "EMPIRE",
+    path: "/ai-governance",
+  },
+  {
+    id: "A26",
+    name: "The Oracle",
+    description: "The Crown Jewel: 50-year market wisdom with Live Market Feeds.",
+    icon: "TrendingUp",
+    category: "EMPIRE",
+    path: "/the-oracle",
+  },
 ];

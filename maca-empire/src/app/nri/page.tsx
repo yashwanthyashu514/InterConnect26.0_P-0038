@@ -66,7 +66,7 @@ export default function NRIPage() {
       rightPanel={<NRIPanel />}
     >
       <div className="empty-state">
-        <div className="empty-state-icon">🌏</div>
+        
         <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "22px", letterSpacing: "-0.5px" }}>NRI Advisor</h2>
         <p style={{ fontSize: "14px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", maxWidth: "420px" }}>
           Expert guidance on FEMA, DTAA, and NRI taxation. Tailored to your country of residence.

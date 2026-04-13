@@ -141,6 +141,98 @@ HEIRGUARD_INTENTS = {
     ]
 }
 
+# ============================================================
+# ADD — A25 AI Governance Counsel Intents
+# ============================================================
+
+AI_GOVERNANCE_INTENTS = {
+    'eu_ai_act_classification': [
+        'eu ai act', 'ai risk classification', 'prohibited ai', 'high risk ai',
+        'limited risk ai', 'ai conformity', 'ce marking ai', 'eu compliance ai',
+        'ai regulation europe', 'ai act india export'
+    ],
+    'dpdp_algorithmic': [
+        'algorithmic accountability', 'dpdp algorithm', 'sdf ai obligations',
+        'ai system dpdp', 'automated decision', 'profiling dpdp',
+        'ai audit dpdp', 'algorithmic transparency'
+    ],
+    'ai_contract_review': [
+        'ai vendor contract', 'ai procurement', 'ai liability clause',
+        'ai indemnity', 'ai tool contract', 'saas ai agreement',
+        'ai ip clause', 'data ownership ai contract'
+    ],
+    'responsible_ai_policy': [
+        'responsible ai policy', 'ai ethics policy', 'ai governance framework',
+        'internal ai policy', 'ai usage policy', 'ai code of conduct',
+        'fairness ai', 'bias ai policy'
+    ],
+    'deepfake_synthetic': [
+        'deepfake', 'synthetic media', 'ai generated content legal',
+        'voice cloning legal', 'face swap legal', 'section 66e',
+        'it act deepfake', 'ai misinformation legal'
+    ],
+    'ai_bias_audit': [
+        'ai bias', 'algorithmic bias', 'discriminatory ai', 'ai audit',
+        'fairness testing', 'ai discrimination', 'bias assessment'
+    ],
+    'ai_data_governance': [
+        'ai training data', 'ai data rights', 'consent for ai training',
+        'ai model data ownership', 'scraping data legal', 'llm training legal'
+    ],
+    'ai_incident_response': [
+        'ai incident', 'ai failure', 'ai harm', 'ai complaint',
+        'ai accountability', 'ai liability', 'ai caused damage'
+    ]
+}
+
+# ============================================================
+# ADD — A26 The Oracle Intents
+# ============================================================
+
+ORACLE_INTENTS = {
+    'live_price_query': [
+        'price now', 'current price', 'trading at', 'what is nifty',
+        'btc price', 'eth price', 'live rate', 'right now price',
+        'intraday price', 'today price', 'market now'
+    ],
+    'trade_thesis': [
+        'should i buy', 'should i sell', 'entry point', 'long or short',
+        'thesis on', 'good time to buy', 'analysis of stock',
+        'target price', 'buy signal', 'sell signal'
+    ],
+    'portfolio_review': [
+        'review my portfolio', 'stress test', 'rebalance portfolio',
+        'allocation advice', 'portfolio health', 'diversification',
+        'portfolio risk', 'how is my portfolio'
+    ],
+    'macro_question': [
+        'rbi policy', 'fed decision', 'interest rate', 'inflation impact',
+        'dxy', 'fii flow', 'dii flow', 'macro outlook',
+        'rate hike', 'rate cut', 'bond yield', 'us treasury'
+    ],
+    'crypto_analysis': [
+        'bitcoin cycle', 'btc halving', 'crypto bull run', 'altcoin season',
+        'on chain', 'whale movement', 'funding rate', 'open interest crypto',
+        'crypto bear', 'defi tvl', 'mvrv', 'nvt ratio'
+    ],
+    'forex_analysis': [
+        'usdinr', 'usd inr', 'forex', 'currency pair', 'rupee outlook',
+        'eurusd', 'carry trade', 'dollar index', 'fema investment'
+    ],
+    'historical_analysis': [
+        '2008', 'black monday', 'dot com', 'covid crash', 'market crash',
+        'historically', 'past pattern', 'similar to 2020', 'crisis comparison'
+    ],
+    'wealth_planning': [
+        'wealth milestone', 'how to become', 'target corpus', 'retirement',
+        'financial independence', 'monthly investment', 'sip strategy'
+    ],
+    'risk_management': [
+        'stop loss', 'position size', 'risk reward', 'drawdown',
+        'max loss', 'portfolio hedge', 'options hedge', 'risk management'
+    ]
+}
+
 CRYPTO_SYMBOLS = [
     'BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'ADA', 'DOGE', 'MATIC',
     'DOT', 'SHIB', 'AVAX', 'LINK', 'UNI', 'LTC', 'ATOM', 'BITCOIN',
@@ -164,6 +256,19 @@ def extract_overseas_exchange(text: str) -> str | None:
     for exchange in OVERSEAS_EXCHANGES:
         if exchange.lower() in text_lower:
             return exchange
+    return None
+
+FINANCIAL_SYMBOLS = [
+    'NIFTY', 'BANKNIFTY', 'SENSEX', 'RELIANCE', 'TCS', 'INFY',
+    'HDFC', 'ICICI', 'BAJAJ', 'BTC', 'ETH', 'SOL', 'BNB',
+    'BITCOIN', 'ETHEREUM', 'USDINR', 'EURUSD', 'GBPUSD'
+]
+
+def extract_financial_symbol(text: str) -> str | None:
+    text_upper = text.upper()
+    for symbol in FINANCIAL_SYMBOLS:
+        if symbol in text_upper:
+            return symbol
     return None
 
 def classify_intent(user_message: str, agent_id: str = None) -> IntentResult:
@@ -232,6 +337,35 @@ def classify_intent(user_message: str, agent_id: str = None) -> IntentResult:
                         extracted_symbol=religion
                     )
         return IntentResult(agent='A24', intent='general_succession_query',
+                           confidence='LOW', requires_live_data=False)
+
+    if agent_id == 'A25':
+        for intent, keywords in AI_GOVERNANCE_INTENTS.items():
+            for keyword in keywords:
+                if keyword in msg_lower:
+                    return IntentResult(
+                        agent='A25',
+                        intent=intent,
+                        confidence='HIGH',
+                        requires_live_data=False
+                    )
+        return IntentResult(agent='A25', intent='general_ai_governance',
+                           confidence='LOW', requires_live_data=False)
+
+    if agent_id == 'A26':
+        for intent, keywords in ORACLE_INTENTS.items():
+            for keyword in keywords:
+                if keyword in msg_lower:
+                    needs_live = intent in ['live_price_query', 'trade_thesis', 'macro_question', 'crypto_analysis']
+                    symbol = extract_financial_symbol(msg_lower)
+                    return IntentResult(
+                        agent='A26',
+                        intent=intent,
+                        confidence='HIGH',
+                        requires_live_data=needs_live,
+                        extracted_symbol=symbol
+                    )
+        return IntentResult(agent='A26', intent='general_market_query',
                            confidence='LOW', requires_live_data=False)
 
     for intent, keywords in DPDP_INTENTS.items():

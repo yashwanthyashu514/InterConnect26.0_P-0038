@@ -2,44 +2,45 @@
 
 import React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const footerLinks = {
-  Agents: [
-    { label: "maCA Tax", href: "/tax" },
-    { label: "BankFight", href: "/bankfight" },
-    { label: "Notice Fighter", href: "/notice" },
-    { label: "PayrollPilot", href: "/payroll" },
-    { label: "ComplianceBot", href: "/compliance" },
-    { label: "Audit Shield", href: "/audit-shield" },
+  "Power Agents": [
+    { label: "Supreme Tax", href: "/tax" },
+    { label: "Banking & Credit", href: "/bankfight" },
+    { label: "Notice & Disputes", href: "/notice" },
+    { label: "Payroll & HR", href: "/payroll" },
+    { label: "Corporate Counsel", href: "/compliance" },
     { label: "Voice CA", href: "/voice" },
+    { label: "The Oracle", href: "/the-oracle" },
   ],
-  "Legal Tools": [
-    { label: "Contract Reviewer", href: "/contract-reviewer" },
-    { label: "Court Filer", href: "/court-filer" },
-    { label: "Credit Fixer", href: "/credit-fixer" },
-    { label: "Insurance Fighter", href: "/insurance-fighter" },
-    { label: "Labour Law", href: "/labour-law" },
-    { label: "RTI Drafter", href: "/rti" },
-    { label: "AI Mock Judge", href: "/ai-judge" },
+  "Elite Tools": [
+    { label: "Deal Reviewer", href: "/contract-reviewer" },
+    { label: "Filing Ops", href: "/court-filer" },
+    { label: "Forensic Audit", href: "/audit-shield" },
+    { label: "Trade & Forex", href: "/trade" },
+    { label: "CryptoTax Pro", href: "/crypto-tax" },
+    { label: "ESG Compass", href: "/esg-compass" },
+    { label: "HeirGuard", href: "/heirguard" },
+    { label: "Data & AI Safety", href: "/ai-governance" },
   ],
   Platform: [
-    { label: "Dashboard", href: "/dashboard" },
+    { label: "User Dashboard", href: "/dashboard" },
     { label: "Document Vault", href: "/vault" },
-    { label: "API Portal", href: "/api-portal" },
-    { label: "NRI Advisor", href: "/nri" },
-    { label: "RERA Fighter", href: "/rera" },
-    { label: "Startup Legal", href: "/startup-legal" },
-    { label: "Trade & EXIM", href: "/trade" },
+    { label: "Developer API", href: "/api-portal" },
   ],
   Company: [
     { label: "Enterprise / B2B", href: "/b2b" },
-    { label: "Pricing", href: "/#pricing" },
-    { label: "Login", href: "/login" },
+    { label: "Global Pricing", href: "/#pricing" },
+    { label: "Login Access", href: "/login" },
     { label: "Get Started", href: "/onboarding" },
   ],
 };
 
 export default function Footer() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/login")) return null;
+
   return (
     <>
       <style>{`
@@ -66,11 +67,19 @@ export default function Footer() {
                 </span>
               </Link>
               <p style={{ fontSize: "14px", color: "#080B07", lineHeight: 1.6, fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}>
-                Big 4 quality consulting at consumer scale. 24 autonomous AI agents for India.
+                Big 4 quality consulting at consumer scale. 15 autonomous AI agents for India.
               </p>
               <div style={{ marginTop: "24px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
                 <span style={{ background: "rgba(0,0,0,0.05)", color: "#080B07", border: "0.5px solid rgba(0,0,0,0.1)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>DPDP Compliant</span>
-                <span style={{ background: "rgba(0,0,0,0.05)", color: "#080B07", border: "0.5px solid rgba(0,0,0,0.1)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Built for India 🇮🇳</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(0,0,0,0.05)", color: "#080B07", border: "0.5px solid rgba(0,0,0,0.1)", borderRadius: "6px", padding: "4px 10px", fontSize: "11px", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>
+                  <svg width="12" height="12" viewBox="0 0 3 2">
+                    <rect width="3" height="2" fill="#f4c20d"/>
+                    <rect width="3" height="0.66" fill="#ff9933"/>
+                    <rect width="3" height="0.66" y="1.34" fill="#128807"/>
+                    <circle cx="1.5" cy="1" r="0.2" fill="#000080"/>
+                  </svg>
+                  Bharat
+                </span>
               </div>
             </div>
 
@@ -96,8 +105,8 @@ export default function Footer() {
             <p style={{ fontSize: "12px", color: "rgba(8,11,7,0.5)", fontFamily: "'DM Sans', sans-serif" }}>
               © 2026 maCA Empire. All rights reserved.
             </p>
-            <p style={{ fontSize: "12px", color: "rgba(8,11,7,0.5)", fontFamily: "'DM Sans', sans-serif" }}>
-              Built for India 🇮🇳 · DPDP Compliant · Not a substitute for legal advice
+            <p style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "12px", color: "rgba(8,11,7,0.5)", fontFamily: "'DM Sans', sans-serif" }}>
+              Built for India · DPDP Compliant · Not a substitute for legal advice
             </p>
           </div>
         </div>

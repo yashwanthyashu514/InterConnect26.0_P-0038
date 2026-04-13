@@ -2,92 +2,144 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { Folder, FileText, Scale, PenTool, Mail, Wallet, Search, Cloud, File, Menu, Bell, ArrowLeft, Home, Bot, Calendar, Zap, Briefcase, X } from "lucide-react";
 
 const folders = [
-  { icon: "📁", label: "All Documents", count: 23 },
-  { icon: "💸", label: "Tax Documents", count: 8 },
-  { icon: "⚖️", label: "Legal Filings", count: 5 },
-  { icon: "📝", label: "Contracts", count: 4 },
-  { icon: "📨", label: "Notices & Replies", count: 3 },
-  { icon: "💰", label: "Financial Records", count: 3 },
+  { icon: <Folder size={16} />, label: "All Documents", count: 0 },
+  { icon: <FileText size={16} />, label: "Tax Documents", count: 0 },
+  { icon: <Scale size={16} />, label: "Legal Filings", count: 0 },
+  { icon: <PenTool size={16} />, label: "Contracts", count: 0 },
+  { icon: <Mail size={16} />, label: "Notices & Replies", count: 0 },
+  { icon: <Wallet size={16} />, label: "Financial Records", count: 0 },
 ];
 
-const documents = [
-  { icon: "📄", name: "GST_Notice_March_2025.pdf", size: "2.4 MB", date: "Apr 7", agent: "Notice Fighter", type: "PDF" },
-  { icon: "📊", name: "ITR_FY24-25_Draft.xlsx", size: "1.1 MB", date: "Apr 5", agent: "maCA Tax", type: "XLSX" },
-  { icon: "📝", name: "Employment_Contract_Review.docx", size: "834 KB", date: "Apr 3", agent: "Contract Reviewer", type: "DOCX" },
-  { icon: "📄", name: "GSTR-3B_March_2025.pdf", size: "456 KB", date: "Apr 1", agent: "ComplianceBot", type: "PDF" },
-  { icon: "🖼️", name: "RBI_Complaint_Scan.jpg", size: "3.2 MB", date: "Mar 28", agent: "BankFight", type: "IMG" },
-  { icon: "📄", name: "Notice_Reply_Draft_Sec148A.pdf", size: "890 KB", date: "Mar 25", agent: "Notice Fighter", type: "PDF" },
-  { icon: "📊", name: "Payslip_March_2025.xlsx", size: "245 KB", date: "Mar 20", agent: "PayrollPilot", type: "XLSX" },
-  { icon: "📝", name: "Founders_Agreement_v2.docx", size: "1.6 MB", date: "Mar 15", agent: "Startup Legal", type: "DOCX" },
-];
+const documents: any[] = [];
 
 export default function VaultPage() {
   const [activeFolder, setActiveFolder] = useState(0);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [selectedDoc, setSelectedDoc] = useState<typeof documents[0] | null>(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: "var(--bg-primary)" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", position: "relative", overflowX: "hidden" }}>
+
+      {/* ── Sidebar Backdrop ── */}
+      <div 
+        className={`sidebar-backdrop ${isSidebarOpen ? "active" : ""}`} 
+        onClick={() => setIsSidebarOpen(false)}
+      />
 
       {/* ── Sidebar ── */}
-      <aside style={{ width: "260px", minWidth: "260px", background: "var(--bg-secondary)", borderRight: "0.5px solid var(--border-subtle)", display: "flex", flexDirection: "column", padding: "24px 0" }}>
-        <div style={{ padding: "0 20px 20px", borderBottom: "0.5px solid var(--border-subtle)", marginBottom: "12px" }}>
-          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", marginBottom: "20px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
-              maCA
+      <aside className="dash-sidebar" style={{ 
+        transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
+        boxShadow: isSidebarOpen ? "20px 0 50px rgba(0,0,0,0.5)" : "none"
+      }}>
+        <div style={{ padding: "0 20px 24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "transparent", padding: "6px 0", borderRadius: "none", border: "none" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "18px", color: "var(--acid)", letterSpacing: "-0.5px", whiteSpace: "nowrap" }}>
+              maCA Empire
             </span>
           </Link>
-          <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "8px 12px" }}>
-            <span style={{ color: "var(--text-muted)", fontSize: "13px" }}>🔍</span>
-            <input placeholder="Search files..." style={{ background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontSize: "13px", fontFamily: "'DM Sans', sans-serif", width: "100%" }} />
-          </div>
+          <button onClick={() => setIsSidebarOpen(false)} style={{ background: "rgba(0,0,0,0.05)", border: "none", color: "#000", borderRadius: "50%", width: "32px", height: "32px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.1)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(0,0,0,0.05)"}>
+            <X size={18} />
+          </button>
         </div>
+        {/* Navigation */}
+        <nav style={{ flex: 1, padding: "0", overflowY: "auto" }}>
+          <p className="sidebar-section-title">Menus</p>
+          {[
+            { id: "overview", icon: <Home size={18} />, label: "Dashboard", href: "/dashboard" },
+            { id: "agents", icon: <Bot size={18} />, label: "All Agents", href: "/agents" },
+            { id: "vault", icon: <Briefcase size={18} />, label: "Vault", href: "/vault", active: true },
+            { id: "calendar", icon: <Calendar size={18} />, label: "Calendar", href: "/compliance" },
+          ].map((item) => (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`nav-item ${item.active ? "active" : ""}`}
+            >
+              <span style={{ fontSize: "18px" }}>{item.icon}</span>
+              {item.label}
+            </Link>
+          ))}
 
-        {/* Folders */}
-        <div style={{ flex: 1, padding: "0 12px", overflowY: "auto" }}>
+          <div style={{ padding: "0 16px 12px", marginTop: "20px" }}>
+            <div style={{ display: "flex", gap: "8px", alignItems: "center", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "10px 14px" }}>
+              <span style={{ color: "var(--text-muted)", fontSize: "14px" }}><Search size={16} /></span>
+              <input placeholder="Search files..." style={{ background: "none", border: "none", outline: "none", color: "var(--text-primary)", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", width: "100%" }} />
+            </div>
+          </div>
+          <p className="sidebar-section-title" style={{ marginTop: "12px" }}>Folders</p>
           {folders.map((f, i) => (
             <button
               key={i}
+              className={`nav-item ${activeFolder === i ? "active" : ""}`}
               onClick={() => setActiveFolder(i)}
-              style={{ width: "100%", display: "flex", gap: "10px", alignItems: "center", padding: "10px 12px", borderRadius: "8px", border: "none", cursor: "pointer", background: activeFolder === i ? "var(--acid-muted)" : "transparent", color: activeFolder === i ? "var(--acid)" : "var(--text-secondary)", marginBottom: "2px", transition: "all 0.15s", justifyContent: "space-between" }}
+              style={{ justifyContent: "space-between" }}
             >
               <span style={{ display: "flex", gap: "10px", alignItems: "center", fontSize: "14px", fontFamily: "'DM Sans', sans-serif" }}>
                 {f.icon} {f.label}
               </span>
-              <span style={{ fontSize: "11px", background: activeFolder === i ? "rgba(181,255,46,0.15)" : "var(--surface)", borderRadius: "100px", padding: "2px 7px", color: activeFolder === i ? "var(--acid)" : "var(--text-muted)" }}>
+              <span style={{
+                fontSize: "11px",
+                background: activeFolder === i ? "var(--acid-muted)" : "rgba(0,0,0,0.05)",
+                border: activeFolder === i ? "0.5px solid var(--border-acid)" : "none",
+                borderRadius: "100px",
+                padding: "2px 8px",
+                color: activeFolder === i ? "var(--acid)" : "#374151",
+                fontWeight: activeFolder === i ? 700 : 500
+              }}>
                 {f.count}
               </span>
             </button>
           ))}
-        </div>
+        </nav>
 
-        {/* Storage Meter */}
-        <div style={{ padding: "16px 20px", borderTop: "0.5px solid var(--border-subtle)", marginTop: "12px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-            <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Storage Used</span>
-            <span style={{ fontSize: "12px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif" }}>11.8 / 25 GB</span>
+        {/* Storage Meter & Button */}
+        <div style={{ padding: "16px 20px" }}>
+          <div style={{ marginBottom: "16px", padding: "0 8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+              <span style={{ fontSize: "12px", color: "#6B7280", fontFamily: "'DM Sans', sans-serif", fontWeight: "600" }}>Storage Used</span>
+              <span style={{ fontSize: "12px", color: "#080B07", fontFamily: "'DM Sans', sans-serif", fontWeight: "700" }}>0 / 25 GB</span>
+            </div>
+            <div className="progress-bar" style={{ background: "rgba(0,0,0,0.05)", border: "none", height: "6px", borderRadius: "10px", position: "relative" }}>
+              <div className="progress-fill" style={{ width: "0%", background: "var(--acid)" }} />
+            </div>
           </div>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: "47%" }} />
-          </div>
-          <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginTop: "6px" }}>47% used</p>
+          <Link href="/onboarding" style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "#ffffff", borderRadius: "24px", padding: "28px 20px", textDecoration: "none", boxShadow: "0 12px 32px rgba(0,0,0,0.08)", transition: "transform 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-3px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
+            <div style={{ width: "32px", height: "32px", background: "#000000", color: "#ffffff", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", marginBottom: "16px" }}>+</div>
+            <p style={{ fontSize: "14px", fontWeight: 700, color: "#080B07", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px", textAlign: "center" }}>Upgrade to Enterprise</p>
+            <p style={{ fontSize: "11px", color: "rgba(8,11,7,0.5)", fontFamily: "'DM Sans', sans-serif", textAlign: "center" }}>Or view <span style={{ fontWeight: 700, color: "#080B07" }}>Plans</span></p>
+          </Link>
         </div>
       </aside>
 
-      {/* ── Main Area ── */}
-      <main style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+      {/* ── Main Vault Area ── */}
+      <div className="dash-main" style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)", paddingLeft: 0, marginLeft: 0, transform: "none", transition: "none" }}>
         {/* Top Bar */}
-        <div style={{ height: "64px", borderBottom: "0.5px solid var(--border-subtle)", display: "flex", alignItems: "center", gap: "12px", padding: "0 24px", background: "var(--bg-secondary)" }}>
-          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", flex: 1 }}>
+        <div style={{ height: "64px", borderBottom: "0.5px solid var(--border-subtle)", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 24px", background: "var(--bg-secondary)", position: "sticky", top: 0, zIndex: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", width: "120px", gap: "12px" }}>
+            <Link href="/dashboard" style={{ background: "none", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "6px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+              <ArrowLeft size={18} />
+            </Link>
+            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} style={{ background: "none", border: "none", color: "var(--text-primary)", cursor: "pointer", display: "flex", padding: "4px" }}>
+              <Menu size={24} />
+            </button>
+          </div>
+          <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", color: "var(--acid)", textAlign: "center", flex: 1 }}>
             {folders[activeFolder].label}
           </h2>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "12px", width: "120px" }}>
+             <button style={{ background: "none", border: "none", color: "var(--acid)", cursor: "pointer", display: "flex", padding: "4px" }}><Bell size={20} /></button>
+          </div>
+        </div>
 
-          {/* View Toggle */}
+        {/* Content Area Controls */}
+        <div style={{ padding: "16px 24px", display: "flex", gap: "12px", alignItems: "center", borderBottom: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>
           <div style={{ display: "flex", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", padding: "2px" }}>
             {(["grid", "list"] as const).map((v) => (
-              <button key={v} onClick={() => setView(v)} style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: view === v ? "var(--acid)" : "transparent", color: view === v ? "var(--bg-primary)" : "var(--text-muted)", fontSize: "13px", fontFamily: "'DM Sans', sans-serif" }}>
+              <button key={v} onClick={() => setView(v)} style={{ padding: "6px 12px", borderRadius: "6px", border: "none", cursor: "pointer", background: view === v ? "var(--bg-secondary)" : "transparent", color: view === v ? "var(--text-primary)" : "var(--text-muted)", fontSize: "13px", fontFamily: "'DM Sans', sans-serif" }}>
                 {v === "grid" ? "⊞ Grid" : "☰ List"}
               </button>
             ))}
@@ -100,7 +152,7 @@ export default function VaultPage() {
             <option>Size ↓</option>
           </select>
 
-          <button className="btn-primary btn-sm">
+          <button className="btn-primary btn-sm" style={{ marginLeft: "auto" }}>
             ↑ Upload
           </button>
         </div>
@@ -108,59 +160,67 @@ export default function VaultPage() {
         {/* Content Area */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
           {/* Upload Zone */}
-          <div style={{ border: "1.5px dashed rgba(181,255,46,0.25)", borderRadius: "14px", padding: "32px", textAlign: "center", marginBottom: "24px", background: "rgba(181,255,46,0.02)", cursor: "pointer", transition: "border-color 0.2s, background 0.2s" }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(181,255,46,0.5)"; e.currentTarget.style.background = "rgba(181,255,46,0.04)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(181,255,46,0.25)"; e.currentTarget.style.background = "rgba(181,255,46,0.02)"; }}>
-            <p style={{ fontSize: "28px", marginBottom: "8px" }}>☁️</p>
+          <div style={{ border: "1.5px dashed var(--border-subtle)", borderRadius: "14px", padding: "32px", textAlign: "center", marginBottom: "24px", background: "var(--bg-primary)", cursor: "pointer", transition: "border-color 0.2s, background 0.2s" }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text-secondary)"; e.currentTarget.style.background = "var(--bg-secondary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; e.currentTarget.style.background = "var(--bg-primary)"; }}>
+            <p style={{ display: "flex", justifyContent: "center", marginBottom: "8px", color: "var(--text-secondary)" }}><Cloud size={24} /></p>
             <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>Drop files or click to upload</p>
             <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Supports PDF, DOCX, XLSX, JPG, PNG · Max 50MB per file</p>
           </div>
 
           {/* Documents */}
-          {view === "grid" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-              {documents.map((doc, i) => (
-                <div
-                  key={i}
-                  style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", padding: "20px", cursor: "pointer", transition: "border-color 0.2s" }}
-                  onClick={() => setSelectedDoc(doc)}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-acid)")}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-subtle)")}
-                >
-                  <div style={{ fontSize: "32px", marginBottom: "12px" }}>{doc.icon}</div>
-                  <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "var(--text-primary)", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</p>
-                  <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>{doc.size} · {doc.date}</p>
-                  <span className="badge badge-acid" style={{ fontSize: "10px" }}>{doc.agent}</span>
-                </div>
-              ))}
-            </div>
+          {documents.length > 0 ? (
+            view === "grid" ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+                {documents.map((doc, i) => (
+                  <div
+                    key={i}
+                    style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", padding: "20px", cursor: "pointer", transition: "border-color 0.2s" }}
+                    onClick={() => setSelectedDoc(doc)}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--border-subtle)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-subtle)")}
+                  >
+                    <div style={{ fontSize: "32px", marginBottom: "12px", color: "var(--text-secondary)" }}>{doc.icon}</div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "var(--text-primary)", marginBottom: "4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</p>
+                    <p style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>{doc.size} · {doc.date}</p>
+                    <span className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{doc.agent}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", overflow: "hidden" }}>
+                <table className="data-table">
+                  <thead><tr><th>Name</th><th>Type</th><th>Agent</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>
+                  <tbody>
+                    {documents.map((doc, i) => (
+                      <tr key={i} style={{ cursor: "pointer" }} onClick={() => setSelectedDoc(doc)}>
+                        <td style={{ color: "var(--text-primary)", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px" }}>{doc.icon} {doc.name}</td>
+                        <td><span className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{doc.type}</span></td>
+                        <td>{doc.agent}</td>
+                        <td>{doc.date}</td>
+                        <td>{doc.size}</td>
+                        <td>
+                          <div style={{ display: "flex", gap: "6px" }}>
+                            <button style={{ fontSize: "11px", background: "none", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "3px 8px", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>View</button>
+                            <button style={{ fontSize: "11px", background: "none", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "3px 8px", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>↓</button>
+                            <button style={{ fontSize: "11px", background: "none", border: "0.5px solid rgba(255,94,94,0.25)", borderRadius: "6px", padding: "3px 8px", color: "var(--danger)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>✕</button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )
           ) : (
-            <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", overflow: "hidden" }}>
-              <table className="data-table">
-                <thead><tr><th>Name</th><th>Type</th><th>Agent</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>
-                <tbody>
-                  {documents.map((doc, i) => (
-                    <tr key={i} style={{ cursor: "pointer" }} onClick={() => setSelectedDoc(doc)}>
-                      <td style={{ color: "var(--text-primary)", fontWeight: 500 }}>{doc.icon} {doc.name}</td>
-                      <td><span className="badge badge-acid" style={{ fontSize: "10px" }}>{doc.type}</span></td>
-                      <td>{doc.agent}</td>
-                      <td>{doc.date}</td>
-                      <td>{doc.size}</td>
-                      <td>
-                        <div style={{ display: "flex", gap: "6px" }}>
-                          <button style={{ fontSize: "11px", background: "none", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "3px 8px", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>View</button>
-                          <button style={{ fontSize: "11px", background: "none", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "3px 8px", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>↓</button>
-                          <button style={{ fontSize: "11px", background: "none", border: "0.5px solid rgba(255,94,94,0.25)", borderRadius: "6px", padding: "3px 8px", color: "var(--danger)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>✕</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div style={{ padding: "48px 24px", textAlign: "center", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px" }}>
+              <p style={{ display: "flex", justifyContent: "center", marginBottom: "16px", color: "var(--text-muted)" }}><File size={32} /></p>
+              <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>No documents found</h3>
+              <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Your uploaded files will appear here.</p>
             </div>
           )}
         </div>
-      </main>
+      </div>
 
       {/* ── Right Preview Panel ── */}
       {selectedDoc && (
@@ -177,8 +237,8 @@ export default function VaultPage() {
             <h4 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "14px", marginBottom: "4px" }}>{selectedDoc.name}</h4>
             <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "20px" }}>Uploaded {selectedDoc.date} · Via {selectedDoc.agent}</p>
 
-            <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "10px", padding: "16px", marginBottom: "16px" }}>
-              <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>AI Summary</p>
+            <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "16px", marginBottom: "16px" }}>
+              <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-primary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "8px" }}>AI Summary</p>
               <p style={{ fontSize: "13px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.55 }}>
                 This document appears to be a government notice requiring a response within 30 days. Key section referenced: 148A. Recommended action: File written objection with supporting documents.
               </p>
