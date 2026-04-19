@@ -345,7 +345,8 @@ export default function LandingPage() {
                       background: activeFilter === filter ? "#B5FF2E" : "rgba(181,255,46,0.02)", 
                       color: activeFilter === filter ? "#080B07" : "rgba(240,244,232,0.45)", 
                       borderColor: activeFilter === filter ? "#B5FF2E" : "rgba(255,255,255,0.12)",
-                      border: "1px solid",
+                      borderWidth: "1px",
+                      borderStyle: "solid",
                       borderRadius: "100px",
                       padding: "8px 24px",
                       fontSize: "12px",
@@ -377,7 +378,9 @@ export default function LandingPage() {
                   <Link key={idx} href={isLoggedIn ? "/dashboard" : "/onboarding"} className="fade-up" style={{ 
                     textDecoration: "none",
                     background: "#0D1117", 
-                    border: "1px solid rgba(255,255,255,0.1)", 
+                    borderWidth: "1px",
+                    borderStyle: "solid",
+                    borderColor: "rgba(255,255,255,0.1)", 
                     borderRadius: "24px", 
                     padding: "32px",
                     display: "flex",
@@ -522,7 +525,9 @@ export default function LandingPage() {
                     flexDirection: "column", 
                     position: "relative",
                     boxShadow: "0 24px 48px rgba(0,0,0,0.04)",
-                    border: plan.featured ? "none" : "1px solid rgba(0,0,0,0.05)",
+                    borderWidth: plan.featured ? "0px" : "1px",
+                    borderStyle: "solid",
+                    borderColor: plan.featured ? "transparent" : "rgba(0,0,0,0.05)",
                     transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
                     cursor: "default"
                   }}
@@ -594,7 +599,7 @@ export default function LandingPage() {
           <div style={{ maxWidth: "800px", margin: "0 auto", textAlign: "center", position: "relative", zIndex: 1 }}>
             <div className="hero-badge">
               <span style={{ width: "8px", height: "8px", background: "#B5FF2E", borderRadius: "50%", boxShadow: "0 0 10px #B5FF2E" }} />
-              15 AI Agents + Marketplace · India
+              18 AI Agents + Marketplace · India
             </div>
             <h2 className="fade-up" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(36px, 5vw, 68px)", letterSpacing: "-2.5px", lineHeight: 1.05, marginBottom: "24px", color: "#F0F4E8" }}>
               India deserves

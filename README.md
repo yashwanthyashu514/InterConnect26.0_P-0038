@@ -13,7 +13,7 @@
 [![Status](https://img.shields.io/badge/Status-STABLE%20%26%20VALIDATED-22c55e?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
 [![InterConnect](https://img.shields.io/badge/InterConnect-26.0%20%7C%20P--0038-3b82f6?style=for-the-badge&logo=academia&logoColor=white)](https://gmit.ac.in)
 [![Security](https://img.shields.io/badge/Security-PROD--READY-f59e0b?style=for-the-badge&logo=auth0&logoColor=white)](https://supabase.com)
-[![Agents](https://img.shields.io/badge/Neural%20Agents-22%20Active-8b5cf6?style=for-the-badge&logo=openai&logoColor=white)](#-the-22-agent-neural-registry)
+[![Agents](https://img.shields.io/badge/Neural%20Agents-18%20Active-8b5cf6?style=for-the-badge&logo=openai&logoColor=white)](#-the-18-agent-neural-registry)
 [![License](https://img.shields.io/badge/License-MIT-64748b?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -29,14 +29,13 @@
 
 - [Project Vision](#-project-vision)
 - [Live Architecture Overview](#-live-architecture-overview)
-- [The 22-Agent Neural Registry](#-the-22-agent-neural-registry)
+- [The 18-Agent Neural Registry](#-the-18-agent-neural-registry)
 - [Technical Stack](#-technical-stack)
 - [Folder Architecture](#-folder-architecture)
 - [Core Technical Highlights](#-core-technical-highlights)
 - [Local Execution Guide](#-local-execution-guide)
 - [Security & Production Hardening](#-security--production-hardening)
 - [Innovation Context](#-innovation-context-interconnect-260)
-- [Team & Evaluation](#-team--evaluation)
 
 ---
 
@@ -46,7 +45,7 @@
 
 | Problem | Our Solution |
 |---|---|
-| Elite tax/legal advice is unaffordable for 99% of India | 22-agent AGI delivers it at zero marginal cost |
+| Elite tax/legal advice is unaffordable for 99% of India | 18-agent AGI delivers it at zero marginal cost |
 | LLMs hallucinate numbers in calculations | Forensic Mathematical Kernel uses deterministic symbolic reasoning |
 | Tax notices are complex multi-page legal documents | Legal Vision agent performs zero-shot OCR + structural parsing |
 | No audit trail for AI-generated advice | Blockchain Notary cryptographically signs every output |
@@ -87,32 +86,28 @@
 
 ---
 
-## 🤖 The 22-Agent Neural Registry
+## 🤖 The 18-Agent Neural Registry
 
 | ID | Agent | Domain | Core Capability |
 |:--|:--|:--|:--|
 | **A0** | Command Nexus | Orchestration | LLM-based intent triage & dynamic agent dispatch |
 | **A1** | Supreme Tax | Direct Tax | ITR, capital gains, 80-IAC, 115BAA calculations |
-| **A2** | GST Commander | Indirect Tax | GST classification, ITC reconciliation, GSTR filing |
+| **A2** | Banking & Credit | Finance | Dispute resolution and credit score restoration |
 | **A3** | Notice & Disputes | Litigation | Income tax notice defense & CIT(A) drafting |
-| **A4** | BankFight | Banking Law | RBI compliance, loan disputes, account freezes |
-| **A5** | Corporate Counsel | Company Law | MCA filings, ROC compliance, board resolutions |
-| **A6** | Deal Reviewer | M&A / Contracts | Contract risk scoring, due diligence red-flags |
-| **A7** | Filing Ops | Compliance | Automated deadline tracking & form preparation |
-| **A8** | Legal Vision | Multi-modal | Zero-shot OCR & structural parsing of legal docs |
-| **A9** | Forensic Kernel | Mathematics | Symbolic deterministic tax computation engine |
-| **A10** | HeirGuard | Succession | Will drafting, estate planning, inheritance law |
-| **A11** | CryptoTax Pro | Web3 / Crypto | VDA taxation, FIFO/LIFO crypto P&L, Schedule VDA |
-| **A12** | Elite Wealth | HNI Advisory | UHNI portfolio structuring, offshore trusts |
-| **A13** | The Oracle | Wisdom Engine | 50-year case law synthesis & precedent reasoning |
-| **A14** | Victor Harlan | Negotiations | Strategic adversarial advisory for disputes |
-| **A15** | Sovereign API | Integration | HMAC-signed REST for enterprise B2B clients |
-| **A16** | Blockchain Notary | Trust Layer | Cryptographic signing of every legal output |
-| **A17** | Reasoning Loop | Self-Audit | Multi-turn Chain-of-Thought verifier agents |
-| **A18** | PII Redactor | Privacy | Pre-processing document fragmentation & masking |
-| **A19** | FEMA Guard | Forex Law | FEMA/RBI compliance for cross-border transactions |
-| **A20** | Startup Advisor | Venture | DPIIT, ESOP structuring, term sheet review |
-| **A21** | Self-Heal Node | Resilience | Automatic rerouting on agent node failure |
+| **A4** | Payroll & HR | Compliance | Automated payroll and labor law compliance |
+| **A6** | Voice CA | Multimodal | Talk to your personal CA — Voice/Visual intelligence |
+| **A5** | Corporate Counsel | Company Law | MCA filings, ROC compliance, and IP protection |
+| **A7** | Deal Reviewer | M&A / Contracts | AI redlining for SHA/SPA and high-stakes contracts |
+| **A8** | Filing Ops | E-Courts | E-court filing automation and RTI drafting |
+| **A12**| Forensic Audit | Investigation | Investigative auditing for fraud and leakages |
+| **A13**| Trade & Forex | Global | FEMA compliance and EXIM logistics intelligence |
+| **A25**| Data & AI Safety | Governance | DPDP Act 2023 and EU AI Act Governance |
+| **A27**| Elite Wealth | UHNI | Crown Agent for ₹100Cr+ UHNWIs — offshore SPV authority |
+| **A23**| ESG Compass | SEBI/ESG | SEBI BRSR Core Auto-fill and GHG Scope tracking |
+| **A24**| HeirGuard | Succession | Will Drafting and Succession/Trust Planning |
+| **A22**| CryptoTax Pro | Web3 | 30% VDA Tax monitoring and Schedule VDA filing |
+| **A26**| The Oracle | Wisdom | 50-Year Market Wisdom & Case Law synthesis |
+| **A28**| Victor Harlan | Capital Mkts | M&A, IPO, LBO & High-Stakes Wall St advisory |
 
 ---
 
@@ -160,7 +155,7 @@ InterConnect26.0_P-0038/
     │
     ├── backend/
     │   ├── main.py                 # FastAPI orchestrator — Command Nexus (A0)
-    │   ├── agents/                 # 22 agent modules (one file per agent)
+    │   ├── agents/                 # 18 agent modules (one file per agent)
     │   ├── reasoning/              # CoT verifier loop & self-audit engine
     │   └── vision/                 # OCR + PDF parsing for Legal Vision (A8)
     │
@@ -212,7 +207,7 @@ upload → pdf-parse / pytesseract OCR
 
 ### 4. Distributed RAG on Legal Knowledge
 
-All 22 agents draw from a shared vectorized legal knowledge base:
+All 18 agents draw from a shared vectorized legal knowledge base:
 
 - **Embedding model**: `nvidia/nv-embed-v1` (4096-dimensional)
 - **Vector store**: Supabase `pgvector` with cosine similarity
@@ -235,7 +230,7 @@ All 22 agents draw from a shared vectorized legal knowledge base:
 ### Step 1 — Clone & Install
 
 ```bash
-git clone https://github.com/Vishnummmmmmmm/InterConnect26.0_P-0038.git
+git clone https://github.com/yashwanthyashu514/InterConnect26.0_P-0038.git
 cd InterConnect26.0_P-0038/maca-empire
 
 # Install Python dependencies
@@ -321,22 +316,12 @@ Multi-modal Vision   Compliance Auto.  Wealth Structuring
 
 ---
 
-## 👥 Team & Evaluation
-
-| Role | Name |
-|---|---|
-| **Evaluation Lead** | Dr. Shivanagowda G M |
-| **Co-Evaluator** | Ms. Ranjitha D S |
-| **Developer / Architecture** | Antigravity AGI Deployment |
-| **Submission ID** | InterConnect 26.0 — P-0038 |
-
----
 
 <div align="center">
 
 **© 2026 Supreme Tax AGI — A product of Imperio Neural.**
 
-[![GitHub](https://img.shields.io/badge/GitHub-InterConnect26.0__P--0038-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Vishnummmmmmmm/InterConnect26.0_P-0038)
+[![GitHub](https://img.shields.io/badge/GitHub-InterConnect26.0__P--0038-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yashwanthyashu514/InterConnect26.0_P-0038)
 
 *Hardened. Sovereign. Ready for Scale.*
 
