@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { User, Store, Globe, Building2, FileText, Landmark, Scale, Check, AlertTriangle, Eye, EyeOff, Code2 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { User, Store, Globe, Building2, FileText, Landmark, Scale, Check, AlertTriangle, Eye, EyeOff, Code2, Zap, Home, Mail, Shield } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const steps = [
   {
@@ -75,30 +77,42 @@ We guarantee that your proprietary business logic and private contracts uploaded
 Users have the 'Right to be Forgotten.' Upon deletion of an Empire account, all associated data is purged from our primary and secondary clusters within 30 days.
 `;
 
-export default function OnboardingPage() {
-  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const initialEmail = searchParams?.get("email") || "";
+function OnboardingComponent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialEmail = searchParams.get("email") || "";
+  const initialPass = searchParams.get("p") || "";
 
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [selectedPains, setSelectedPains] = useState<number[]>([]);
   
-  // Registration data
   const [regData, setRegData] = useState({
     name: "",
     email: initialEmail,
-    password: "",
+    password: initialPass,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   
-  // Compliance State
   const [hasReadTerms, setHasReadTerms] = useState(false);
   const [hasReadPrivacy, setHasReadPrivacy] = useState(false);
   
   const [showModal, setShowModal] = useState<"terms" | "privacy" | null>(null);
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setIsLoggedIn(true);
+        setRegData(prev => ({ ...prev, email: session.user.email || prev.email }));
+      }
+    };
+    checkUser();
+  }, []);
 
   const progress = (step / 4) * 100;
 
@@ -111,15 +125,31 @@ export default function OnboardingPage() {
 
   const handleFinish = async () => {
     if (!isComplianceComplete) return;
+    
     setLoading(true);
     setError("");
 
     try {
+      let submitEmail = regData.email;
+      const { data: { session: authSession } } = await supabase.auth.getSession();
+      
+      if (authSession?.user?.email) {
+        submitEmail = authSession.user.email;
+      }
+
+      if (!submitEmail) {
+        setError("Identity not found. Please ensure you have entered an email or are logged in.");
+        setLoading(false);
+        return;
+      }
+
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...regData,
+          email: submitEmail,
+          password: regData.password || "EMPIRE_SESSION_UPGRADE",
           role: selectedRole === 4 ? "developer" : "user"
         })
       });
@@ -143,7 +173,6 @@ export default function OnboardingPage() {
       setHasReadTerms(true);
       setShowModal("privacy");
       setScrolledToBottom(false);
-      // Reset scroll position of inner content
       const scrollEl = document.getElementById("legal-scroll-area");
       if (scrollEl) scrollEl.scrollTop = 0;
     } else {
@@ -161,8 +190,6 @@ export default function OnboardingPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 24px" }}>
-      
-      {/* Dual Phase Compliance Modal */}
       {showModal && (
         <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", backdropFilter: "blur(12px)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
           <div style={{ background: "var(--bg-secondary)", width: "100%", maxWidth: "550px", borderRadius: "28px", border: "1px solid var(--border-acid)", display: "flex", flexDirection: "column", maxHeight: "85vh", boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}>
@@ -176,12 +203,7 @@ export default function OnboardingPage() {
                 </h3>
               </div>
             </div>
-            
-            <div 
-              id="legal-scroll-area"
-              onScroll={handleModalScroll}
-              style={{ padding: "28px", overflowY: "auto", fontSize: "15px", lineHeight: "1.8", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", flex: 1 }}
-            >
+            <div id="legal-scroll-area" onScroll={handleModalScroll} style={{ padding: "28px", overflowY: "auto", fontSize: "15px", lineHeight: "1.8", color: "rgba(255,255,255,0.7)", fontFamily: "'DM Sans', sans-serif", flex: 1 }}>
               <div style={{ whiteSpace: "pre-wrap", fontFamily: "inherit" }}>
                 {showModal === "terms" ? TERMS_CONTENT : PRIVACY_CONTENT}
                 <div style={{ marginTop: "60px", padding: "32px", background: "rgba(181,255,46,0.05)", borderRadius: "16px", border: "1.5px dashed rgba(181,255,46,0.2)", textAlign: "center" }}>
@@ -189,34 +211,18 @@ export default function OnboardingPage() {
                 </div>
               </div>
             </div>
-
             <div style={{ padding: "28px", borderTop: "1px solid var(--border-subtle)", display: "flex", gap: "16px", background: "rgba(255,255,255,0.02)" }}>
-              <button 
-                onClick={() => { setShowModal(null); setScrolledToBottom(false); }}
-                className="btn-ghost" style={{ flex: 1, justifyContent: "center" }}>Exit Review</button>
-              <button 
-                onClick={proceedWithLegal}
-                disabled={!scrolledToBottom}
-                className="btn-primary" 
-                style={{ flex: 2, justifyContent: "center", opacity: scrolledToBottom ? 1 : 0.3, cursor: scrolledToBottom ? "pointer" : "not-allowed" }}
-              >
-                {scrolledToBottom 
-                  ? (showModal === "terms" ? "Continue to Privacy Policy →" : "Authorize & Complete Review →") 
-                  : "Scroll to Validate Document"}
+              <button onClick={() => { setShowModal(null); setScrolledToBottom(false); }} className="btn-ghost" style={{ flex: 1, justifyContent: "center" }}>Exit Review</button>
+              <button onClick={proceedWithLegal} disabled={!scrolledToBottom} className="btn-primary" style={{ flex: 2, justifyContent: "center", opacity: scrolledToBottom ? 1 : 0.3, cursor: scrolledToBottom ? "pointer" : "not-allowed" }}>
+                {scrolledToBottom ? (showModal === "terms" ? "Continue to Privacy Policy →" : "Authorize & Complete Review →") : "Scroll to Validate Document"}
               </button>
             </div>
           </div>
         </div>
       )}
-
-      {/* Logo */}
       <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)", marginBottom: "48px" }}>
-        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
-          maCA
-        </span>
+        <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>maCA</span>
       </Link>
-
-      {/* Progress */}
       <div style={{ width: "100%", maxWidth: "600px", marginBottom: "12px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
           <span style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>Step {step} of 4</span>
@@ -226,23 +232,14 @@ export default function OnboardingPage() {
           <div className="progress-fill" style={{ width: `${progress}%` }} />
         </div>
       </div>
-
-      {/* Step Card */}
       <div style={{ width: "100%", maxWidth: "600px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "20px", padding: "40px" }}>
-        {/* Step 1 */}
         {step === 1 && (
           <div>
             <span className="section-tag" style={{ marginBottom: "16px" }}>Step 1</span>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
-              {steps[0].title}
-            </h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>{steps[0].title}</h2>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              {(steps[0].options as { icon: React.ReactNode; label: string; desc: string }[]).map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedRole(i)}
-                  style={{ padding: "20px", background: selectedRole === i ? "var(--acid-muted)" : "var(--bg-primary)", border: `0.5px solid ${selectedRole === i ? "var(--border-acid)" : "var(--border-subtle)"}`, borderRadius: "12px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}
-                >
+              {(steps[0].options as any[]).map((opt, i) => (
+                <button key={i} onClick={() => setSelectedRole(i)} style={{ padding: "20px", background: selectedRole === i ? "var(--acid-muted)" : "var(--bg-primary)", border: `0.5px solid ${selectedRole === i ? "var(--border-acid)" : "var(--border-subtle)"}`, borderRadius: "12px", cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
                   <div style={{ color: "var(--acid)", marginBottom: "10px" }}>{opt.icon}</div>
                   <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "14px", color: "var(--text-primary)", marginBottom: "4px" }}>{opt.label}</p>
                   <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>{opt.desc}</p>
@@ -251,82 +248,48 @@ export default function OnboardingPage() {
             </div>
           </div>
         )}
-
-        {/* Step 2 */}
         {step === 2 && (
           <div>
             <span className="section-tag" style={{ marginBottom: "16px" }}>Step 2</span>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
-              {steps[1].title}
-            </h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>{steps[1].title}</h2>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
               {(steps[1].options as string[]).map((opt, i) => (
-                <button
-                  key={i}
-                  onClick={() => togglePain(i)}
-                  style={{ padding: "10px 20px", background: selectedPains.includes(i) ? "var(--acid)" : "var(--bg-primary)", border: `0.5px solid ${selectedPains.includes(i) ? "var(--acid)" : "var(--border-subtle)"}`, borderRadius: "100px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: selectedPains.includes(i) ? "var(--bg-primary)" : "var(--text-secondary)", fontWeight: selectedPains.includes(i) ? 500 : 400, transition: "all 0.2s" }}
-                >
-                  {opt}
-                </button>
+                <button key={i} onClick={() => togglePain(i)} style={{ padding: "10px 20px", background: selectedPains.includes(i) ? "var(--acid)" : "var(--bg-primary)", border: `0.5px solid ${selectedPains.includes(i) ? "var(--acid)" : "var(--border-subtle)"}`, borderRadius: "100px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: selectedPains.includes(i) ? "var(--bg-primary)" : "var(--text-secondary)", fontWeight: selectedPains.includes(i) ? 500 : 400, transition: "all 0.2s" }}>{opt}</button>
               ))}
             </div>
           </div>
         )}
-
-        {/* Step 3 */}
         {step === 3 && (
           <div>
             <span className="section-tag" style={{ marginBottom: "16px" }}>Step 3</span>
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>
-              {steps[2].title}
-            </h2>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "28px" }}>{steps[2].title}</h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {error && <div style={{ color: "#ff4d4d", fontSize: "13px", padding: "10px", background: "rgba(255,77,77,0.05)", borderRadius: "8px" }}>{error}</div>}
               <input type="text" placeholder="Full Legal Name" className="input-dark" value={regData.name} onChange={(e) => setRegData({...regData, name: e.target.value})} />
-              <input type="email" placeholder="Email Address" className="input-dark" value={regData.email} onChange={(e) => setRegData({...regData, email: e.target.value})} />
-              <div style={{ position: "relative" }}>
-                 <input type={showPass ? "text" : "password"} placeholder="Secure Password" className="input-dark" style={{ width: "100%" }} value={regData.password} onChange={(e) => setRegData({...regData, password: e.target.value})} />
-                 <button onClick={() => setShowPass(!showPass)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--acid)", cursor: "pointer" }}>
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                 </button>
+              <div style={{ padding: "16px", background: "rgba(181,255,46,0.05)", border: "1px solid rgba(181,255,46,0.2)", borderRadius: "12px", marginBottom: "8px" }}>
+                <p style={{ fontSize: "11px", color: "var(--acid)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "4px" }}>Identity Authenticated</p>
+                <p style={{ fontSize: "15px", color: "white", fontWeight: 600 }}>{regData.email || "Empire Member"}</p>
               </div>
               <input type="text" placeholder="Referral Code (optional)" className="input-dark" />
-              
               <div style={{ marginTop: "24px", padding: "20px", background: isComplianceComplete ? "rgba(181,255,46,0.05)" : "rgba(255,255,255,0.02)", border: `1px solid ${isComplianceComplete ? "var(--border-acid)" : "rgba(255,255,255,0.08)"}`, borderRadius: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <span style={{ fontSize: "13px", color: "white", fontWeight: 700, fontFamily: "'Syne', sans-serif" }}>Step 3: Legal Compliance</span>
                   {isComplianceComplete && <Check size={18} color="var(--acid)" />}
                 </div>
-                
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <button 
-                    onClick={() => setShowModal("terms")}
-                    style={{ padding: "12px", borderRadius: "10px", background: hasReadTerms ? "rgba(181,255,46,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${hasReadTerms ? "var(--acid)" : "rgba(255,255,255,0.1)"}`, color: hasReadTerms ? "white" : "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
-                    Terms of Service {hasReadTerms && "✓"}
-                  </button>
-                  <button 
-                    onClick={() => setShowModal("privacy")}
-                    style={{ padding: "12px", borderRadius: "10px", background: hasReadPrivacy ? "rgba(181,255,46,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${hasReadPrivacy ? "var(--acid)" : "rgba(255,255,255,0.1)"}`, color: hasReadPrivacy ? "white" : "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>
-                    Privacy Policy {hasReadPrivacy && "✓"}
-                  </button>
+                  <button onClick={() => setShowModal("terms")} style={{ padding: "12px", borderRadius: "10px", background: hasReadTerms ? "rgba(181,255,46,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${hasReadTerms ? "var(--acid)" : "rgba(255,255,255,0.1)"}`, color: hasReadTerms ? "white" : "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Terms of Service {hasReadTerms && "✓"}</button>
+                  <button onClick={() => setShowModal("privacy")} style={{ padding: "12px", borderRadius: "10px", background: hasReadPrivacy ? "rgba(181,255,46,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${hasReadPrivacy ? "var(--acid)" : "rgba(255,255,255,0.1)"}`, color: hasReadPrivacy ? "white" : "rgba(255,255,255,0.4)", fontSize: "12px", fontWeight: 600, cursor: "pointer" }}>Privacy Policy {hasReadPrivacy && "✓"}</button>
                 </div>
-                
-                <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "16px", lineHeight: "1.6" }}>
-                  Institutional scale requires active authorization. Please scroll through both documents to activate your Empire account credentials.
-                </p>
+                <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "16px", lineHeight: "1.6" }}>Institutional scale requires active authorization. Please scroll through both documents to activate your Empire account credentials.</p>
               </div>
             </div>
           </div>
         )}
-
-        {/* Step 4 */}
         {step === 4 && (
           <div style={{ textAlign: "center" }}>
             <div style={{ width: "80px", height: "80px", background: "var(--acid)", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 24px" }}><Check size={40} color="#080B07" /></div>
             <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "28px", letterSpacing: "-1px", marginBottom: "12px" }}>You&apos;re all set!</h2>
-            <p style={{ fontSize: "15px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "32px" }}>
-              Based on your needs, here are your recommended agents:
-            </p>
+            <p style={{ fontSize: "15px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "32px" }}>Based on your needs, here are your recommended agents:</p>
             <div style={{ display: "flex", gap: "12px", justifyContent: "center", marginBottom: "32px" }}>
               {recommendedAgents.map((a, i) => (
                 <Link key={i} href={a.href} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", padding: "20px", background: "var(--bg-primary)", border: "0.5px solid var(--border-acid)", borderRadius: "12px", textDecoration: "none", minWidth: "120px" }}>
@@ -335,44 +298,29 @@ export default function OnboardingPage() {
                 </Link>
               ))}
             </div>
-            <Link href="/dashboard" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px 40px" }}>
-              Go to Dashboard →
-            </Link>
+            <Link href="/dashboard" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px 40px" }}>Go to Dashboard →</Link>
           </div>
         )}
-
-        {/* Navigation */}
         {step < 4 && (
           <div style={{ display: "flex", justifyContent: "space-between", marginTop: "32px" }}>
-            <button
-              onClick={() => setStep(Math.max(1, step - 1))}
-              className="btn-ghost"
-              style={{ display: step === 1 ? "none" : "flex" }}
-            >
-              ← Back
-            </button>
+            <button onClick={() => setStep(Math.max(1, step - 1))} className="btn-ghost" style={{ display: step === 1 ? "none" : "flex" }}>← Back</button>
             <div style={{ flex: 1 }} />
-            <button
-              onClick={() => {
-                if (step === 1 && selectedRole === 4) {
-                  window.location.href = "/developers";
-                  return;
-                }
-                if (step === 3) {
-                  handleFinish();
-                } else {
-                  setStep(step + 1);
-                }
-              }}
-              className="btn-primary"
-              disabled={(step === 3 && !isComplianceComplete) || loading}
-              style={{ opacity: (step === 3 && !isComplianceComplete) || loading ? 0.3 : 1, cursor: (step === 3 && !isComplianceComplete) || loading ? "not-allowed" : "pointer" }}
-            >
-              {loading ? "Verifying..." : (step === 3 ? "Complete Profile & Enter Empire →" : "Continue →")}
-            </button>
+            <button onClick={() => { if (step === 1 && selectedRole === 4) { window.location.href = "/developers"; return; } if (step === 3) { handleFinish(); } else { setStep(step + 1); } }} className="btn-primary" disabled={(step === 3 && !isComplianceComplete) || loading} style={{ opacity: (step === 3 && !isComplianceComplete) || loading ? 0.3 : 1, cursor: (step === 3 && !isComplianceComplete) || loading ? "not-allowed" : "pointer" }}>{loading ? "Verifying..." : (step === 3 ? "Complete Profile & Enter Empire →" : "Continue →")}</button>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', background: '#080B07', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#B5FF2E', fontFamily: "'Syne', sans-serif", fontSize: '14px', fontWeight: 800 }}>INITIALIZING EMPIRE PROTOCOLS...</p>
+      </div>
+    }>
+      <OnboardingComponent />
+    </Suspense>
   );
 }

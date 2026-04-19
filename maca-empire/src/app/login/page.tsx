@@ -25,6 +25,64 @@ function LoginContent() {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleForgotPassword = async () => {
+    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+    const email = emailInput?.value;
+    
+    if (!email) {
+      setError("Please enter your email to receive a recovery link.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+
+      if (error) throw error;
+      setMessage("Neural recovery link dispatched to your inbox.");
+    } catch (err: any) {
+      setError(err.message || "Failed to send recovery link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendMagicCode = async () => {
+    const emailInput = document.querySelector('input[name="email"]') as HTMLInputElement;
+    const email = emailInput?.value;
+
+    if (!email) {
+      setError("Enter email to receive secure magic entry code.");
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+
+      if (error) throw error;
+      setMessage("Digital Key dispatched. Check your inbox for the access link!");
+    } catch (err: any) {
+      setError(err.message || "Magic Link failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,9 +95,10 @@ function LoginContent() {
       const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
       if (isSignUp) {
-        // Step 1: Redirect to onboarding to select role/preferences
-        // The onboarding will handle the final signUp after compliance
-        router.push(`/onboarding?email=${encodeURIComponent(email)}&mode=signup`);
+        const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+        // Step 1: Redirect to onboarding with both email and password context
+        // We'll pass them securely or handle them via the session
+        router.push(`/onboarding?email=${encodeURIComponent(email)}&p=${encodeURIComponent(password)}&mode=signup`);
         return;
       }
 
@@ -116,11 +175,12 @@ function LoginContent() {
 
         <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           {error && <div style={{ color: "#ff4d4d", fontSize: "14px", background: "rgba(255,77,77,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,77,77,0.2)" }}>{error}</div>}
+          {message && <div style={{ color: "var(--acid)", fontSize: "14px", background: "rgba(181,255,46,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-acid)" }}>{message}</div>}
           <div>
             <input type="email" name="email" required placeholder="Work email address" className="input-dark" style={{ width: "100%", padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
           </div>
           <div style={{ position: "relative" }}>
-            <input type={showPassword ? "text" : "password"} name="password" required placeholder="Password" className="input-dark" style={{ width: "100%", padding: "16px", paddingRight: "56px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
+            <input type={showPassword ? "text" : "password"} name="password" required placeholder={isSignUp ? "Set your password" : "Password"} className="input-dark" style={{ width: "100%", padding: "16px", paddingRight: "56px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
             <button 
               type="button"
               onClick={() => setShowPassword(!showPassword)} 
@@ -130,13 +190,31 @@ function LoginContent() {
             </button>
           </div>
           { !isSignUp && (
-            <Link href="#" style={{ fontSize: "13px", color: "rgba(255,255,255,0.3)", fontFamily: "'DM Sans', sans-serif", alignSelf: "flex-end", textDecoration: "none" }}>
-              Recovery options?
-            </Link>
+            <button 
+              type="button"
+              onClick={handleForgotPassword}
+              style={{ background: "none", border: "none", fontSize: "13px", color: "var(--acid)", fontFamily: "'DM Sans', sans-serif", alignSelf: "flex-end", textDecoration: "none", cursor: "pointer", fontWeight: 700 }}>
+              Dispatch Recovery OTP?
+            </button>
           )}
           <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "16px", padding: "18px", textDecoration: "none", border: "none", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
             {loading ? "Authorizing..." : (isSignUp ? "Authorize & Register →" : "Enter the Empire →")}
           </button>
+
+          {!isSignUp && (
+            <div style={{ textAlign: "center", marginTop: "12px" }}>
+              <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "12px" }}>Forgot password or joined without one?</p>
+              <button 
+                type="button"
+                onClick={sendMagicCode}
+                style={{ width: "100%", padding: "14px", background: "rgba(181,255,46,0.05)", border: "1px dashed var(--acid)", borderRadius: "12px", color: "var(--acid)", fontSize: "13px", fontWeight: 700, cursor: "pointer", transition: "0.2s" }}
+                onMouseEnter={(e) => e.currentTarget.style.background = "rgba(181,255,46,0.1)"}
+                onMouseLeave={(e) => e.currentTarget.style.background = "rgba(181,255,46,0.05)"}
+              >
+                Send Secure Magic Link
+              </button>
+            </div>
+          )}
         </form>
 
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", marginTop: "40px" }}>

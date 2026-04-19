@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { AGENTS } from "@/lib/agents";
+import AppHeader from "@/components/shared/AppHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -181,72 +182,9 @@ export default function DashboardPage() {
       {/* ── Main Content Area ── */}
       <div className="dash-main" style={{ width: "100%", flex: 1, overflow: "hidden", background: "#000000", display: "flex", flexDirection: "column", marginLeft: 0, paddingLeft: 0, transform: "none", transition: "none" }}>
         
-        {/* Top Header */}
-        <header className="top-navbar">
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-            <button 
-              onClick={() => setIsSidebarOpen(true)} 
-              style={{ background: "none", border: "none", color: "#fff", cursor: "pointer", display: "flex", padding: "4px" }}
-            >
-              <Menu size={24} />
-            </button>
-            <Link href="/" style={{ background: "none", border: "0.5px solid #1a1a1a", color: "rgba(255,255,255,0.5)", borderRadius: "8px", padding: "6px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "#fff"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "#1a1a1a"}>
-              <Home size={16} />
-              <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>Home</span>
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px", background: "#080808", border: "0.5px solid #1a1a1a", borderRadius: "8px" }}>
-               <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--acid)" }} />
-               <span style={{ fontSize: "10px", fontWeight: 800, color: "var(--acid)", textTransform: "uppercase", letterSpacing: "0.5px" }}>Kernel Stable</span>
-            </div>
-            {/* Multilingual Engine Badge */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 12px", background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "8px" }}>
-               <Globe2 size={12} color="rgba(255,255,255,0.4)" />
-               <span style={{ fontSize: "10px", fontWeight: 700, color: "rgba(255,255,255,0.6)", textTransform: "uppercase" }}>Responding in English · EN-IN</span>
-            </div>
-          </div>
+        <AppHeader onMenuClick={() => setIsSidebarOpen(true)} />
 
-          <div style={{ position: "relative" }}>
-            <div style={{ background: "#080808", border: isSearchFocused ? "0.5px solid var(--acid)" : "0.5px solid #1a1a1a", borderRadius: "8px", display: "flex", alignItems: "center", gap: "10px", padding: "8px 16px", width: "400px", transition: "all 0.2s" }}>
-              <Search size={14} color={isSearchFocused ? "var(--acid)" : "rgba(255,255,255,0.2)"} />
-              <input 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}
-                placeholder="Search intelligence architecture..." 
-                style={{ background: "transparent", border: "none", outline: "none", fontSize: "12px", color: "#fff", width: "100%" }} 
-              />
-            </div>
-
-            {/* Live Search Results Overlay */}
-            {isSearchFocused && searchQuery.trim() !== "" && (
-              <div style={{ position: "absolute", top: "110%", left: 0, right: 0, background: "#080808", border: "0.5px solid #1a1a1a", borderRadius: "12px", padding: "8px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)", zIndex: 10000 }}>
-                {filteredAgents.length > 0 ? (
-                  filteredAgents.map(a => (
-                    <Link key={a.id} href={a.path} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px", borderRadius: "8px", textDecoration: "none", transition: "all 0.1s" }} onMouseEnter={(e) => e.currentTarget.style.background = "#111"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                      <div style={{ width: "32px", height: "32px", background: "#000", border: "0.5px solid #222", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>
-                        {getAgentIcon(a.id, 14)}
-                      </div>
-                      <div>
-                        <p style={{ fontSize: "12px", fontWeight: 700, color: "#fff" }}>{a.name}</p>
-                        <p style={{ fontSize: "10px", color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", width: "260px" }}>{a.description}</p>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div style={{ padding: "16px", textAlign: "center", color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>No operational vectors found.</div>
-                )}
-              </div>
-            )}
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
-             <button style={{ background: "none", border: "none", color: "var(--acid)", cursor: "pointer" }}><Bell size={18} /></button>
-             <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#111", border: "0.5px solid #222", display: "flex", alignItems: "center", justifyContent: "center" }}>
-               <User size={16} color="rgba(255,255,255,0.5)" />
-             </div>
-          </div>
-        </header>
+        {/* Strategic Dashboard Panel */}
 
         {/* Strategic Dashboard Panel */}
         <div style={{ flex: 1, overflowY: "auto", padding: "clamp(24px, 5vw, 60px) clamp(16px, 4vw, 40px)" }}>

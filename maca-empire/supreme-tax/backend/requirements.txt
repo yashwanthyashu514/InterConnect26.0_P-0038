@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+pydantic
+anthropic
+openai
+supabase
+python-jose[cryptography]
+pyjwt
+python-dotenv
+weasyprint
+httpx
+jinja2

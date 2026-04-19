@@ -10,42 +10,49 @@ export async function POST(req: Request) {
   try {
     const { email, password, name, role, icai_number, specialty } = await req.json();
 
+    // Neural Email Validation
+    const cleanEmail = email?.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!cleanEmail || !emailRegex.test(cleanEmail)) {
+      return NextResponse.json({ error: "Invalid integrity detected: Please provide a valid work email address." }, { status: 400 });
+    }
+
     if (!email || !password || !name) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // 1. Check if user already exists
-    const { data: existingUser } = await supabase
-      .from("marketplace_users")
-      .select("id")
-      .eq("email", email)
-      .single();
+    // 1. Handled by upsert logic below (Account Upgrade)
 
-    if (existingUser) {
-      return NextResponse.json({ error: "User already exists" }, { status: 400 });
-    }
-
-    // 2. Hash password
+    // 2. Hash password (if new user) or use existing if we wanted to sync (but user wants 'register again' feel)
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // 3. Create user
-    // Requirements: User, CA, or Developer
-    let dbRole = "user";
-    if (role === "ca") dbRole = "ca";
-    if (role === "developer") dbRole = "developer";
-    
+    // 3. Create or Upgrade user persona (Database)
     const { data: user, error: userError } = await supabase
       .from("marketplace_users")
-      .insert({
+      .upsert({
         name,
-        email,
+        email: cleanEmail,
         password_hash: passwordHash,
-        role: dbRole
-      })
+        role: role
+      }, { onConflict: 'email' })
       .select()
       .single();
 
     if (userError) throw userError;
+
+    // 4. Provision Login Credentials (Identity Engine)
+    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+      email: cleanEmail,
+      password: password,
+      email_confirm: true,
+      user_metadata: { name, role }
+    });
+
+    if (authError && !authError.message.includes("already registered")) {
+       console.error("Identity Engine Failure:", authError.message);
+       return NextResponse.json({ error: `Auth Error: ${authError.message}. Ensure SERVICE_ROLE_KEY is valid.` }, { status: 500 });
+    }
 
     // 4. If CA, create profile
     if (role === "ca" && icai_number) {

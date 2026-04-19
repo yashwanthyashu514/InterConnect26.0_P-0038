@@ -49,6 +49,7 @@ export default function AllAgentsPage() {
   const categories = ["ALL", "CORE", "GROWTH", "ELITE"];
   const filteredAgents = filter === "ALL" ? allAgents : allAgents.filter(a => a.tag === filter);
 
+
   return (
     <div style={{ minHeight: "100vh", background: "#000000", position: "relative", overflowX: "hidden", color: "#ffffff" }}>
 
@@ -139,18 +140,71 @@ export default function AllAgentsPage() {
               <div style={{ 
                 display: "grid", 
                 gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", 
-                gap: "24px"
+                gap: "20px"
               }}>
-                {filteredAgents.map((a) => (
-                  <Link key={a.id} href={a.href} style={{ background: "#050505", border: "0.5px solid #1a1a1a", borderRadius: "20px", padding: "28px", textDecoration: "none", transition: "all 0.2s" }}
-                    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--acid)"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#1a1a1a"; }}>
-                    <div style={{ width: "48px", height: "48px", background: "#000", border: "0.5px solid #222", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)", marginBottom: "20px" }}>{a.icon}</div>
-                    <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "17px", color: "#fff", marginBottom: "8px" }}>{a.name}</p>
-                    <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: "20px" }}>{a.desc}</p>
+                {filteredAgents.length === 0 ? (
+                  <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", gridColumn: "1/-1" }}>No agents found in this category.</p>
+                ) : filteredAgents.map((a) => (
+                  <Link key={a.id} href={a.href}
+                    style={{
+                      display: "block",
+                      background: "#0D1117",
+                      border: "1px solid #21262d",
+                      borderRadius: "16px",
+                      padding: "24px",
+                      textDecoration: "none",
+                      transition: "all 0.2s ease",
+                      cursor: "pointer",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#B5FF2E";
+                      e.currentTarget.style.transform = "translateY(-2px)";
+                      e.currentTarget.style.boxShadow = "0 8px 32px rgba(181,255,46,0.08)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#21262d";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}>
+                    {/* Icon */}
+                    <div style={{
+                      width: "44px", height: "44px",
+                      background: "rgba(181,255,46,0.08)",
+                      border: "1px solid rgba(181,255,46,0.2)",
+                      borderRadius: "10px",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      color: "#B5FF2E",
+                      marginBottom: "16px"
+                    }}>{a.icon}</div>
+                    {/* Name */}
+                    <p style={{
+                      fontFamily: "'Syne', sans-serif",
+                      fontWeight: 700,
+                      fontSize: "16px",
+                      color: "#FFFFFF",
+                      marginBottom: "8px",
+                      letterSpacing: "-0.3px"
+                    }}>{a.name}</p>
+                    {/* Description */}
+                    <p style={{
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.55)",
+                      lineHeight: 1.6,
+                      marginBottom: "20px"
+                    }}>{a.desc}</p>
+                    {/* Footer */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span className="badge" style={{ background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", border: "0.5px solid #1a1a1a", borderRadius: "6px", padding: "4px 10px", fontSize: "10px", fontWeight: 700 }}>{a.tag}</span>
-                      <span style={{ fontSize: "10px", color: "var(--acid)", fontWeight: 700 }}>Deploy →</span>
+                      <span style={{
+                        background: "rgba(181,255,46,0.06)",
+                        color: "#B5FF2E",
+                        border: "1px solid rgba(181,255,46,0.15)",
+                        borderRadius: "6px",
+                        padding: "3px 10px",
+                        fontSize: "10px",
+                        fontWeight: 700,
+                        letterSpacing: "0.5px"
+                      }}>{a.tag}</span>
+                      <span style={{ fontSize: "11px", color: "#B5FF2E", fontWeight: 700 }}>Deploy →</span>
                     </div>
                   </Link>
                 ))}

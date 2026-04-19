@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Code2, Terminal, Shield, Zap, BookOpen, Key, ArrowRight, Share2, Server, Check } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function DeveloperPortal() {
   const [keys, setKeys] = React.useState<string[]>([]);
@@ -44,11 +45,10 @@ export default function DeveloperPortal() {
     } else {
       setUsage(0);
     }
-    // 3. Auth Check
-    const checkAuth = () => {
-      const hasMacaSession = localStorage.getItem("maca_session");
-      const hasSbCookie = document.cookie.includes("sb-");
-      if (hasMacaSession || hasSbCookie) {
+    // 3. Auth Check (Authority Sync)
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
         setIsLoggedIn(true);
       }
     };

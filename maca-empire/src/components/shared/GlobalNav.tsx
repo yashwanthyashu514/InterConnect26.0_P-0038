@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
 import { Menu, X } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 const navLinks = [
   { label: "Agents", href: "/#agents" },
@@ -28,23 +28,20 @@ export default function GlobalNav() {
                     pathname.startsWith('/payroll') || 
                     pathname.startsWith('/audit') ||
                     pathname.startsWith('/login') ||
+                    pathname.startsWith('/onboarding') ||
+                    pathname.startsWith('/reset-password') ||
+                    pathname.startsWith('/ca-dashboard') ||
+                    pathname.startsWith('/developers') ||
                     pathname.startsWith('/agents');
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
     
-    // Check Authentication
+    // Check Authentication (Unified Sync)
     const checkAuth = async () => {
-      try {
-        if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-          const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-          const { data } = await supabase.auth.getSession();
-          if (data?.session) setIsLoggedIn(true);
-        } else if (localStorage.getItem("maca_session") || document.cookie.includes("sb-")) {
-          setIsLoggedIn(true);
-        }
-      } catch(e) {}
+       const { data: { session } } = await supabase.auth.getSession();
+       setIsLoggedIn(!!session);
     };
     checkAuth();
 
@@ -181,11 +178,25 @@ export default function GlobalNav() {
             ))}
           </div>
 
-          <div className="right-ctas-desktop" style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "24px" }}>
+          <div className="right-ctas-desktop" style={{ display: "flex", alignItems: "center", gap: "12px", marginLeft: "24px" }}>
             {isLoggedIn ? (
-              pathname.startsWith('/developers') ? null : (
-                <Link href="/dashboard" style={{ fontSize: "14px", padding: "8px 20px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", fontWeight: 700 }}>Dashboard →</Link>
-              )
+              <>
+                <Link href="/dashboard" style={{ fontSize: "14px", padding: "8px 16px", color: "#080B07", fontWeight: 700 }}>Dashboard</Link>
+                <Link href="/profile" style={{ 
+                  fontSize: "13px", 
+                  padding: "10px 24px", 
+                  borderRadius: "100px", 
+                  background: "#B5FF2E", 
+                  color: "#080B07", 
+                  fontWeight: 800, 
+                  textTransform: "uppercase", 
+                  letterSpacing: "0.5px",
+                  boxShadow: "0 10px 20px rgba(181,255,46,0.15)",
+                  textDecoration: "none"
+                }}>
+                  Profile Hub →
+                </Link>
+              </>
             ) : (
               <>
                 <Link href="/login" style={{ fontSize: "14px", padding: "8px 16px", color: "#080B07", fontWeight: 700 }}>Login</Link>

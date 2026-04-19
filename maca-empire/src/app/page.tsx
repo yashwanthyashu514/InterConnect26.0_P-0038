@@ -55,12 +55,17 @@ export default function LandingPage() {
   const macaRef = useRef<HTMLDivElement>(null);
   const [counter, setCounter] = useState({ cases: 0, agents: 0, saving: 0 });
   const [activeFilter, setActiveFilter] = useState("ALL");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const filteredAgents = activeFilter === "ALL" 
     ? agents 
     : agents.filter(a => a.tag === activeFilter);
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
+    // Check session
+    const session = localStorage.getItem("maca_session");
+    if (session === "active") setIsLoggedIn(true);
+
     // Parallax scroll listener
     const handleScroll = () => setScrollY(window.scrollY);
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -83,6 +88,13 @@ export default function LandingPage() {
       if (step >= steps) clearInterval(timer);
     }, interval);
 
+    return () => { 
+      clearInterval(timer); 
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []); // Run once on mount
+
+  useEffect(() => {
     // IntersectionObserver for fade-up
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((e) => {
@@ -92,14 +104,19 @@ export default function LandingPage() {
       }),
       { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
     );
-    document.querySelectorAll(".fade-up").forEach((el) => observer.observe(el));
+    
+    // Observed elements can be added/removed when activeFilter changes
+    const timeoutId = setTimeout(() => {
+      document.querySelectorAll(".fade-up").forEach((el) => observer.observe(el));
+    }, 150);
 
     return () => { 
-      clearInterval(timer); 
       observer.disconnect(); 
-      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timeoutId);
     };
-  }, []);
+  }, [activeFilter]); // Re-run when filter changes
+
+
 
   return (
     <>
@@ -141,8 +158,8 @@ export default function LandingPage() {
               </h1>
 
               <div className="fade-up visible hero-cta-group" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", width: "100%", maxWidth: "600px", padding: "0 20px", marginTop: "32px", animationDelay: "0.4s", boxSizing: "border-box" }}>
-                <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "15px", padding: "14px 28px", flex: 1, textAlign: "center" }}>
-                  Request Invitation →
+                <Link href={isLoggedIn ? "/dashboard" : "/login?mode=signup"} className="btn-primary" style={{ fontSize: "15px", padding: "14px 28px", flex: 1, textAlign: "center" }}>
+                  {isLoggedIn ? "Enter Empire Dashboard →" : "Request Invitation →"}
                 </Link>
                 <Link href="#agents" className="btn-ghost" style={{ fontSize: "15px", padding: "14px 24px", flex: 1, textAlign: "center" }}>
                   Institutional Vectors
@@ -328,8 +345,15 @@ export default function LandingPage() {
                       background: activeFilter === filter ? "#B5FF2E" : "rgba(181,255,46,0.02)", 
                       color: activeFilter === filter ? "#080B07" : "rgba(240,244,232,0.45)", 
                       borderColor: activeFilter === filter ? "#B5FF2E" : "rgba(255,255,255,0.12)",
+                      border: "1px solid",
+                      borderRadius: "100px",
+                      padding: "8px 24px",
+                      fontSize: "12px",
+                      fontWeight: 700,
+                      transition: "all 0.3s ease",
                       whiteSpace: "nowrap"
                     }}
+
                   >
                     {filter}
                   </button>
@@ -350,26 +374,31 @@ export default function LandingPage() {
                 const chunk = agents.filter(a => a.tag === group.category);
                 
                 return (
-                  <Link key={idx} href="/onboarding" className="fade-up" style={{ 
+                  <Link key={idx} href={isLoggedIn ? "/dashboard" : "/onboarding"} className="fade-up" style={{ 
                     textDecoration: "none",
-                    background: "rgba(14,18,13,0.9)", 
-                    border: "0.5px solid rgba(255,255,255,0.07)", 
+                    background: "#0D1117", 
+                    border: "1px solid rgba(255,255,255,0.1)", 
                     borderRadius: "24px", 
                     padding: "32px",
                     display: "flex",
                     flexDirection: "column",
                     gap: "24px",
-                    transition: "all 0.3s ease",
+                    transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+                    minHeight: "340px",
+                    position: "relative",
+                    overflow: "hidden"
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(181,255,46,0.3)";
+                    e.currentTarget.style.borderColor = "#B5FF2E";
                     e.currentTarget.style.transform = "translateY(-8px)";
-                    e.currentTarget.style.background = "rgba(20,26,18,1)";
+                    e.currentTarget.style.background = "#161B22";
+                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(181,255,46,0.05)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
                     e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.background = "rgba(14,18,13,0.9)";
+                    e.currentTarget.style.background = "#0D1117";
+                    e.currentTarget.style.boxShadow = "none";
                   }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -525,25 +554,26 @@ export default function LandingPage() {
                     ))}
                   </ul>
 
-                  <Link href={plan.href} 
-                    className="plan-cta-btn"
+                  <div 
+                    className="plan-cta-btn inactive"
                     style={{ 
                       display: "flex", 
                       alignItems: "center", 
                       justifyContent: "center", 
                       padding: "18px 24px", 
                       borderRadius: "18px", 
-                      background: plan.featured ? "#080B07" : "#B5FF2E", 
-                      color: plan.featured ? "#B5FF2E" : "#080B07", 
+                      background: plan.featured ? "rgba(8,11,7,0.1)" : "rgba(181,255,46,0.1)", 
+                      color: plan.featured ? "rgba(8,11,7,0.4)" : "rgba(8,11,7,0.4)", 
                       fontFamily: "'Syne', sans-serif", 
                       fontWeight: 800, 
                       fontSize: "16px", 
                       textDecoration: "none",
-                      boxShadow: plan.featured ? "0 10px 20px rgba(0,0,0,0.15)" : "none",
+                      border: "1px dashed rgba(0,0,0,0.1)",
+                      cursor: "not-allowed",
                       transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)"
                     }}>
-                    {plan.cta}
-                  </Link>
+                    {plan.cta} (Locked)
+                  </div>
                 </div>
               ))}
             </div>
@@ -574,17 +604,9 @@ export default function LandingPage() {
             <p style={{ fontSize: "18px", color: "rgba(240,244,232,0.55)", fontFamily: "'DM Sans', sans-serif", lineHeight: 1.65, marginBottom: "36px", maxWidth: "500px", margin: "0 auto 36px" }}>
               Join 12,000+ Indians using maCA Empire to take on banks, file taxes, fight notices, and build businesses with confidence.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px", alignItems: "center" }}>
-              <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
-                <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "16px", padding: "15px 36px" }}>
-                  Registration →
-                </Link>
-                <Link href="/b2b" className="btn-ghost" style={{ fontSize: "16px", padding: "15px 32px" }}>
-                  B2B & Enterprise
-                </Link>
-              </div>
+            <div style={{ display: "flex", gap: "16px", justifyContent: "center", flexWrap: "wrap" }}>
               <Link href="/hire-a-ca" style={{ 
-                fontSize: "16px", padding: "15px 36px", background: "#B5FF2E", color: "#000", 
+                fontSize: "15px", padding: "14px 32px", background: "#B5FF2E", color: "#000", 
                 textDecoration: "none", borderRadius: "100px", fontFamily: "'Syne', sans-serif", 
                 fontWeight: 800, transition: "all 0.2s", display: "inline-block"
               }}
@@ -592,6 +614,12 @@ export default function LandingPage() {
               onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
               >
                 WANNA HIRE A CA
+              </Link>
+              <Link href={isLoggedIn ? "/dashboard" : "/login?mode=signup"} className="btn-primary" style={{ fontSize: "15px", padding: "14px 32px" }}>
+                {isLoggedIn ? "Access Sovereign Dashboard →" : "Registration →"}
+              </Link>
+              <Link href="/b2b" className="btn-ghost" style={{ fontSize: "15px", padding: "14px 32px" }}>
+                B2B & Enterprise
               </Link>
             </div>
           </div>
