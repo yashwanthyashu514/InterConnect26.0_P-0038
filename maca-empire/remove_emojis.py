@@ -19,3 +19,4 @@ for root, _, files in os.walk(directory):
                 with open(filepath, "w", encoding="utf-8") as f:
                     f.write(content)
                 print(f"Removed emoji icon from {filepath}")
+                
