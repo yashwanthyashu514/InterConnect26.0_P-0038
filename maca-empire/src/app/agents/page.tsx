@@ -94,7 +94,7 @@ export default function AllAgentsPage() {
       <div className="dash-main" style={{ width: "100%", flex: 1, overflow: "hidden", background: "#000000", display: "flex", flexDirection: "column", paddingLeft: 0, marginLeft: 0, transform: "none", transition: "none" }}>
         
         {/* Top Bar */}
-        <header className="top-navbar">
+        <header className="top-navbar" style={{ background: "#000", borderBottom: "0.5px solid #1a1a1a" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
             <button 
               onClick={() => setIsSidebarOpen(true)} 
@@ -134,7 +134,7 @@ export default function AllAgentsPage() {
         <div style={{ flex: 1, overflowY: "auto", padding: "48px 32px" }}>
            <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
               <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "42px", color: "var(--acid)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "-1px" }}>Registry</h1>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "48px" }}>Universal command structure for all 26 architecture vectors.</p>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "48px" }}>Universal command structure for all 18 architecture vectors.</p>
 
               <div style={{ 
                 display: "grid", 

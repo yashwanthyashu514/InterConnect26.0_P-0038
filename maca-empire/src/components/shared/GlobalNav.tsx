@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { createClient } from "@supabase/supabase-js";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Agents", href: "/#agents" },
@@ -11,54 +13,85 @@ const navLinks = [
   { label: "About", href: "/b2b" },
 ];
 
-const agentPaths = [
-  "/tax", "/bankfight", "/notice", "/payroll", "/compliance",
-  "/audit-shield", "/voice", "/contract-reviewer", "/court-filer",
-  "/credit-fixer", "/insurance-fighter", "/labour-law", "/nri",
-  "/pension", "/rera", "/rti", "/startup-legal", "/trade",
-  "/ai-judge", "/dashboard", "/vault", "/api-portal"
-];
-
 export default function GlobalNav() {
   const [scrolled, setScrolled] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  const isExcludedPage = agentPaths.some((p) => pathname?.startsWith(p)) || pathname?.startsWith("/login") || pathname?.startsWith("/onboarding");
+  // Main Nav should only be on static/marketing pages, not in the functional app/agents
+  const isAppPage = pathname.startsWith('/dashboard') || 
+                    pathname.startsWith('/compliance') || 
+                    pathname.startsWith('/vault') || 
+                    pathname.startsWith('/tax') || 
+                    pathname.startsWith('/notice') || 
+                    pathname.startsWith('/bankfight') || 
+                    pathname.startsWith('/payroll') || 
+                    pathname.startsWith('/audit') ||
+                    pathname.startsWith('/login') ||
+                    pathname.startsWith('/agents');
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    // Check Authentication
+    const checkAuth = async () => {
+      try {
+        if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+          const { data } = await supabase.auth.getSession();
+          if (data?.session) setIsLoggedIn(true);
+        } else if (localStorage.getItem("maca_session") || document.cookie.includes("sb-")) {
+          setIsLoggedIn(true);
+        }
+      } catch(e) {}
+    };
+    checkAuth();
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (isExcludedPage) return null;
-
+  if (isAppPage) return null;
 
   return (
     <>
       <style>{`
+        /* ── Nav wrapper: never wider than viewport ── */
         .nav-wrapper {
           position: fixed;
-          top: 20px; left: 0; right: 0;
+          top: 16px; left: 0; right: 0;
           z-index: 1000;
           display: flex;
           justify-content: center;
           pointer-events: none;
+          /* Critical: prevent any child from escaping viewport */
+          overflow: hidden;
+          padding: 0 12px;
+          box-sizing: border-box;
         }
         .nav-top-bar {
           pointer-events: auto;
           display: flex;
           align-items: center;
-          padding: 0 16px 0 24px;
-          height: 56px;
+          padding: 0 10px 0 16px;
+          height: 52px;
           border-radius: 100px;
-          background: rgba(255, 255, 255, 0.9);
+          background: rgba(255, 255, 255, 0.92);
           backdrop-filter: blur(24px) saturate(160%);
-          -webkit-backdrop-filter: blur(24px) saturate(160%);
           border: 1px solid rgba(0, 0, 0, 0.05);
           box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
           transition: all 0.3s ease;
-          max-width: 900px;
-          width: calc(100% - 40px);
+          /* Use 100% width within the padded wrapper — no overflow */
+          width: 100%;
+          max-width: 860px;
+          box-sizing: border-box;
+          overflow: hidden;
+        }
+        .nav-links-desktop {
+          display: flex;
+          gap: 2px;
+          flex: 1;
+          justify-content: center;
         }
         .nav-link-item {
           font-size: 13px;
@@ -67,43 +100,103 @@ export default function GlobalNav() {
           text-decoration: none;
           padding: 6px 14px;
           border-radius: 8px;
-          transition: color 0.2s, background 0.2s;
+          transition: 0.2s;
           font-weight: 600;
+          white-space: nowrap;
         }
-        .nav-link-item:hover {
-          color: #080B07;
-          background: rgba(0, 0, 0, 0.04);
+        .nav-link-item:hover { background: rgba(0, 0, 0, 0.04); }
+        .mobile-menu-btn { display: none; }
+
+        /* ── Mobile full-screen drawer ── */
+        .mobile-drawer {
+          position: fixed;
+          top: 0; right: 0; bottom: 0; left: 0;
+          background: #000;
+          z-index: 2000;
+          padding: 100px 28px 48px;
+          display: flex;
+          flex-direction: column;
+          gap: 28px;
+          transform: translateY(-100%);
+          transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+          overflow-y: auto;
+        }
+        .mobile-drawer.open { transform: translateY(0); }
+        .mobile-link {
+          font-family: 'Syne', sans-serif;
+          font-size: 28px;
+          font-weight: 800;
+          color: #fff;
+          text-decoration: none;
+          min-height: 44px;
+          display: flex;
+          align-items: center;
+        }
+
+        /* ── Tablet collapse ── */
+        @media (max-width: 768px) {
+          .nav-links-desktop { display: none; }
+          .right-ctas-desktop { display: none; }
+          .mobile-menu-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #080B07;
+            color: #B5FF2E;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            min-height: 40px;
+            cursor: pointer;
+            flex-shrink: 0; /* Never squish the button */
+          }
+          .nav-top-bar {
+            justify-content: space-between;
+            gap: 8px;
+          }
         }
       `}</style>
+      
+      <div className={`mobile-drawer ${isMenuOpen ? 'open' : ''}`}>
+        <button onClick={() => setIsMenuOpen(false)} style={{ position: "absolute", top: "30px", right: "30px", background: "none", border: "none", color: "#fff" }}><X size={32} /></button>
+        {navLinks.map((link) => (
+          <Link key={link.label} href={link.href} className="mobile-link" onClick={() => setIsMenuOpen(false)}>{link.label}</Link>
+        ))}
+        <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
+           <Link href="/login" className="btn-primary" style={{ textAlign: "center" }}>Login</Link>
+           <Link href="/login?mode=signup" className="btn-ghost" style={{ textAlign: "center", color: "#fff" }}>Registration</Link>
+        </div>
+      </div>
+
       <div className="nav-wrapper">
-        <nav
-          className="nav-top-bar"
-          style={{
-            background: scrolled ? "rgba(255, 255, 255, 0.98)" : "rgba(255, 255, 255, 0.9)",
-            borderColor: scrolled ? "rgba(0, 0, 0, 0.1)" : "rgba(0, 0, 0, 0.05)"
-          }}
-        >
-          {/* Logo */}
-          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", marginRight: "32px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
-            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E", letterSpacing: "-0.4px" }}>
-              maCA
-            </span>
+        <nav className="nav-top-bar" style={{ background: scrolled ? "rgba(255, 255, 255, 0.98)" : "rgba(255, 255, 255, 0.9)" }}>
+          <Link href="/" style={{ display: "flex", alignItems: "center", textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: "#B5FF2E" }}>maCA</span>
           </Link>
 
-          {/* Center Links */}
-          <div style={{ display: "flex", gap: "2px", flex: 1, justifyContent: "center" }}>
+          <div className="nav-links-desktop">
             {navLinks.map((link) => (
-              <Link key={link.label} href={link.href} className="nav-link-item">
-                {link.label}
-              </Link>
+              <Link key={link.label} href={link.href} className="nav-link-item">{link.label}</Link>
             ))}
           </div>
 
-          {/* Right CTAs */}
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "24px" }}>
-            <Link href="/login" style={{ fontSize: "12px", padding: "8px 16px", borderRadius: "100px", color: "#080B07", textDecoration: "none", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Login</Link>
-            <Link href="/login?mode=signup" style={{ fontSize: "12px", padding: "8px 16px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", textDecoration: "none", fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Registration →</Link>
+          <div className="right-ctas-desktop" style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: "24px" }}>
+            {isLoggedIn ? (
+              pathname.startsWith('/developers') ? null : (
+                <Link href="/dashboard" style={{ fontSize: "14px", padding: "8px 20px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", fontWeight: 700 }}>Dashboard →</Link>
+              )
+            ) : (
+              <>
+                <Link href="/login" style={{ fontSize: "14px", padding: "8px 16px", color: "#080B07", fontWeight: 700 }}>Login</Link>
+                <Link href="/login?mode=signup" style={{ fontSize: "14px", padding: "8px 20px", borderRadius: "100px", background: "#080B07", color: "#B5FF2E", fontWeight: 700 }}>Registration →</Link>
+              </>
+            )}
           </div>
+
+          <button className="mobile-menu-btn" onClick={() => setIsMenuOpen(true)}>
+            <Menu size={20} />
+          </button>
         </nav>
       </div>
     </>

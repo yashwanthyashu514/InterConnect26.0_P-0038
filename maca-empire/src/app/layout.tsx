@@ -17,6 +17,10 @@ export const metadata: Metadata = {
     "legal tech India",
     "CA AI",
   ],
+  // ── Responsive viewport — prevents mobile zoom-out ──
+  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
+  // ── Native feel on Android Chrome ──
+  themeColor: "#000000",
   openGraph: {
     title: "maCA Empire — AI-Powered Legal & Financial Intelligence",
     description:
@@ -24,6 +28,8 @@ export const metadata: Metadata = {
     type: "website",
   },
 };
+
+import Script from "next/script";
 
 export default function RootLayout({
   children,
@@ -41,6 +47,7 @@ export default function RootLayout({
         />
       </head>
       <body suppressHydrationWarning>
+        <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <GlobalNav />
         {children}
       </body>

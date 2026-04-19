@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { User, Share2, Download, FileText, Landmark, Scale, Briefcase, Globe, Shield, Coins, Leaf, ScrollText, AlertTriangle, ShieldAlert, Rocket, Mic, PenTool, Files, TrendingUp, Bot, Building2, ShieldCheck, Wallet, Lock, MessageSquare, ArrowLeft, Menu, Home, X } from "lucide-react";
+import { User, Share2, Download, FileText, Landmark, Scale, Briefcase, Globe, Shield, Coins, Leaf, ScrollText, AlertTriangle, ShieldAlert, Rocket, Mic, PenTool, Files, TrendingUp, Bot, Building2, ShieldCheck, Wallet, Lock, MessageSquare, ArrowLeft, Menu, Home, X, Cpu, Gem, Banknote, Paperclip } from "lucide-react";
 
 interface Message {
   role: "user" | "assistant";
@@ -15,12 +15,12 @@ interface AgentChatLayoutProps {
   agentIcon: React.ReactNode;
   agentDescription: string;
   agentId?: string;
-  children: React.ReactNode; 
-  rightPanel?: React.ReactNode; 
+  children: React.ReactNode;
+  rightPanel?: React.ReactNode;
   extraTopBarContent?: React.ReactNode;
 }
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export default function AgentChatLayout({
   agentName,
@@ -35,10 +35,51 @@ export default function AgentChatLayout({
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ url: string, name: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    
+    // 1. Convert to Base64 for Vision Model (if image)
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSelectedImage((reader.result as string).split(',')[1]);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // 2. Perform Physical Upload to Backend/Storage
+    const formData = new FormData();
+    formData.append("file", file);
+    if (agentId) formData.append("agent_id", agentId);
+
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/documents/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        setUploadedFile({ url: data.file_url, name: data.file_name });
+      }
+    } catch (err) {
+      console.error("Upload failed", err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   const getIcon = (id: string | undefined) => {
     switch (id) {
+      case "A0": return <Cpu size={22} />;
       case "A1": return <FileText size={22} />;
       case "A2": return <Landmark size={22} />;
       case "A3": return <Scale size={22} />;
@@ -60,6 +101,8 @@ export default function AgentChatLayout({
       case "A24": return <ScrollText size={22} />;
       case "A25": return <Shield size={22} />;
       case "A26": return <TrendingUp size={22} />;
+      case "A27": return <Gem size={22} />;
+      case "A28": return <Banknote size={22} />;
       default: return <Bot size={22} />;
     }
   };
@@ -92,6 +135,18 @@ export default function AgentChatLayout({
       let endpoint = `${BACKEND_URL}/ask`;
       let payload: any = { query: userMsg.content, agent_id: agentId };
 
+      if (selectedImage) {
+        payload.image = selectedImage;
+        userMsg.content = `[Attached: ${uploadedFile?.name || "Image"}] ` + userMsg.content;
+      } else if (uploadedFile) {
+        userMsg.content = `[Document: ${uploadedFile.name}] ` + userMsg.content;
+        payload.document_url = uploadedFile.url;
+      }
+
+      setSelectedImage(null);
+      setUploadedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+
       if (agentId === "A21") {
         endpoint = `${BACKEND_URL}/api/agents/dpdp-shield/query`;
         payload = { user_message: userMsg.content };
@@ -110,6 +165,9 @@ export default function AgentChatLayout({
       } else if (agentId === "A26") {
         endpoint = `${BACKEND_URL}/api/agents/the-oracle/query`;
         payload = { user_message: userMsg.content };
+      } else if (agentId === "A28") {
+        endpoint = `${BACKEND_URL}/ask`;
+        payload = { query: userMsg.content, agent_id: "A28" };
       }
 
       const response = await fetch(endpoint, {
@@ -131,7 +189,7 @@ export default function AgentChatLayout({
           if (done) break;
           const chunk = decoder.decode(value);
           const lines = chunk.split("\n");
-          
+
           for (const line of lines) {
             if (line.startsWith("data: ")) {
               const dataStr = line.replace("data: ", "").trim();
@@ -145,10 +203,15 @@ export default function AgentChatLayout({
                     newMsgs[newMsgs.length - 1] = { ...assistantMsg };
                     return newMsgs;
                   });
+
+                  // Neural Context Update: Broadcast token to UI listeners
+                  window.dispatchEvent(new CustomEvent('neural-context-update', { 
+                    detail: { token: data.token, agentId, fullContent: assistantMsg.content } 
+                  }));
                 } else if (data.citations) {
                   assistantMsg.citations = data.citations;
                 }
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }
@@ -183,17 +246,23 @@ export default function AgentChatLayout({
   };
 
   return (
-    <div style={{ width: "100%", height: "100vh", overflow: "hidden", background: "var(--bg-primary)", position: "relative" }}>
+    <div style={{ width: "100%", height: "100vh", overflow: "hidden", background: "var(--bg-primary)", position: "relative", display: "flex" }}>
       {/* Backdrop */}
-      <div 
+      <div
         className={`sidebar-backdrop ${isSidebarOpen ? 'active' : ''}`}
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      <aside className="dash-sidebar" style={{ 
-        transform: isSidebarOpen ? "translateX(0)" : "translateX(-100%)",
+      <aside className={`dash-sidebar ${isSidebarOpen ? 'active' : ''}`} style={{
+        transform: isSidebarOpen ? "translateX(0)" : (typeof window !== 'undefined' && window.innerWidth <= 768 ? "translateX(-100%)" : "none"),
+        position: (typeof window !== 'undefined' && window.innerWidth <= 768) ? "fixed" : "relative",
         boxShadow: isSidebarOpen ? "20px 0 50px rgba(0,0,0,0.5)" : "none",
-        zIndex: 10000
+        zIndex: 10000,
+        height: "100vh",
+        width: "280px",
+        background: "var(--bg-secondary)",
+        color: "#fff",
+        transition: "transform 0.3s ease"
       }}>
         <div style={{ padding: "20px 16px", borderBottom: "0.5px solid var(--border-subtle)" }}>
           <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", marginBottom: "20px", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)" }}>
@@ -211,14 +280,14 @@ export default function AgentChatLayout({
         </div>
 
         <div style={{ flex: 1, overflowY: "auto", padding: "16px" }}>
-           <p style={{ fontSize: "10px", fontWeight: 700, opacity: 0.3, letterSpacing: "1px", textTransform: "uppercase" }}>Session Log</p>
-           {messages.filter(m => m.role === 'user').map((m, i) => (
-             <div key={i} style={{ padding: "8px 0", fontSize: "12px", opacity: 0.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-               {m.content}
-             </div>
-           ))}
+          <p style={{ fontSize: "10px", fontWeight: 700, opacity: 0.3, letterSpacing: "1px", textTransform: "uppercase" }}>Session Log</p>
+          {messages.filter(m => m.role === 'user').map((m, i) => (
+            <div key={i} style={{ padding: "8px 0", fontSize: "12px", opacity: 0.6, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {m.content}
+            </div>
+          ))}
         </div>
-        
+
         <div style={{ padding: "16px", borderTop: "0.5px solid var(--border-subtle)" }}>
           <button className="btn-primary" style={{ width: "100%", justifyContent: "center" }} onClick={() => setMessages([])}>
             + New Chat
@@ -226,96 +295,100 @@ export default function AgentChatLayout({
         </div>
       </aside>
 
-      <main className="dash-main" style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)", position: "relative", zIndex: 1, marginLeft: 0, paddingLeft: 0, transform: "none", transition: "none" }}>
-        <header className="chat-topbar top-navbar" style={{ gap: "24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <button 
+      <main className="dash-main" style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--bg-primary)", position: "relative", zIndex: 1, padding: 0 }}>
+        <header className="chat-topbar" style={{ gap: "12px", flexShrink: 0, padding: "0 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", flex: 1, overflow: "hidden" }}>
+            <button
               onClick={() => setIsSidebarOpen(true)}
-              style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "#fff", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+              style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "#fff", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}
             >
-               <Menu size={20} />
+              <Menu size={20} />
             </button>
-            <Link href="/" style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
-               <Home size={16} />
+            <Link href="/dashboard" style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s", flexShrink: 0 }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
+              <ArrowLeft size={16} />
             </Link>
-            <Link href="/dashboard" style={{ background: "var(--surface)", border: "0.5px solid var(--border-subtle)", color: "var(--text-secondary)", borderRadius: "8px", padding: "8px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "all 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--text-primary)"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border-subtle)"}>
-               <ArrowLeft size={16} />
-            </Link>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--acid)" }}>
-               <span>{finalIcon}</span>
-               <p style={{ fontWeight: 700, color: "var(--text-primary)" }}>{agentName}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--acid)", overflow: "hidden", minWidth: 0 }}>
+              <span style={{ flexShrink: 0 }}>{finalIcon}</span>
+              <p style={{ fontWeight: 700, color: "var(--text-primary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", fontSize: "14px" }}>{agentName}</p>
             </div>
           </div>
-          {extraTopBarContent}
-          <div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
-            <button 
+          <div className="topbar-actions" style={{ display: "flex", gap: "6px" }}>
+            <button
               onClick={handleExport}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 10px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "11px", cursor: "pointer" }}
             >
-              <Download size={14} /> Export
-            </button>
-            <button 
-              onClick={handleShare}
-              style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 14px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "8px", color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer" }}
-            >
-              <Share2 size={14} /> Share
+              <Download size={12} /> <span className="hide-mobile">Export</span>
             </button>
           </div>
         </header>
 
         <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "40px" }}>
-             {messages.length === 0 ? (
-               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyItems: "center", textAlign: "center", padding: "40px" }}>
-                 <div style={{ width: "64px", height: "64px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", color: "var(--acid)", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px" }}>
-                   {renderIcon(finalIcon, 32)}
-                 </div>
-                 {children}
-               </div>
-             ) : (
-               <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "32px" }}>
-                 {messages.map((m, i) => (
-                   <div key={i} style={{ display: "flex", gap: "20px", alignItems: "flex-start", animation: "fade-up-anim 0.3s forwards" }}>
-                     <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: m.role === "user" ? "var(--surface)" : "var(--acid)", display: "flex", alignItems: "center", justifyContent: "center", color: m.role === "user" ? "var(--text-primary)" : "#000", flexShrink: 0 }}>
-                       {m.role === "assistant" ? renderIcon(finalIcon, 16) : <User size={16} />}
-                     </div>
-                     <div style={{ flex: 1 }}>
-                        <p style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px", fontWeight: 700 }}>{m.role === "assistant" ? agentName : "You"}</p>
-                        <div style={{ fontSize: "15px", lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap" }}>{m.content}</div>
-                        {m.citations && (
-                          <div style={{ marginTop: "16px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                            {m.citations.map((c, j) => (
-                              <span key={j} style={{ padding: "4px 10px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", fontSize: "10px", color: "var(--text-muted)" }}>{c.source}</span>
-                            ))}
-                          </div>
-                        )}
-                     </div>
-                   </div>
-                 ))}
-                 {isTyping && <div style={{ fontSize: "12px", color: "var(--acid)", opacity: 0.8 }}>maCA is thinking...</div>}
-               </div>
-             )}
+          <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", padding: "20px" }}>
+            {messages.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyItems: "center", textAlign: "center", padding: "20px" }}>
+                <div style={{ width: "56px", height: "56px", background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", color: "var(--acid)", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "20px" }}>
+                  {renderIcon(finalIcon, 28)}
+                </div>
+                {children}
+              </div>
+            ) : (
+              <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+                {messages.map((m, i) => (
+                  <div key={i} style={{ display: "flex", gap: "14px", alignItems: "flex-start", animation: "fade-up-anim 0.3s forwards" }}>
+                    <div style={{ width: "32px", height: "32px", borderRadius: "8px", background: m.role === "user" ? "var(--surface)" : "var(--acid)", display: "flex", alignItems: "center", justifyContent: "center", color: m.role === "user" ? "var(--text-primary)" : "#000", flexShrink: 0 }}>
+                      {m.role === "assistant" ? renderIcon(finalIcon, 16) : <User size={16} />}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px", fontWeight: 700 }}>{m.role === "assistant" ? agentName : "You"}</p>
+                      <div style={{ fontSize: "14px", lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.content}</div>
+                      {m.citations && (
+                        <div style={{ marginTop: "12px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                          {m.citations.map((c, j) => (
+                            <span key={j} style={{ padding: "3px 8px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", fontSize: "10px", color: "var(--text-muted)" }}>{c.source}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {isTyping && <div style={{ fontSize: "12px", color: "var(--acid)", opacity: 0.8 }}>maCA is thinking...</div>}
+              </div>
+            )}
           </div>
-          {rightPanel && <div style={{ width: "320px", borderLeft: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)" }}>{rightPanel}</div>}
+          {rightPanel && <div className="chat-right-panel" style={{ width: "320px", borderLeft: "0.5px solid var(--border-subtle)", background: "var(--bg-secondary)", flexShrink: 0 }}>{rightPanel}</div>}
         </div>
 
-        <div className="chat-input-bar">
-          <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", gap: "12px", alignItems: "flex-end" }}>
-            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "12px", background: "var(--bg-tertiary)", border: "1px solid var(--border-subtle)", borderRadius: "16px", padding: "12px 20px" }}>
+        <div className="chat-input-bar" style={{ flexShrink: 0, position: "relative", padding: "12px 16px" }}>
+          <div style={{ maxWidth: "800px", margin: "0 auto", display: "flex", gap: "8px", alignItems: "flex-end", position: "relative" }}>
+            {selectedImage && (
+              <div style={{ position: "absolute", bottom: "100%", left: "0", marginBottom: "8px", background: "var(--surface)", padding: "4px", borderRadius: "8px", border: "0.5px solid var(--border-subtle)", display: "flex", alignItems: "center", gap: "6px", zIndex: 10 }}>
+                <div style={{ width: "32px", height: "32px", backgroundImage: `url(data:image/jpeg;base64,${selectedImage})`, backgroundSize: "cover", backgroundPosition: "center", borderRadius: "4px" }} />
+                <button onClick={() => setSelectedImage(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "2px" }}><X size={12} /></button>
+              </div>
+            )}
+            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px", background: "var(--bg-tertiary)", border: "1px solid var(--border-subtle)", borderRadius: "12px", padding: "8px 12px" }}>
+              <button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={isUploading}
+                style={{ background: "none", border: "none", color: (selectedImage || uploadedFile) ? "var(--acid)" : "var(--text-muted)", cursor: "pointer", padding: "4px", display: "flex", alignItems: "center", justifyContent: "center", opacity: isUploading ? 0.5 : 1 }}
+              >
+                {isUploading ? <div className="spinner-mini" /> : <Paperclip size={18} />}
+              </button>
+              <input type="file" id="global-image-upload" accept="image/*,application/pdf" ref={fileInputRef} onChange={handleFileUpload} style={{ display: "none" }} />
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-                placeholder="Ask anything..."
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+                placeholder="Ask..."
                 rows={1}
-                style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", color: "var(--text-primary)", fontSize: "15px" }}
+                style={{ flex: 1, background: "transparent", border: "none", outline: "none", resize: "none", color: "var(--text-primary)", fontSize: "14px", padding: "4px 0" }}
               />
-              <button 
+              <button
                 onClick={() => handleSend()}
                 disabled={isTyping}
-                style={{ background: isTyping ? "var(--text-muted)" : "var(--acid)", color: "#000", border: "none", borderRadius: "100px", padding: "8px 16px", fontWeight: 800, fontSize: "12px", cursor: "pointer" }}
+                style={{ background: isTyping ? "var(--text-muted)" : "var(--acid)", color: "#000", border: "none", borderRadius: "50px", padding: "6px 12px", fontWeight: 800, fontSize: "11px", cursor: "pointer" }}
               >
-                {isTyping ? "..." : "Send →"}
+                {isTyping ? "..." : "Send"}
               </button>
             </div>
           </div>

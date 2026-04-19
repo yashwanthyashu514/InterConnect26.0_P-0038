@@ -11,9 +11,11 @@ import sys
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AI_GOV_DIR = os.path.join(BASE_DIR, "backend", "docs", "ai_governance_counsel")
 ORACLE_DIR = os.path.join(BASE_DIR, "backend", "docs", "the_oracle")
+SUPREME_TAX_DIR = os.path.join(BASE_DIR, "backend", "docs", "supreme_tax")
 
 os.makedirs(AI_GOV_DIR, exist_ok=True)
 os.makedirs(ORACLE_DIR, exist_ok=True)
+os.makedirs(SUPREME_TAX_DIR, exist_ok=True)
 
 # ============================================================
 # A25 — AI Governance Knowledge Documents
@@ -258,6 +260,106 @@ LEGAL RESPONSE FRAMEWORK FOR DEEPFAKE VICTIMS:
 
 CORPORATE DEEPFAKE RISKS:
 CEO voice cloning for fraud — financial institution liability if controls inadequate. AI-generated fake board resolutions — Companies Act 2013 liability. Synthetic customer testimonials — Consumer Protection Act unfair trade practice. Deepfake KYC bypass — PML Act and RBI KYC norms violation.
+""",
+}
+
+# ============================================================
+# A1 — Supreme Tax Knowledge Documents
+# ============================================================
+
+TAX_DOCS = {
+    "Income_Tax_AY_2024_25_Master_Rules.txt": """
+Indian Income Tax Rules — Assessment Year 2024-25 (Financial Year 2023-24)
+Source: Income Tax Act, 1961 (Updated till Finance Act 2023)
+
+OLD REGIME VS NEW REGIME:
+The New Tax Regime is the default regime from AY 2024-25. Taxpayers must explicitly opt for the Old Regime to claim Chapter VI-A deductions (80C, 80D, 80CCD, etc.) and exemptions like HRA and LTA.
+
+STANDARD DEDUCTION (Section 16(ia)):
+A standard deduction of Rs. 50,000 is available against Salary and Pension income under BOTH the Old Regime and the New Regime starting AY 2024-25.
+
+PROFESSIONAL TAX (Section 16(iii)):
+Deduction for professional tax paid is allowed ONLY under the Old Regime. It is NOT deductible under the New Tax Regime.
+
+CHAPTER VI-A DEDUCTIONS (Only available in OLD REGIME):
+- Section 80C: Up to Rs. 1,50,000 (Life insurance, PPF, ELSS, tuition fees, principal repayment of home loan)
+- Section 80CCD(1B): Additional Rs. 50,000 for NPS contributions
+- Section 80D: Health insurance premium (Rs. 25,000 normal, Rs. 50,000 for senior citizens)
+- Section 80G: Donations to approved funds/charities (50% or 100% deduction)
+- Section 80TTA/80TTB: Interest on savings accounts (Rs. 10,000 normal, Rs. 50,000 for senior citizens)
+Note: Employer contribution to NPS (Section 80CCD(2)) is allowed in BOTH regimes.
+
+NEW REGIME TAX SLABS (AY 2024-25):
+0 to Rs. 3 Lakhs: Nil
+Rs. 3 to 6 Lakhs: 5%
+Rs. 6 to 9 Lakhs: 10%
+Rs. 9 to 12 Lakhs: 15%
+Rs. 12 to 15 Lakhs: 20%
+Above Rs. 15 Lakhs: 30%
+Rebate under Section 87A: Income up to Rs. 7,00,000 is completely tax-free under New Regime (Rebate up to Rs. 25,000).
+
+OLD REGIME TAX SLABS (AY 2024-25 < 60 Years):
+0 to Rs. 2.5 Lakhs: Nil
+Rs. 2.5 to 5 Lakhs: 5%
+Rs. 5 to 10 Lakhs: 20%
+Above Rs. 10 Lakhs: 30%
+Rebate under Section 87A: Income up to Rs. 5,00,000 is tax-free under Old Regime (Rebate up to Rs. 12,500).
+
+SURCHARGE AND CESS:
+Health and Education Cess: 4% (computed on tax + surcharge).
+Surcharge applies if Total Taxable Income exceeds Rs. 50 Lakhs:
+- > 50 Lakhs to 1 Crore: 10%
+- > 1 Crore to 2 Crores: 15%
+- > 2 Crores: 25% (under New Regime, capped at 25%; under Old Regime, can be 37% if > 5 Crores).
+""",
+
+    "Income_from_House_Property.txt": """
+Income from House Property — Deductions and Computation
+Source: Sections 22 to 27 of the Income Tax Act, 1961
+
+NET ANNUAL VALUE (NAV):
+Gross Annual Value (GAV) is the higher of anticipated rent or actual rent received.
+NAV = GAV - Municipal Taxes paid by the owner during the financial year.
+
+STANDARD DEDUCTION (Section 24(a)):
+A flat 30% of the Net Annual Value (NAV) is allowed as a statutory standard deduction for let-out (rented) or deemed let-out properties.
+This flat 30% covers all expenses like repairs, maintenance, insurance, etc. NO other expenses are deductible.
+CRITICAL: The 30% deduction is ALWAYS applicable if the property is rented, regardless of whether a loan exists. It must be deducted from NAV before interest is deducted.
+
+INTEREST ON HOME LOAN (Section 24(b)):
+For Rented/Let-out Property:
+- The ENTIRE interest paid on a housing loan is deductible from the property's NAV. There is NO upper limit (unlike self-occupied property which has a Rs. 2 Lakhs limit).
+- In the New Tax Regime, any resulting "Loss from House Property" CANNOT be set off against other heads of income. However, if the house property income is positive (i.e. Rent - Municipal Tax - 30% of NAV - Interest > 0), the full interest is effectively claimed.
+- Under the Old Regime, loss from house property up to Rs. 2 Lakhs can be set off against other heads of income.
+
+COMPUTATION FORMULA FOR RENTED PROPERTY:
+1. Gross Rent Received
+2. Less: Municipal Taxes Paid
+3. = Net Annual Value (NAV)
+4. Less: Standard Deduction @ 30% of NAV (Section 24(a))
+5. Less: Home Loan Interest (Section 24(b))
+6. = Income from House Property
+""",
+
+    "Capital_Gains_and_Business_Income.txt": """
+Capital Gains and Presumptive Business Income Rules
+Source: Income Tax Act, 1961
+
+LONG-TERM CAPITAL GAINS (LTCG) ON LISTED EQUITY (Section 112A):
+- Holding Period: More than 12 months.
+- Exemption Limit for AY 2024-25: Capital gains up to Rs. 1,00,000 per financial year are EXEMPT from tax.
+- Tax Rate: The amount exceeding Rs. 1,00,000 is taxed at a flat rate of 10% (without indexation).
+Example: If LTCG is Rs. 4,50,000, then taxable amount is Rs. 3,50,000, and tax is Rs. 35,000. It is a critical error to state "gains are not taxable because they are below the limit" if they exceed Rs. 1 Lakh.
+
+SHORT-TERM CAPITAL GAINS (STCG) ON LISTED EQUITY (Section 111A):
+- Holding Period: Less than 12 months.
+- Tax Rate: Flat rate of 15% (for trades executed on a recognized stock exchange where STT is paid).
+- Includes "Swing Trading" on listed securities where delivery is taken and held for short durations.
+
+PRESUMPTIVE TAXATION FOR PROFESSIONALS (Section 44ADA):
+- Eligibility: Resident individuals/partnership firms engaged in specified professions (engineering, legal, architectural, medical, accounting, technical consulting, IT).
+- Limit for AY 2024-25: Gross receipts up to Rs. 50 Lakhs (can be Rs. 75 Lakhs if cash receipts are <= 5%).
+- Computations: Minimum 50% of total gross receipts is deemed to be profit/business income and is taxed at applicable slab rates.
 """,
 }
 
@@ -578,13 +680,19 @@ def main():
     print(f"\n[DONE] {count} AI Governance documents created\n")
 
     print("=" * 60)
+    print("maCA Empire -- A1 Supreme Tax Knowledge Base")
+    print("=" * 60)
+    count = write_docs(TAX_DOCS, SUPREME_TAX_DIR)
+    print(f"\n[DONE] {count} Supreme Tax documents created\n")
+
+    print("=" * 60)
     print("maCA Empire -- A26 The Oracle Knowledge Base")
     print("=" * 60)
     count = write_docs(ORACLE_DOCS, ORACLE_DIR)
     print(f"\n[DONE] {count} Oracle documents created\n")
 
     print("=" * 60)
-    print(f"TOTAL: {len(AI_GOV_DOCS) + len(ORACLE_DOCS)} knowledge documents created")
+    print(f"TOTAL: {len(AI_GOV_DOCS) + len(ORACLE_DOCS) + len(TAX_DOCS)} knowledge documents created")
     print("Next: Run ingester.py to embed into Supabase")
     print("=" * 60)
 

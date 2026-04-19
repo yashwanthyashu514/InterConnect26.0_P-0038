@@ -48,7 +48,8 @@ export default function VoicePage() {
 
   const processQuery = async (query: string) => {
     try {
-      const res = await fetch("http://localhost:8000/ask", {
+      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+      const res = await fetch(`${backendUrl}/ask`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ query, agent_id: "A6", language_code: language }),

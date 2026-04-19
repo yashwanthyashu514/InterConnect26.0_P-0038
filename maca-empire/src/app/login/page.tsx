@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Banknote } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
@@ -22,13 +23,69 @@ function LoginContent() {
     }
   }, [searchParams]);
 
-  const handleAuth = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate auth logic
-    if (isSignUp) {
-      router.push("/onboarding");
-    } else {
-      router.push("/dashboard");
+    setLoading(true);
+    setError("");
+
+    try {
+      const form = e.target as HTMLFormElement;
+      const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+      const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+      if (isSignUp) {
+        // Step 1: Redirect to onboarding to select role/preferences
+        // The onboarding will handle the final signUp after compliance
+        router.push(`/onboarding?email=${encodeURIComponent(email)}&mode=signup`);
+        return;
+      }
+
+      // Standard Login via Supabase
+      const { data, error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      // Fetch user role from our marketplace_users table
+      const { data: userData } = await supabase
+        .from("marketplace_users")
+        .select("role")
+        .eq("email", email)
+        .single();
+
+      const role = userData?.role || "user";
+      localStorage.setItem("maca_session", "active");
+
+      if (role === "admin") router.push("/admin");
+      else if (role === "ca") router.push("/ca-dashboard");
+      else if (role === "developer") router.push("/developers");
+      else router.push("/dashboard");
+
+    } catch (err: any) {
+      setError(err.message || "Authentication failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/dashboard`,
+        },
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message || "Google login failed");
+      setLoading(false);
     }
   };
 
@@ -46,7 +103,7 @@ function LoginContent() {
         <button type="button" style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "16px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "14px", cursor: "pointer", fontFamily: "'DM Sans', sans-serif", fontSize: "15px", color: "white", marginBottom: "32px", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" }}
           onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--acid)"; e.currentTarget.style.background = "rgba(181,255,46,0.05)"; }}
           onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
-          onClick={handleAuth}>
+          onClick={handleGoogleLogin}>
           <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 01-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
           Continue with Google
         </button>
@@ -58,11 +115,12 @@ function LoginContent() {
         </div>
 
         <form onSubmit={handleAuth} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {error && <div style={{ color: "#ff4d4d", fontSize: "14px", background: "rgba(255,77,77,0.1)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,77,77,0.2)" }}>{error}</div>}
           <div>
-            <input type="email" required placeholder="Work email address" className="input-dark" style={{ width: "100%", padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
+            <input type="email" name="email" required placeholder="Work email address" className="input-dark" style={{ width: "100%", padding: "16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
           </div>
           <div style={{ position: "relative" }}>
-            <input type={showPassword ? "text" : "password"} required placeholder="Password" className="input-dark" style={{ width: "100%", padding: "16px", paddingRight: "56px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
+            <input type={showPassword ? "text" : "password"} name="password" required placeholder="Password" className="input-dark" style={{ width: "100%", padding: "16px", paddingRight: "56px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "white", outline: "none", transition: "all 0.3s" }} onFocus={(e) => e.currentTarget.style.borderColor = "var(--acid)"} onBlur={(e) => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"} />
             <button 
               type="button"
               onClick={() => setShowPassword(!showPassword)} 
@@ -76,8 +134,8 @@ function LoginContent() {
               Recovery options?
             </Link>
           )}
-          <button type="submit" className="btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "16px", padding: "18px", textDecoration: "none", border: "none", cursor: "pointer" }}>
-            {isSignUp ? "Authorize & Register →" : "Enter the Empire →"}
+          <button type="submit" disabled={loading} className="btn-primary" style={{ width: "100%", justifyContent: "center", fontSize: "16px", padding: "18px", textDecoration: "none", border: "none", cursor: "pointer", opacity: loading ? 0.7 : 1 }}>
+            {loading ? "Authorizing..." : (isSignUp ? "Authorize & Register →" : "Enter the Empire →")}
           </button>
         </form>
 

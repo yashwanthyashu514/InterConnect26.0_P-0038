@@ -8,12 +8,36 @@ import {
 } from "lucide-react";
 
 const features = [
-  { icon: <Plug size={32} color="var(--acid)" />, title: "API Portal Access", desc: "Full REST API access to all 15 agents with 99.9% SLA guarantees and dedicated rate limits." },
-  { icon: <Fingerprint size={32} color="var(--acid)" />, title: "White-Label", desc: "Deploy under your brand. Your domain, your identity. Custom styling and branding supported." },
-  { icon: <Users size={32} color="var(--acid)" />, title: "Team Accounts", desc: "Multi-user with role-based access control. Unlimited seats with enterprise plan." },
-  { icon: <BarChart3 size={32} color="var(--acid)" />, title: "Analytics Dashboard", desc: "Full usage analytics, agent performance metrics, and audit logs for compliance." },
-  { icon: <ShieldCheck size={32} color="var(--acid)" />, title: "Data Residency", desc: "On-prem deployment options for sensitive data. DPDP Act fully compliant." },
-  { icon: <Headset size={32} color="var(--acid)" />, title: "Dedicated CSM", desc: "Dedicated customer success manager with SLA for enterprise customers." },
+  { 
+    icon: <Plug size={32} color="var(--acid)" />, 
+    title: "Supreme Tax Architect", 
+    desc: "Autonomous advisory for AY 24-25. Precision planning across House Property, Business Income, and LTCG." 
+  },
+  { 
+    icon: <ShieldCheck size={32} color="var(--acid)" />, 
+    title: "Notice Interceptor", 
+    desc: "High-precision OCR ingestion to decode and counter Income Tax notices and legal summons instantly." 
+  },
+  { 
+    icon: <Users size={32} color="var(--acid)" />, 
+    title: "AI Executive Team", 
+    desc: "Deploy specialized CFO, CTO, and HR agents to manage internal company operations and briefings." 
+  },
+  { 
+    icon: <Fingerprint size={32} color="var(--acid)" />, 
+    title: "Secure Vault", 
+    desc: "Military-grade document storage with RAG-integrated indexing for immediate retrieval of legal records." 
+  },
+  { 
+    icon: <BarChart3 size={32} color="var(--acid)" />, 
+    title: "A2A Neural Protocol", 
+    desc: "Proprietary Agent-to-Agent communication allowing specialized bots to collaborate on complex mandates." 
+  },
+  { 
+    icon: <Headset size={32} color="var(--acid)" />, 
+    title: "Elite CA Marketplace", 
+    desc: "Human-in-the-loop verification connecting AI intelligence with India's top Chartered Accountants." 
+  },
 ];
 
 const clients = [
@@ -24,9 +48,25 @@ export default function B2BPage() {
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({ company: "", name: "", email: "", phone: "", teamSize: "11-50", useCase: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    
+    // Save locally for admin marketing dashboard view
+    const inquiries = JSON.parse(localStorage.getItem("b2b_inquiries") || "[]");
+    inquiries.push({ ...form, date: new Date().toISOString() });
+    localStorage.setItem("b2b_inquiries", JSON.stringify(inquiries));
+
+    const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+    try {
+      await fetch(`${BACKEND}/api/v2/b2b/inquiry`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form)
+      });
+      setSubmitted(true);
+    } catch (err) {
+      alert("Neural link unstable. Please try again or email us directly.");
+    }
   };
 
   return (
@@ -80,7 +120,6 @@ export default function B2BPage() {
           </p>
           <div style={{ display: "flex", gap: "12px", justifyContent: "center", flexWrap: "wrap" }}>
             <Link href="#contact" className="btn-primary" style={{ fontSize: "16px", padding: "14px 32px", textDecoration: "none" }}>Book a Demo →</Link>
-            <Link href="/api-portal" className="btn-ghost" style={{ fontSize: "16px", padding: "14px 32px", textDecoration: "none" }}>View API Docs</Link>
           </div>
         </div>
       </section>

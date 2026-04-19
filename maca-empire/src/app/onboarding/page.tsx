@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { User, Store, Globe, Building2, FileText, Landmark, Scale, Check, AlertTriangle, Eye, EyeOff } from "lucide-react";
+import { User, Store, Globe, Building2, FileText, Landmark, Scale, Check, AlertTriangle, Eye, EyeOff, Code2 } from "lucide-react";
 
 const steps = [
   {
@@ -13,6 +13,7 @@ const steps = [
       { icon: <Store size={28} />, label: "MSME / Founder", desc: "GST, compliance, contracts" },
       { icon: <Globe size={28} />, label: "NRI", desc: "FEMA, DTAA, NRO/NRE advisory" },
       { icon: <Building2 size={28} />, label: "Enterprise / Law Firm", desc: "B2B API and white-label access" },
+      { icon: <Code2 size={28} />, label: "Developer", desc: "API Keys, webhooks & endpoints" },
     ],
   },
   {
@@ -75,9 +76,21 @@ Users have the 'Right to be Forgotten.' Upon deletion of an Empire account, all 
 `;
 
 export default function OnboardingPage() {
+  const searchParams = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const initialEmail = searchParams?.get("email") || "";
+
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState<number | null>(null);
   const [selectedPains, setSelectedPains] = useState<number[]>([]);
+  
+  // Registration data
+  const [regData, setRegData] = useState({
+    name: "",
+    email: initialEmail,
+    password: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   
   // Compliance State
   const [hasReadTerms, setHasReadTerms] = useState(false);
@@ -93,6 +106,35 @@ export default function OnboardingPage() {
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     if (scrollHeight - scrollTop <= clientHeight + 40) {
       setScrolledToBottom(true);
+    }
+  };
+
+  const handleFinish = async () => {
+    if (!isComplianceComplete) return;
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...regData,
+          role: selectedRole === 4 ? "developer" : "user"
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setStep(4);
+      } else {
+        setError(data.error || "Registration failed");
+      }
+    } catch (err) {
+      setError("Connection error. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,7 +281,15 @@ export default function OnboardingPage() {
               {steps[2].title}
             </h2>
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              <input type="text" placeholder="Legal Entity / Full Name" className="input-dark" />
+              {error && <div style={{ color: "#ff4d4d", fontSize: "13px", padding: "10px", background: "rgba(255,77,77,0.05)", borderRadius: "8px" }}>{error}</div>}
+              <input type="text" placeholder="Full Legal Name" className="input-dark" value={regData.name} onChange={(e) => setRegData({...regData, name: e.target.value})} />
+              <input type="email" placeholder="Email Address" className="input-dark" value={regData.email} onChange={(e) => setRegData({...regData, email: e.target.value})} />
+              <div style={{ position: "relative" }}>
+                 <input type={showPass ? "text" : "password"} placeholder="Secure Password" className="input-dark" style={{ width: "100%" }} value={regData.password} onChange={(e) => setRegData({...regData, password: e.target.value})} />
+                 <button onClick={() => setShowPass(!showPass)} style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--acid)", cursor: "pointer" }}>
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                 </button>
+              </div>
               <input type="text" placeholder="Referral Code (optional)" className="input-dark" />
               
               <div style={{ marginTop: "24px", padding: "20px", background: isComplianceComplete ? "rgba(181,255,46,0.05)" : "rgba(255,255,255,0.02)", border: `1px solid ${isComplianceComplete ? "var(--border-acid)" : "rgba(255,255,255,0.08)"}`, borderRadius: "16px" }}>
@@ -303,12 +353,22 @@ export default function OnboardingPage() {
             </button>
             <div style={{ flex: 1 }} />
             <button
-              onClick={() => setStep(step + 1)}
+              onClick={() => {
+                if (step === 1 && selectedRole === 4) {
+                  window.location.href = "/developers";
+                  return;
+                }
+                if (step === 3) {
+                  handleFinish();
+                } else {
+                  setStep(step + 1);
+                }
+              }}
               className="btn-primary"
-              disabled={step === 3 && !isComplianceComplete}
-              style={{ opacity: step === 3 && !isComplianceComplete ? 0.3 : 1, cursor: step === 3 && !isComplianceComplete ? "not-allowed" : "pointer" }}
+              disabled={(step === 3 && !isComplianceComplete) || loading}
+              style={{ opacity: (step === 3 && !isComplianceComplete) || loading ? 0.3 : 1, cursor: (step === 3 && !isComplianceComplete) || loading ? "not-allowed" : "pointer" }}
             >
-              {step === 3 ? "Complete Profile & Enter Empire →" : "Continue →"}
+              {loading ? "Verifying..." : (step === 3 ? "Complete Profile & Enter Empire →" : "Continue →")}
             </button>
           </div>
         )}

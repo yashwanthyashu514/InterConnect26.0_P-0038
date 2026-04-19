@@ -58,7 +58,10 @@ export default function NoticePage() {
           Upload your notice and get a legally sound AI-drafted reply in minutes.
         </p>
         {/* Upload zone */}
-        <div style={{ width: "100%", maxWidth: "400px", border: "1.5px dashed rgba(181,255,46,0.3)", borderRadius: "12px", padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "rgba(181,255,46,0.02)" }}>
+        <div 
+          onClick={() => document.getElementById("global-image-upload")?.click()}
+          style={{ width: "100%", maxWidth: "400px", border: "1.5px dashed rgba(181,255,46,0.3)", borderRadius: "12px", padding: "28px 20px", textAlign: "center", cursor: "pointer", background: "rgba(181,255,46,0.02)" }}
+        >
           <p style={{ fontSize: "24px", marginBottom: "8px" }}>📤</p>
           <p style={{ fontFamily: "'DM Sans', sans-serif", fontSize: "14px", color: "var(--text-primary)", fontWeight: 500 }}>Upload your notice</p>
           <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif" }}>PDF or image · Agent auto-reads & classifies</p>

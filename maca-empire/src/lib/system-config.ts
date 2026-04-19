@@ -9,19 +9,19 @@ export const SYSTEM_CONFIG = {
     description: "Auto-detect user language, translate to English for LLM processing, respond in the user's original language. Applies to all A6 Voice CA interactions and optionally to all 15 agents.",
     pivot_language: "en-IN",
     translation_stack: {
-      primary: "IndicTrans2 by AI4Bharat (self-hosted on FastAPI)",
-      fallback: "Google Cloud Translation API v3",
-      government_option: "Bhashini NMT (MeitY) — free tier for cost control"
+      primary: "IndicTrans2 — AI4Bharat (100% Free, Self-hosted)",
+      secondary: "Google Cloud Translation API v3",
+      government_option: "Bhashini NMT (MeitY) — Secondary Fallback"
     },
     stt_stack: {
-      primary: "Sarvam AI sarvam-1 — best WER for Indian accents",
+      primary: "Sarvam AI sarvam-1 (sk_u2f6...) — Primary Audio Vector",
       fallback: "Google Cloud Speech-to-Text v2",
       government_option: "Bhashini ASR (MeitY)"
     },
     tts_stack: {
-      primary: "Sarvam AI TTS — natural prosody for Hindi/Kannada/Marathi",
-      secondary: "Google WaveNet / Neural2 Indian voices",
-      premium: "ElevenLabs Multilingual v2 — for client-facing demos"
+      primary: "ElevenLabs Multilingual v2 (sk_762b...) — Premium Voice Vector",
+      secondary: "Sarvam AI TTS — Primary Regional Voice",
+      fallback: "Google WaveNet / Neural2"
     },
     supported_languages: [
       { code: "en-IN", name: "English", script: "Latin", is_pivot: true },

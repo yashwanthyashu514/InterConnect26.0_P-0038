@@ -41,6 +41,20 @@ function PenaltyClock() {
 
 function TaxContextPanel() {
   const [regime, setRegime] = useState<"old" | "new">("new");
+
+  useEffect(() => {
+    const handleContext = (e: any) => {
+      const content = e.detail?.fullContent?.toLowerCase() || "";
+      if (content.includes("old regime") || content.includes("old tax regime")) {
+        setRegime("old");
+      } else if (content.includes("new regime") || content.includes("new tax regime")) {
+        setRegime("new");
+      }
+    };
+    window.addEventListener('neural-context-update', handleContext as EventListener);
+    return () => window.removeEventListener('neural-context-update', handleContext as EventListener);
+  }, []);
+
   return (
     <div style={{ padding: "20px" }}>
       <p style={{ fontSize: "11px", fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>Tax Profile</p>

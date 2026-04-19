@@ -19,34 +19,37 @@ nim_client = OpenAI(
     api_key=os.environ['NVIDIA_API_KEY']
 )
 
+# Calculate base directory (maca-empire/backend)
+BASE_DIR = Path(__file__).parent.resolve()
+
 AGENT_CONFIG = {
     'dpdp_shield': {
-        'folder': 'backend/docs/dpdp_shield/',
+        'folder': BASE_DIR / 'docs/dpdp_shield/',
         'table': 'dpdp_shield_documents',
         'default_category': 'DPDP Compliance'
     },
     'cryptotax_pro': {
-        'folder': 'backend/docs/cryptotax_pro/',
+        'folder': BASE_DIR / 'docs/cryptotax_pro/',
         'table': 'cryptotax_documents',
         'default_category': 'VDA Tax'
     },
     'esg_compass': {
-        'folder': 'backend/docs/esg_compass/',
+        'folder': BASE_DIR / 'docs/esg_compass/',
         'table': 'esg_compass_documents',
         'default_category': 'ESG Compliance'
     },
     'heirguard': {
-        'folder': 'backend/docs/heirguard/',
+        'folder': BASE_DIR / 'docs/heirguard/',
         'table': 'heirguard_documents',
         'default_category': 'Succession Law'
     },
     'ai_governance_counsel': {
-        'folder': 'backend/docs/ai_governance_counsel/',
+        'folder': BASE_DIR / 'docs/ai_governance_counsel/',
         'table': 'ai_governance_documents',
         'default_category': 'AI Governance'
     },
     'the_oracle': {
-        'folder': 'backend/docs/the_oracle/',
+        'folder': BASE_DIR / 'docs/the_oracle/',
         'table': 'oracle_static_kb',
         'default_category': 'Financial Intelligence'
     }

@@ -15,131 +15,27 @@ export interface Agent {
 }
 
 export const AGENTS: Agent[] = [
-  // CORE BLOCK
-  {
-    id: "A1",
-    name: "Supreme Tax",
-    description: "Integrated Income Tax, GST & TDS intelligence with predictive optimization.",
-    icon: "FileText",
-    category: "CORE",
-    path: "/tax",
-  },
-  {
-    id: "A2",
-    name: "Banking & Credit",
-    description: "Dispute resolution for banking transactions and credit score restoration.",
-    icon: "Landmark",
-    category: "CORE",
-    path: "/bankfight",
-  },
-  {
-    id: "A3",
-    name: "Notice & Disputes",
-    description: "AI-powered notice reply drafting and legal risk simulation (Mock Judge).",
-    icon: "Scale",
-    category: "CORE",
-    path: "/notice",
-  },
-  {
-    id: "A4",
-    name: "Payroll & HR",
-    description: "Automated payroll compliance, ESOP management, and labor law advisor.",
-    icon: "Users",
-    category: "CORE",
-    path: "/payroll",
-  },
+  // TAX & BANKING (CORE) - 6 Agents
+  { id: "A0", name: "Command Nexus", icon: "Cpu", description: "Master Orchestrator — intent routing, urgency triage, elite dispatch.", category: "CORE", path: "/command-nexus" },
+  { id: "A1", name: "Supreme Tax", icon: "FileText", description: "Integrated Income Tax, GST & TDS intelligence.", category: "CORE", path: "/tax" },
+  { id: "A2", name: "Banking & Credit", icon: "Landmark", description: "Dispute resolution and credit score restoration.", category: "CORE", path: "/bankfight" },
+  { id: "A3", name: "Notice & Disputes", icon: "AlertTriangle", description: "Notice reply drafting and legal risk simulation.", category: "CORE", path: "/notice" },
+  { id: "A4", name: "Payroll & HR", icon: "DollarSign", description: "Automated payroll and labor law compliance.", category: "CORE", path: "/payroll" },
+  { id: "A6", name: "Voice CA", icon: "Mic", description: "Multimodal AI — Talk to your personal CA.", category: "CORE", path: "/voice" },
 
-  // GROWTH BLOCK
-  {
-    id: "A5",
-    name: "Corporate Counsel",
-    description: "Startup legal, ROC compliance, and IP/Trademark protection.",
-    icon: "Rocket",
-    category: "GROWTH",
-    path: "/compliance",
-  },
-  {
-    id: "A6",
-    name: "Voice CA",
-    description: "Multilingual Legal Orchestrator — Conversational advisory in 6 languages with auto-detection and notice drafting.",
-    icon: "Mic",
-    category: "GROWTH",
-    path: "/voice",
-  },
-  {
-    id: "A7",
-    name: "Deal Reviewer",
-    description: "Deep-link analysis for SPA, SHA, and high-stakes commercial contracts.",
-    icon: "Search",
-    category: "GROWTH",
-    path: "/contract-reviewer",
-  },
-  {
-    id: "A8",
-    name: "Filing Ops",
-    description: "E-court filing automation and professional RTI drafting.",
-    icon: "Files",
-    category: "GROWTH",
-    path: "/court-filer",
-  },
+  // LEGAL & CORPORATE (GROWTH) - 6 Agents
+  { id: "A5", name: "Corporate Counsel", icon: "Rocket", description: "Startup legal, ROC, and IP/Trademark protection.", category: "GROWTH", path: "/compliance" },
+  { id: "A7", name: "Deal Reviewer", icon: "Search", description: "AI redlining for SHA/SPA and high-stakes contracts.", category: "GROWTH", path: "/contract-reviewer" },
+  { id: "A8", name: "Filing Ops", icon: "Scale", description: "E-court filing automation and RTI drafting.", category: "GROWTH", path: "/court-filer" },
+  { id: "A12", name: "Forensic Audit", icon: "Lock", description: "Investigative auditing for fraud and leakage.", category: "GROWTH", path: "/audit-shield" },
+  { id: "A13", name: "Trade & Forex", icon: "Globe", description: "FEMA compliance and EXIM logistics intelligence.", category: "GROWTH", path: "/trade" },
+  { id: "A25", name: "Data & AI Safety", icon: "Brain", description: "DPDP Act and EU AI Act Governance.", category: "GROWTH", path: "/ai-governance" },
 
-  // ELITE BLOCK
-  {
-    id: "A12",
-    name: "Forensic Audit",
-    description: "AI-driven investigative auditing for corporate fraud and leakage.",
-    icon: "ShieldAlert",
-    category: "ELITE",
-    path: "/audit-shield",
-  },
-  {
-    id: "A13",
-    name: "Trade & Forex",
-    description: "Cross-border FEMA compliance and EXIM logistics intelligence.",
-    icon: "Globe",
-    category: "ELITE",
-    path: "/trade",
-  },
-
-  // EMPIRE BLOCK (Specialized High-Stakes)
-  {
-    id: "A23",
-    name: "ESG Compass",
-    description: "BRSR reporting, carbon credit tracking, and sustainability audits.",
-    icon: "Leaf",
-    category: "EMPIRE",
-    path: "/esg-compass",
-  },
-  {
-    id: "A24",
-    name: "HeirGuard",
-    description: "Personal succession planning, digital wills, and trust management.",
-    icon: "ScrollText",
-    category: "EMPIRE",
-    path: "/heirguard",
-  },
-  {
-    id: "A22",
-    name: "CryptoTax Pro",
-    description: "30% VDA tax calculation and 1% TDS monitoring with live meter.",
-    icon: "Coins",
-    category: "EMPIRE",
-    path: "/crypto-tax",
-  },
-  {
-    id: "A25",
-    name: "Data & AI Safety",
-    description: "DPDP Act compliance and EU AI Act Governance framework.",
-    icon: "ShieldCheck",
-    category: "EMPIRE",
-    path: "/ai-governance",
-  },
-  {
-    id: "A26",
-    name: "The Oracle",
-    description: "The Crown Jewel: 50-year market wisdom with Live Market Feeds.",
-    icon: "TrendingUp",
-    category: "EMPIRE",
-    path: "/the-oracle",
-  },
+  // SPECIALIZED INTELLIGENCE (ELITE) - 6 Agents
+  { id: "A27", name: "Elite Wealth", icon: "Gem", description: "Crown Agent for ₹100Cr+ UHNWIs — shadow books & offshore SPV authority.", category: "ELITE", path: "/elite-wealth" },
+  { id: "A23", name: "ESG Compass", icon: "Leaf", description: "SEBI BRSR Core Auto-fill and GHG Scope tracking.", category: "ELITE", path: "/esg-compass" },
+  { id: "A24", name: "HeirGuard", icon: "ScrollText", description: "Will Drafting and Succession Planning.", category: "ELITE", path: "/heirguard" },
+  { id: "A22", name: "CryptoTax Pro", icon: "Coins", description: "30% VDA Tax and live TDS monitoring.", category: "ELITE", path: "/crypto-tax" },
+  { id: "A26", name: "The Oracle", icon: "TrendingUp", description: "50-Year Market Wisdom with Live Feeds.", category: "ELITE", path: "/the-oracle" },
+  { id: "A28", name: "Victor Harlan", icon: "Banknote", description: "52-Year Wall Street MD — M&A, IPO, LBO & Capital Markets.", category: "ELITE", path: "/victor-harlan" },
 ];

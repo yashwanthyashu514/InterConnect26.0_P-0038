@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Link from "next/link";
 import { Folder, FileText, Scale, PenTool, Mail, Wallet, Search, Cloud, File, Menu, Bell, ArrowLeft, Home, Bot, Calendar, Zap, Briefcase, X } from "lucide-react";
 
@@ -13,13 +13,27 @@ const folders = [
   { icon: <Wallet size={16} />, label: "Financial Records", count: 0 },
 ];
 
-const documents: any[] = [];
-
 export default function VaultPage() {
   const [activeFolder, setActiveFolder] = useState(0);
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [selectedDoc, setSelectedDoc] = useState<typeof documents[0] | null>(null);
+  const [selectedDoc, setSelectedDoc] = useState<any | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [myDocs, setMyDocs] = useState<any[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setMyDocs(prev => [{
+        name: file.name,
+        type: file.type.split('/')[1]?.toUpperCase() || 'FILE',
+        agent: "Vault",
+        date: new Date().toLocaleDateString(),
+        size: (file.size / 1024 / 1024).toFixed(2) + " MB",
+        icon: <FileText size={32} />
+      }, ...prev]);
+    }
+  };
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", position: "relative", overflowX: "hidden" }}>
@@ -152,15 +166,19 @@ export default function VaultPage() {
             <option>Size ↓</option>
           </select>
 
-          <button className="btn-primary btn-sm" style={{ marginLeft: "auto" }}>
+          <button className="btn-primary btn-sm" style={{ marginLeft: "auto" }} onClick={() => fileInputRef.current?.click()}>
             ↑ Upload
           </button>
         </div>
 
         {/* Content Area */}
         <div style={{ flex: 1, overflowY: "auto", padding: "24px" }}>
+          {/* Hidden File Input */}
+          <input type="file" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileUpload} />
+
           {/* Upload Zone */}
           <div style={{ border: "1.5px dashed var(--border-subtle)", borderRadius: "14px", padding: "32px", textAlign: "center", marginBottom: "24px", background: "var(--bg-primary)", cursor: "pointer", transition: "border-color 0.2s, background 0.2s" }}
+            onClick={() => fileInputRef.current?.click()}
             onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--text-secondary)"; e.currentTarget.style.background = "var(--bg-secondary)"; }}
             onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border-subtle)"; e.currentTarget.style.background = "var(--bg-primary)"; }}>
             <p style={{ display: "flex", justifyContent: "center", marginBottom: "8px", color: "var(--text-secondary)" }}><Cloud size={24} /></p>
@@ -169,10 +187,10 @@ export default function VaultPage() {
           </div>
 
           {/* Documents */}
-          {documents.length > 0 ? (
+          {myDocs.length > 0 ? (
             view === "grid" ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-                {documents.map((doc, i) => (
+                {myDocs.map((doc, i) => (
                   <div
                     key={i}
                     style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "12px", padding: "20px", cursor: "pointer", transition: "border-color 0.2s" }}
@@ -192,7 +210,7 @@ export default function VaultPage() {
                 <table className="data-table">
                   <thead><tr><th>Name</th><th>Type</th><th>Agent</th><th>Date</th><th>Size</th><th>Actions</th></tr></thead>
                   <tbody>
-                    {documents.map((doc, i) => (
+                    {myDocs.map((doc, i) => (
                       <tr key={i} style={{ cursor: "pointer" }} onClick={() => setSelectedDoc(doc)}>
                         <td style={{ color: "var(--text-primary)", fontWeight: 500, display: "flex", alignItems: "center", gap: "8px" }}>{doc.icon} {doc.name}</td>
                         <td><span className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{doc.type}</span></td>
