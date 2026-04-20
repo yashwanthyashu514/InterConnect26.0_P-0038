@@ -103,6 +103,7 @@ function OnboardingComponent() {
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
   const [showPass, setShowPass] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [checkingUserInfo, setCheckingUserInfo] = useState(true);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -120,11 +121,13 @@ function OnboardingComponent() {
         
         if (userData) {
           router.push("/");
+          return;
         }
       }
+      setCheckingUserInfo(false);
     };
     checkUser();
-  }, []);
+  }, [router]);
 
   const progress = (step / 4) * 100;
 
@@ -199,6 +202,14 @@ function OnboardingComponent() {
   };
 
   const isComplianceComplete = hasReadTerms && hasReadPrivacy;
+
+  if (checkingUserInfo) {
+    return (
+      <div style={{ minHeight: '100vh', background: '#080B07', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <p style={{ color: '#B5FF2E', fontFamily: "'Syne', sans-serif", fontSize: '14px', fontWeight: 800 }}>ANALYZING EMPIRE CREDENTIALS...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg-primary)", display: "flex", flexDirection: "column", alignItems: "center", padding: "48px 24px" }}>
