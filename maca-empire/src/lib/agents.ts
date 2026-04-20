@@ -29,6 +29,7 @@ export const AGENTS: Agent[] = [
   { id: "A8", name: "Filing Ops", icon: "Scale", description: "E-court filing automation and RTI drafting.", category: "GROWTH", path: "/court-filer" },
   { id: "A12", name: "Forensic Audit", icon: "Lock", description: "Investigative auditing for fraud and leakage.", category: "GROWTH", path: "/audit-shield" },
   { id: "A13", name: "Trade & Forex", icon: "Globe", description: "FEMA compliance and EXIM logistics intelligence.", category: "GROWTH", path: "/trade" },
+  { id: "A21", name: "DPDP Shield", icon: "ShieldCheck", description: "India DPDP Act 2023 & MeitY compliance authority.", category: "GROWTH", path: "/dpdp" },
   { id: "A25", name: "Data & AI Safety", icon: "Brain", description: "DPDP Act and EU AI Act Governance.", category: "GROWTH", path: "/ai-governance" },
 
   // SPECIALIZED INTELLIGENCE (ELITE) - 6 Agents

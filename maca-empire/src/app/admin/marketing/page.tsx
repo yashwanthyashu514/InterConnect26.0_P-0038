@@ -9,7 +9,8 @@ export default function AdminMarketingPage() {
   const [report, setReport] = useState("");
   const [briefing, setBriefing] = useState("");
   const [loading, setLoading] = useState(false);
-  const [inquiries, setInquiries] = useState<any[]>([]);
+  type Inquiry = Record<string, unknown>;
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const fetchBriefing = async () => {
     try {
@@ -41,12 +42,13 @@ export default function AdminMarketingPage() {
   };
 
   useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBriefing(); 
     
     // Load local inquiries submitted from /b2b
     const saved = localStorage.getItem("b2b_inquiries");
     if (saved) {
-      setInquiries(JSON.parse(saved));
+      setInquiries(JSON.parse(saved) as Inquiry[]);
     }
   }, []);
 

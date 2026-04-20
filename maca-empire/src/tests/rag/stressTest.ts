@@ -39,7 +39,11 @@ export async function runStressTest() {
     const results = await Promise.all(testBookings.map(b => mockQuery(b.id, b.query)));
     
     const leakDetected = results.some((res, i) => {
-      return res.chunks && res.chunks.some((c: any) => c.booking_id !== testBookings[i].id);
+      const chunks = (res as Record<string, unknown>)?.chunks;
+      return Array.isArray(chunks) && chunks.some((c) => {
+        const bookingId = (c as Record<string, unknown>)?.booking_id;
+        return typeof bookingId === "string" && bookingId !== testBookings[i].id;
+      });
     });
 
     return {
@@ -48,7 +52,8 @@ export async function runStressTest() {
       leak_detected: leakDetected,
       notes: leakDetected ? "CRITICAL: Scoping breached under load" : "No cross-booking data detected."
     };
-  } catch (error: any) {
-    return { passed: false, error: error.message };
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return { passed: false, error: message };
   }
 }

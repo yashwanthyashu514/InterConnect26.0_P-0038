@@ -5,15 +5,15 @@ CREATE TABLE IF NOT EXISTS tax_knowledge (
     section_ref text,
     ay text DEFAULT '2025-26',
     content text,
-    embedding vector(1536),
+    embedding vector(4096),
     created_at timestamptz DEFAULT now()
 );
 
 -- 2. Create the Sovereign Matching Function
 CREATE OR REPLACE FUNCTION match_tax_docs(
-    query_embedding vector(1536), 
-    match_threshold float, 
-    match_count int
+    query_embedding vector(4096), 
+    match_threshold float DEFAULT 0.3, 
+    match_count int DEFAULT 8
 ) 
 RETURNS TABLE(
     id uuid, 

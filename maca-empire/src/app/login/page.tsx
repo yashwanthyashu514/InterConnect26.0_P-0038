@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -71,7 +72,7 @@ function LoginContent() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}/onboarding`,
         },
       });
 
@@ -118,12 +119,11 @@ function LoginContent() {
         .single();
 
       const role = userData?.role || "user";
-      localStorage.setItem("maca_session", "active");
 
       if (role === "admin") router.push("/admin");
       else if (role === "ca") router.push("/ca-dashboard");
       else if (role === "developer") router.push("/developers");
-      else router.push("/dashboard");
+      else router.push("/");
 
     } catch (err: any) {
       setError(err.message || "Authentication failed");
@@ -138,7 +138,7 @@ function LoginContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/onboarding`,
         },
       });
       if (error) throw error;

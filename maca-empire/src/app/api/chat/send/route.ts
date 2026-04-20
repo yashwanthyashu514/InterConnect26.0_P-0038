@@ -40,9 +40,10 @@ export async function POST(req: Request) {
     if (booking) {
       const isClient = session.user_id === booking.user_id;
       // Handle Supabase type inference which sometimes thinks relations are arrays
-      const caUserId = Array.isArray(booking.ca_profiles) 
-        ? booking.ca_profiles[0]?.user_id 
-        : (booking.ca_profiles as any)?.user_id;
+      const caProfiles = (booking as Record<string, unknown>).ca_profiles;
+      const caUserId = Array.isArray(caProfiles)
+        ? (caProfiles[0] as Record<string, unknown> | undefined)?.user_id
+        : (caProfiles as Record<string, unknown> | null | undefined)?.user_id;
 
       const recipientId = isClient ? caUserId : booking.user_id;
 
@@ -58,7 +59,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

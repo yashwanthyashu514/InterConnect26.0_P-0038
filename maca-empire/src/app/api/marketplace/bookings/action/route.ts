@@ -27,17 +27,7 @@ export async function POST(req: Request) {
     const newStatus = action === "accept" ? "accepted" : "declined";
 
     // 2. Update booking
-    const { error: updateError } = await supabase
-      .from("bookings")
-      .update({ 
-        status: newStatus,
-        accepted_at: action === "accept" ? new RegExp("").toString() : null // Placeholder for NOW() if using update
-      })
-      .eq("id", id);
-    
-    // Note: I'll use simple field update. Supabase automatically handles time if column has default or I pass it.
-    // I'll just use a direct update for status.
-    await supabase.from("bookings").update({ status: newStatus }).eq("id", id);
+    const { error: updateError } = await supabase.from("bookings").update({ status: newStatus }).eq("id", id);
 
     if (updateError) throw updateError;
 
@@ -55,7 +45,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ message: `Booking ${newStatus} successfully` });
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

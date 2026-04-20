@@ -13,6 +13,8 @@ const supabase = createClient(
 
 const FALLBACK_MESSAGE = "Insufficient document data — please consult your CA directly.";
 
+type RetrievedChunk = Record<string, unknown> & { similarity?: number };
+
 export async function POST(req: Request) {
   const startTime = Date.now();
   try {
@@ -27,7 +29,7 @@ export async function POST(req: Request) {
 
     // 2. Embedding (Cache + NIM + Fallback) (F4.1, F6)
     let embedding = await getCachedEmbedding(query);
-    let chunks: any[] = [];
+    let chunks: RetrievedChunk[] = [];
     let usedFallback = false;
 
     if (!embedding) {
@@ -48,11 +50,11 @@ export async function POST(req: Request) {
         match_count: 10,
         filter: { source_booking_id: booking_id }
       });
-      if (!error) chunks = data;
+      if (!error) chunks = (data as RetrievedChunk[]) ?? [];
     }
 
     // 4. Hallucination Guard (F5 - Short Circuit < 100ms)
-    const topSimilarity = chunks.length > 0 ? chunks[0].similarity : 0;
+    const topSimilarity = chunks.length > 0 ? (chunks[0].similarity ?? 0) : 0;
     if (chunks.length === 0 || topSimilarity < 0.50) {
       const latency = Date.now() - startTime;
       await logTest("S5-T2", "S5", query, topSimilarity, latency, true, "Guard Short-Circuit Triggered");
@@ -95,8 +97,9 @@ export async function POST(req: Request) {
       headers: { "Content-Type": "application/x-ndjson" }
     });
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -111,5 +114,5 @@ async function logTest(id: string, stage: string, query: string, score: number, 
       passed: passed,
       notes: notes
     });
-  } catch (e) {}
+  } catch (_e: unknown) {}
 }

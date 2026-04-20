@@ -12,11 +12,11 @@ const supabase = createClient(
 );
 
 export async function GET() {
-  const report: any[] = [];
+  const report: Array<Record<string, unknown>> = [];
   const startTime = Date.now();
   let passedCount = 0;
 
-  const runTest = async (id: string, stage: string, name: string, fn: () => Promise<any>, condition: (res: any) => boolean) => {
+  const runTest = async (id: string, stage: string, name: string, fn: () => Promise<unknown>, condition: (res: unknown) => boolean) => {
     const tStart = Date.now();
     try {
       const res = await fn();
@@ -28,8 +28,9 @@ export async function GET() {
         actual_value: res,
         latency_ms: Date.now() - tStart
       });
-    } catch (e: any) {
-      report.push({ test_id: id, stage, name, status: "FAIL", actual_value: e.message });
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "Unknown error";
+      report.push({ test_id: id, stage, name, status: "FAIL", actual_value: message });
     }
   };
 

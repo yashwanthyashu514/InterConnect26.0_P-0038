@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Home, Bot, Wallet, Zap, Activity, CheckCircle, AlertTriangle, Clock, Menu, Bell, ArrowLeft, X } from "lucide-react";
 
@@ -69,6 +69,13 @@ export default function APIPortalPage() {
   const [codeLanguage, setCodeLanguage] = useState<"curl" | "python" | "node">("curl");
   const [copied, setCopied] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [dailyHeights, setDailyHeights] = useState<number[] | null>(null);
+
+  useEffect(() => {
+    // Generate simulated chart data once on mount (avoid impure calls during render)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setDailyHeights(Array.from({ length: 30 }, () => Math.floor(40 + Math.random() * 120)));
+  }, []);
 
   const getCode = () => {
     if (codeLanguage === "curl") return curlExample;
@@ -300,8 +307,7 @@ export default function APIPortalPage() {
               <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "24px", marginBottom: "20px" }}>
                 <p style={{ fontSize: "13px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>Daily API Calls — Last 30 Days</p>
                 <div style={{ height: "160px", display: "flex", alignItems: "flex-end", gap: "4px" }}>
-                  {Array.from({ length: 30 }, (_, i) => {
-                    const h = Math.floor(40 + Math.random() * 120);
+                  {(dailyHeights ?? Array.from({ length: 30 }, () => 80)).map((h, i) => {
                     return (
                       <div key={i} style={{ flex: 1, background: `rgba(255,255,255,${0.1 + (h / 160) * 0.4})`, borderRadius: "3px 3px 0 0", height: `${h}px`, minWidth: "4px", transition: "opacity 0.2s", cursor: "pointer" }}
                         title={`${800 + h * 30} calls`} />

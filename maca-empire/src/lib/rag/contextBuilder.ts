@@ -12,7 +12,7 @@ const BUFFER = 200; // Safety buffer for prompt overhead
 export function buildContext(chunks: Chunk[]): { context: string; tokenCount: number } {
   if (!chunks || chunks.length === 0) return { context: "", tokenCount: 0 };
 
-  let currentChunks = [...chunks];
+  const currentChunks = [...chunks];
   
   const getContextString = (cArray: Chunk[]) => 
     cArray.map((c, i) => `[Document Context ${i+1}] (Source: ${c.metadata.doc_type || 'Unknown'})\n${c.chunk_text}`).join("\n\n");

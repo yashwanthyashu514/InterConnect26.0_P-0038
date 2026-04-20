@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react/no-unescaped-entities */
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -10,7 +11,7 @@ import {
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-const STATUS_COLORS: any = {
+const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   requested: { bg: "rgba(251, 191, 36, 0.1)", text: "#FBBF24" },
   accepted: { bg: "rgba(96, 165, 250, 0.1)", text: "#60A5FA" },
   paid: { bg: "rgba(52, 211, 153, 0.1)", text: "#34D399" },
@@ -18,16 +19,29 @@ const STATUS_COLORS: any = {
   declined: { bg: "rgba(248, 113, 113, 0.1)", text: "#F87171" }
 };
 
+type MarketplaceUser = { name: string };
+type Booking = {
+  id: string;
+  status: string;
+  created_at: string;
+  notes: string;
+  amount_paise: number;
+  ca_payout_paise: number;
+  marketplace_users: MarketplaceUser;
+};
+type Earnings = {
+  pending_payout_paise?: number;
+  total_earned_paise?: number;
+  session_count?: number;
+};
+type ProfileMe = { user: { kyc_status?: string } };
+
 export default function CADashboard() {
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [earnings, setEarnings] = useState<any>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [earnings, setEarnings] = useState<Earnings | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("Bookings");
   const [kycStatus, setKycStatus] = useState("approved");
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const fetchData = async () => {
     try {
@@ -36,18 +50,23 @@ export default function CADashboard() {
         fetch("/api/marketplace/ca/earnings"),
         fetch("/api/auth/me")
       ]);
-      const bData = await bRes.json();
-      const eData = await eRes.json();
-      const profileData = await profileRes.json();
+      const bData: { bookings?: Booking[] } = await bRes.json();
+      const eData: Earnings = await eRes.json();
+      const profileData: ProfileMe = await profileRes.json();
       
-      setBookings(bData.bookings || []);
+      setBookings(bData.bookings ?? []);
       setEarnings(eData);
       setKycStatus(profileData.user.kyc_status || "pending");
       setLoading(false);
-    } catch (e) {
+    } catch (_e: unknown) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData();
+  }, []);
 
   const handleAction = async (id: string, action: "accept" | "decline") => {
     await fetch("/api/marketplace/bookings/action", { 
@@ -108,7 +127,7 @@ export default function CADashboard() {
               <h2 style={{ fontFamily: "'Syne', sans-serif", fontSize: "24px", fontWeight: 700 }}>Neural Stream</h2>
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: "0" }}>
-               {bookings.map((b, i) => (
+               {bookings.map((b) => (
                   <div key={b.id} style={{ padding: "24px", borderLeft: "2px solid rgba(181, 255, 46, 0.2)", position: "relative", marginBottom: "8px" }}>
                      <div style={{ width: "10px", height: "10px", background: "#B5FF2E", borderRadius: "50%", position: "absolute", left: "-6px", top: "30px", boxShadow: "0 0 10px #B5FF2E" }} />
                      <p style={{ fontSize: "14px", fontWeight: 700, marginBottom: "4px" }}>{b.status === "requested" ? "Incoming Request" : "Session Update"}: {b.marketplace_users.name}</p>

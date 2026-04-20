@@ -1,6 +1,6 @@
 # 🏦 Supreme Tax AGI | Unified Application Core
 
-This directory contains the primary frontend and orchestration logic for the **Supreme Tax AGI** platform. Built for the **InterConnect 26.0** innovation challenge, this application implements a 22-agent autonomous ecosystem for financial and legal advisory.
+This directory contains the primary frontend and orchestration logic for the **Supreme Tax AGI** platform. Built for the **InterConnect 26.0** innovation challenge, this application implements a 19-agent autonomous ecosystem for financial and legal advisory.
 
 ## 🏗️ Folder Architecture
 
@@ -49,7 +49,7 @@ To update the agent knowledge base:
 
 ## 🔒 Security & Scale
 - **Authentication**: JWT/HMAC secured endpoints.
-- **Deployment**: Optimized for **Vercel Global Edge** with <100ms inference latency.
+- **Deployment**: Optimized for **Sovereign Local Node** with <100ms inference latency.
 - **Persistence**: Real-time auditing via `supabase_check.txt` and logging streams.
 
 ---

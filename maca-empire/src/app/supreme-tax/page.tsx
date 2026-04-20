@@ -32,7 +32,7 @@ export default function SupremeTaxDashboard() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     
-    const userMsg = { role: 'user', content: input };
+    const userMsg = { role: 'user', content: input, agent_id: activeAgent };
     setMessages(prev => [...prev, userMsg]);
     setInput('');
     setLoading(true);

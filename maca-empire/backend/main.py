@@ -453,6 +453,7 @@ async def supreme_tax_rag_handler(req: SupremeTaxRAGRequest):
 def health(): return {"status": "ok", "version": "AGI_Deployment_Day1"}
 
 @app.post("/ask")
+@app.post("/api/chat")
 async def ask_generic(request: ChatRequest):
     agent_id = request.agent_id or route_agent(request.query)
     context, citations = await fetch_agent_rag(agent_id, request.query)

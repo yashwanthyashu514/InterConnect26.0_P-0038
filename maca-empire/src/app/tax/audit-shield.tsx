@@ -1,15 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 
 export default function AuditShield() {
   const [riskScore, setRiskScore] = useState(12); // Starting with low risk (Good)
-  const [status, setStatus] = useState("LOW RISK");
-
-  useEffect(() => {
-    // Top-tier risk scoring simulation
-    if (riskScore > 40) setStatus("MEDIUM RISK - SCRUTINY POSSIBLE");
-    if (riskScore > 70) setStatus("HIGH RISK - NOTICE IMMINENT");
+  const status = useMemo(() => {
+    if (riskScore > 70) return "HIGH RISK - NOTICE IMMINENT";
+    if (riskScore > 40) return "MEDIUM RISK - SCRUTINY POSSIBLE";
+    return "LOW RISK";
   }, [riskScore]);
 
   return (

@@ -18,34 +18,29 @@ export default function GlobalNav() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
-  // Main Nav should only be on static/marketing pages, not in the functional app/agents
-  const isAppPage = pathname.startsWith('/dashboard') || 
-                    pathname.startsWith('/compliance') || 
-                    pathname.startsWith('/vault') || 
-                    pathname.startsWith('/tax') || 
-                    pathname.startsWith('/notice') || 
-                    pathname.startsWith('/bankfight') || 
-                    pathname.startsWith('/payroll') || 
-                    pathname.startsWith('/audit') ||
-                    pathname.startsWith('/login') ||
-                    pathname.startsWith('/onboarding') ||
-                    pathname.startsWith('/reset-password') ||
-                    pathname.startsWith('/ca-dashboard') ||
-                    pathname.startsWith('/developers') ||
-                    pathname.startsWith('/agents');
+  // GlobalNav should ONLY show on marketing/static pages — hide on everything else
+  const marketingPages = ['/', '/b2b', '/hire-a-ca', '/profile', '/rera', '/startup-legal'];
+  const isMarketingPage = marketingPages.includes(pathname) || pathname.startsWith('/#');
+  const isAppPage = !isMarketingPage;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
     
-    // Check Authentication (Unified Sync)
-    const checkAuth = async () => {
-       const { data: { session } } = await supabase.auth.getSession();
-       setIsLoggedIn(!!session);
-    };
-    checkAuth();
+    // Initial check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
 
-    return () => window.removeEventListener("scroll", handleScroll);
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (isAppPage) return null;

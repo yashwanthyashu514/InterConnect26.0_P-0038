@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react/no-unescaped-entities */
 import React, { useState, useEffect } from "react";
 import { Users, RefreshCw, Package, UserCheck } from "lucide-react";
 
@@ -39,7 +40,10 @@ export default function AdminHRPage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchBriefing(); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchBriefing();
+  }, []);
 
   return (
     <div style={{ padding: "40px", maxWidth: "900px" }}>

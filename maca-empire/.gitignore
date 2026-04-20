@@ -43,8 +43,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Judge Materials
+# Judge & Presentation Materials (Private)
 JUDGE_CHEATSHEET.md
+AGI_NEURAL_REGISTRY.md
+SUPREME_TAX_AGI_FEATURE_AUDIT.md
 # Python / Backend ignores
 __pycache__/
 *.py[cod]

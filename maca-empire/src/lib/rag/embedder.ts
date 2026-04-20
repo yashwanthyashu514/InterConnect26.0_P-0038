@@ -23,17 +23,41 @@ export async function getEmbedding(text: string): Promise<{ vector: number[] | n
   }
 
   const callNIM = async () => {
-    // REAL NIM Call logic (Placeholder with timeout)
+    // REAL NIM Call logic
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), NIM_TIMEOUT);
     
     try {
-      // In production, this would be: fetch(NIM_URL, { headers: { Authorization: `Bearer ${NIM_KEY}` }, ... })
-      // For this implementation, we simulate the logic.
-      if (!process.env.NVIDIA_NIM_API_KEY) throw new Error("NIM_KEY_MISSING");
+      const apiKey = process.env.NVIDIA_API_KEY;
+      if (!apiKey) throw new Error("NIM_KEY_MISSING");
       
-      // Simulation of a vector
-      return new Array(1024).fill(0).map((_, i) => Math.random());
+      const response = await fetch("https://integrate.api.nvidia.com/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${apiKey}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          input: [text],
+          model: "nvidia/nv-embed-v1",
+          encoding_format: "float",
+          input_type: "query",
+          truncate: "END"
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "NIM_API_ERROR");
+      }
+
+      const data: { data?: Array<{ embedding?: number[] }> } = await response.json();
+      const embedding = data.data?.[0]?.embedding;
+      if (!embedding) {
+        throw new Error("NIM_INVALID_RESPONSE");
+      }
+      return embedding;
     } finally {
       clearTimeout(timer);
     }
@@ -43,7 +67,8 @@ export async function getEmbedding(text: string): Promise<{ vector: number[] | n
     const vector = await callNIM();
     consecutiveFailures = 0;
     return { vector, fallback: false };
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errMessage = err instanceof Error ? err.message : "UNKNOWN_ERROR";
     consecutiveFailures++;
     if (consecutiveFailures >= 5) {
       circuitBreakerTrippedUntil = Date.now() + 5 * 60 * 1000; // Open for 5 mins
@@ -54,7 +79,7 @@ export async function getEmbedding(text: string): Promise<{ vector: number[] | n
        test_id: "F6-NIM-FAIL",
        stage: "S2",
        passed: false,
-       notes: `NIM Failure: ${err.message}. Fallback triggered.`
+       notes: `NIM Failure: ${errMessage}. Fallback triggered.`
     });
 
     return { vector: null, fallback: true };

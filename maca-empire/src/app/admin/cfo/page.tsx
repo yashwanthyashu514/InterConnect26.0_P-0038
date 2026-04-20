@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
 import { Gem, TrendingUp, BarChart3, AlertCircle, Loader2, ArrowLeft, BrainCircuit } from "lucide-react";

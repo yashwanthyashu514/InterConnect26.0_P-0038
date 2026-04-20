@@ -15,6 +15,31 @@ import AppHeader from "@/components/shared/AppHeader";
 
 export const dynamic = "force-dynamic";
 
+type DashboardStats = Record<string, unknown>;
+
+type Booking = {
+  id: string;
+  status: string;
+  amount_paise: number;
+  notes: string;
+  created_at: string;
+  ca_profiles?: {
+    marketplace_users?: {
+      name?: string;
+    };
+  };
+};
+
+type RazorpayResponse = Record<string, unknown>;
+
+type RazorpayConstructor = new (options: unknown) => { open: () => void };
+
+declare global {
+  interface Window {
+    Razorpay?: RazorpayConstructor;
+  }
+}
+
 
 const getAgentIcon = (id: string, size = 18) => {
   switch (id) {
@@ -29,6 +54,7 @@ const getAgentIcon = (id: string, size = 18) => {
     case "A8": return <Files size={size} />;
     case "A12": return <ShieldAlert size={size} />;
     case "A13": return <Globe size={size} />;
+    case "A21": return <ShieldAlert size={size} />;
     case "A23": return <Leaf size={size} />;
     case "A24": return <ScrollText size={size} />;
     case "A22": return <Coins size={size} />;
@@ -55,7 +81,7 @@ const topAgents = [
 
 export default function DashboardPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<DashboardStats | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
@@ -66,7 +92,7 @@ export default function DashboardPage() {
         a.description.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5);
 
-  const [bookings, setBookings] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
 
   const fetchDashboardData = async () => {
@@ -89,7 +115,7 @@ export default function DashboardPage() {
     fetchDashboardData();
   }, []);
 
-  const handlePayment = async (booking: any) => {
+  const handlePayment = async (booking: Booking) => {
     try {
       // 1. Set status to processing (optimistic UI)
       setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: "processing" } : b));
@@ -110,7 +136,7 @@ export default function DashboardPage() {
         name: "maCA Empire",
         description: `Consultation with ${booking.ca_profiles?.marketplace_users?.name}`,
         order_id: order_id,
-        handler: async (response: any) => {
+        handler: async (response: RazorpayResponse) => {
           // 4. Verify Payment
           const verifyRes = await fetch("/api/payment/verify", {
             method: "POST",
@@ -130,7 +156,10 @@ export default function DashboardPage() {
         theme: { color: "#B5FF2E" }
       };
 
-      const rzp = new (window as any).Razorpay(options);
+      if (!window.Razorpay) {
+        throw new Error("Razorpay SDK not loaded");
+      }
+      const rzp = new window.Razorpay(options);
       rzp.open();
     } catch (e) {
       alert("Checkout failed.");

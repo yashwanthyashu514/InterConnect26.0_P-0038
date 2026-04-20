@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -37,7 +38,6 @@ export default function ProfilePage() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem("maca_session");
     router.push("/login");
   };
 

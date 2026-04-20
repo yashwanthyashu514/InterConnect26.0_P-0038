@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -109,6 +110,17 @@ function OnboardingComponent() {
       if (session) {
         setIsLoggedIn(true);
         setRegData(prev => ({ ...prev, email: session.user.email || prev.email }));
+        
+        // If user already exists in the marketplace database, skip onboarding
+        const { data: userData } = await supabase
+          .from("marketplace_users")
+          .select("id")
+          .eq("email", session.user.email)
+          .maybeSingle();
+        
+        if (userData) {
+          router.push("/");
+        }
       }
     };
     checkUser();
@@ -298,7 +310,7 @@ function OnboardingComponent() {
                 </Link>
               ))}
             </div>
-            <Link href="/dashboard" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px 40px" }}>Go to Dashboard →</Link>
+            <Link href="/" className="btn-primary" style={{ justifyContent: "center", fontSize: "15px", padding: "14px 40px" }}>Enter the Empire Home →</Link>
           </div>
         )}
         {step < 4 && (

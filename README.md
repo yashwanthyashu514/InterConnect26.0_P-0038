@@ -13,7 +13,7 @@
 [![Status](https://img.shields.io/badge/Status-STABLE%20%26%20VALIDATED-22c55e?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
 [![InterConnect](https://img.shields.io/badge/InterConnect-26.0%20%7C%20P--0038-3b82f6?style=for-the-badge&logo=academia&logoColor=white)](https://gmit.ac.in)
 [![Security](https://img.shields.io/badge/Security-PROD--READY-f59e0b?style=for-the-badge&logo=auth0&logoColor=white)](https://supabase.com)
-[![Agents](https://img.shields.io/badge/Neural%20Agents-18%20Active-8b5cf6?style=for-the-badge&logo=openai&logoColor=white)](#-the-18-agent-neural-registry)
+[![Agents](https://img.shields.io/badge/Neural%20Agents-19%20Active-8b5cf6?style=for-the-badge&logo=openai&logoColor=white)](#-the-19-agent-neural-registry)
 [![License](https://img.shields.io/badge/License-MIT-64748b?style=for-the-badge)](LICENSE)
 
 <br/>
@@ -29,7 +29,7 @@
 
 - [Project Vision](#-project-vision)
 - [Live Architecture Overview](#-live-architecture-overview)
-- [The 18-Agent Neural Registry](#-the-18-agent-neural-registry)
+- [The 19-Agent Neural Registry](#-the-19-agent-neural-registry)
 - [Technical Stack](#-technical-stack)
 - [Folder Architecture](#-folder-architecture)
 - [Core Technical Highlights](#-core-technical-highlights)
@@ -86,7 +86,7 @@
 
 ---
 
-## 🤖 The 18-Agent Neural Registry
+## 🤖 The 19-Agent Neural Registry
 
 | ID | Agent | Domain | Core Capability |
 |:--|:--|:--|:--|
@@ -119,7 +119,7 @@
 [![React](https://img.shields.io/badge/React%2019-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
-[![Vercel](https://img.shields.io/badge/Vercel%20Edge-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+[![Local](https://img.shields.io/badge/Sovereign%20Local%20Node-000000?style=for-the-badge&logo=serverfault&logoColor=white)](#)
 
 ### Backend & AI
 
@@ -155,7 +155,7 @@ InterConnect26.0_P-0038/
     │
     ├── backend/
     │   ├── main.py                 # FastAPI orchestrator — Command Nexus (A0)
-    │   ├── agents/                 # 18 agent modules (one file per agent)
+    │   ├── agents/                 # 19 agent modules (one file per agent)
     │   ├── reasoning/              # CoT verifier loop & self-audit engine
     │   └── vision/                 # OCR + PDF parsing for Legal Vision (A8)
     │
@@ -207,7 +207,7 @@ upload → pdf-parse / pytesseract OCR
 
 ### 4. Distributed RAG on Legal Knowledge
 
-All 18 agents draw from a shared vectorized legal knowledge base:
+All 19 agents draw from a shared vectorized legal knowledge base:
 
 - **Embedding model**: `nvidia/nv-embed-v1` (4096-dimensional)
 - **Vector store**: Supabase `pgvector` with cosine similarity
@@ -296,7 +296,7 @@ python create_knowledge_base.py --incremental
 | **Audit Trail** | Real-time `/logs` stream | Every agent reasoning step forensically logged |
 | **Trust Layer** | Blockchain Notary (A16) | Cryptographic receipt for every legal output |
 | **Resilience** | Self-Heal Node (A21) | Auto-reroutes on agent failure — zero downtime |
-| **Deployment** | Vercel Global Edge | <100ms perceived latency, auto-scaling |
+| **Deployment** | Sovereign Local Node | <100ms perceived latency, private infrastructure |
 
 ---
 

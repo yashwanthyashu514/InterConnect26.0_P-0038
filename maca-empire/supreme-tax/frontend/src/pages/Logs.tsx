@@ -18,7 +18,7 @@ const LOG_DATA = [
   { id: 'SYNC-01', timestamp: '2026-04-20 00:55', action: 'Adaptive Law-Sync Core: Autonomous ingestion of global tax amendments (<5s delay)', score: 25, status: 'SYNCED' },
   { id: 'SEC-002', timestamp: '2026-04-20 00:50', action: 'Strategic Anomaly Scanner: Deep-neural multi-year fraud pattern recognition', score: 25, status: 'ACTIVE' },
   { id: 'PAY-01', timestamp: '2026-04-20 00:45', action: 'Razorpay Neural Handshake: AI-orchestrated payment mesh with transactional integrity', score: 25, status: 'VERIFIED' },
-  { id: 'NODE-01', timestamp: '2026-04-20 00:40', action: 'Edge Compute Sovereign Nodes: Global low-latency Vercel Edge AGI inference nodes', score: 25, status: 'VERIFIED' },
+  { id: 'NODE-01', timestamp: '2026-04-20 00:40', action: 'Sovereign Local Compute: High-performance private neural inference on dedicated infrastructure', score: 25, status: 'VERIFIED' },
   { id: 'AGI-006', timestamp: '2026-04-20 00:35', action: 'DPIIT/Statutory Autopilot: Self-driving logic module for Startup-Tax pathfinding', score: 25, status: 'VERIFIED' },
   { id: 'SEC-003', timestamp: '2026-04-20 00:30', action: 'Multi-Tenant RBAC Hardening: Forensic-grade isolations for Enterprise neural silos', score: 25, status: 'HARDENED' },
   { id: 'AUDIT-01', timestamp: '2026-04-20 00:25', action: 'Real-Time Forensic Audit Stream: Live WebSocket feed of Agent internal evidence extraction', score: 25, status: 'LIVE' },
@@ -94,7 +94,7 @@ export default function Logs() {
 
         <footer style={{ marginTop: '40px', padding: '20px', textAlign: 'center', borderTop: '1px solid var(--border)' }}>
           <p style={{ color: 'var(--text3)', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.4em' }}>
-            End of Neutral Registry • Encrypted at Origin
+            End of Neural Registry • Encrypted at Origin
           </p>
         </footer>
       </main>

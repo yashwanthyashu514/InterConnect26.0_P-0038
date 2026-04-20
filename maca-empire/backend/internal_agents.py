@@ -218,6 +218,8 @@ async def cfo_chat(req: InternalChatRequest):
 async def cto_report(req: InternalChatRequest):
     verify_admin(req.admin_key)
     ctx = await build_cto_context()
+    
+    # Consolidation: Combine simple report with telemetry if requested
     prompt = INTERNAL_CTO_PROMPT.format(**ctx)
     return await internal_agent_stream(prompt, req.message)
 
@@ -456,10 +458,9 @@ async def expire_stale_bookings():
 
 # --- SPECIALIZED DEEP DIVE REPORTS ---
 
-@internal_router.post("/cto/report")
-async def generate_cto_deep_dive(req: dict):
-    verify_admin(req.get("admin_key"))
-    
+# Consolidated with /cto/report above. 
+# Keeping generate_cto_deep_dive as a function call if needed, but removing route to avoid 405/409 errors.
+async def generate_cto_deep_dive_logic(admin_key: str):
     # Real telemetry diagnostics
     error_summary = "All neural buffers clear. Zero errors detected in current scan."
     latency_ms = 12

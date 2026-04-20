@@ -54,7 +54,10 @@ export async function retrieveContext(query: string, bookingId: string) {
   if (error) throw error;
 
   // S4-T2: Reranking (Score Threshold)
-  const reranked = chunks.filter((c: any) => c.similarity > 0.4);
+  const reranked = (Array.isArray(chunks) ? chunks : []).filter((c): c is Record<string, unknown> & { similarity: number } => {
+    const sim = (c as Record<string, unknown>)?.similarity;
+    return typeof sim === "number" && sim > 0.4;
+  });
   
   return reranked.slice(0, 5);
 }

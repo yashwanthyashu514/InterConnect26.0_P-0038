@@ -6,50 +6,79 @@ import { ShieldCheck, XCircle, CheckCircle, CreditCard, Users, TrendingUp, Filte
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 const ADMIN_KEY = "imperio-admin-2025";
 
-const STATUS_COLORS: any = {
+const STATUS_COLORS: Record<string, string> = {
   requested: "#FBBF24", accepted: "#60A5FA", paid: "#34D399",
   completed: "#2DD4BF", declined: "#F87171", disputed: "#FB923C", refunded: "#A78BFA"
 };
 
 type Tab = "kyc" | "bookings" | "revenue";
 
+type MarketplaceUser = { name?: string; email?: string; phone?: string };
+type CAPending = {
+  id: string;
+  icai_registration_no?: string;
+  listed_price_paise: number;
+  specialties?: string[];
+  marketplace_users?: MarketplaceUser;
+};
+type BookingRow = {
+  id: string;
+  status: string;
+  amount_paise: number;
+  commission_paise: number;
+  created_at: string;
+  marketplace_users?: MarketplaceUser;
+  ca_profiles?: { marketplace_users?: MarketplaceUser };
+};
+type Revenue = {
+  total_commission_paise: number;
+  total_gmv_paise: number;
+  total_transactions: number;
+  pending_payouts?: Array<{
+    id: string;
+    ca_payout_paise: number;
+    ca_profiles?: { bank_ifsc?: string; marketplace_users?: MarketplaceUser };
+  }>;
+};
+
 export default function AdminMarketplace() {
   const [tab, setTab] = useState<Tab>("kyc");
-  const [pending, setPending] = useState<any[]>([]);
-  const [bookings, setBookings] = useState<any[]>([]);
-  const [revenue, setRevenue] = useState<any>(null);
+  const [pending, setPending] = useState<CAPending[]>([]);
+  const [bookings, setBookings] = useState<BookingRow[]>([]);
+  const [revenue, setRevenue] = useState<Revenue | null>(null);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("");
-
-  useEffect(() => {
-    loadTab(tab);
-  }, [tab, statusFilter]);
 
   const loadTab = async (t: Tab) => {
     setLoading(true);
     try {
       if (t === "kyc") {
         const res = await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals?admin_key=${ADMIN_KEY}`);
-        const data = await res.json();
-        setPending(data.pending || []);
+        const data: { pending?: CAPending[] } = await res.json();
+        setPending(data.pending ?? []);
       } else if (t === "bookings") {
         const url = statusFilter
           ? `${BACKEND}/api/marketplace/admin/bookings?status_filter=${statusFilter}&admin_key=${ADMIN_KEY}`
           : `${BACKEND}/api/marketplace/admin/bookings?admin_key=${ADMIN_KEY}`;
         const res = await fetch(url);
-        const data = await res.json();
-        setBookings(data.bookings || []);
+        const data: { bookings?: BookingRow[] } = await res.json();
+        setBookings(data.bookings ?? []);
       } else if (t === "revenue") {
         const res = await fetch(`${BACKEND}/api/marketplace/admin/revenue?admin_key=${ADMIN_KEY}`);
-        const data = await res.json();
+        const data: Revenue = await res.json();
         setRevenue(data);
       }
-    } catch (e) { 
+    } catch (e: unknown) { 
       console.error("Marketplace Sync Error:", e);
       setPending([]); setBookings([]); // Clear on error
     }
     setLoading(false);
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadTab(tab);
+  }, [tab, statusFilter]);
 
   const handleApprove = async (caId: string) => {
     await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals/${caId}/approve`, { method: "POST" });
@@ -199,7 +228,7 @@ export default function AdminMarketplace() {
             <p style={{ color: "rgba(255,255,255,0.2)", fontStyle: "italic" }}>All payouts processed.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {revenue.pending_payouts?.map((p: any) => (
+              {revenue.pending_payouts?.map((p) => (
                 <div key={p.id} style={{ display: "grid", gridTemplateColumns: "1fr 120px 120px 120px", alignItems: "center", padding: "20px 16px", background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "14px" }}>
                   <div>
                     <p style={{ fontWeight: 700, fontSize: "14px" }}>{p.ca_profiles?.marketplace_users?.name || "CA"}</p>

@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 
 export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void }) {
   const [showProfile, setShowProfile] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ email?: string } | null>(null);
   const [role, setRole] = useState<string>("User");
   const router = useRouter();
 
@@ -16,7 +16,7 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
     const fetchUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        setUser(session.user);
+        setUser(session.user as { email?: string });
         
         // Fetch role from marketplace_users
         const { data: userData } = await supabase
@@ -35,7 +35,6 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem("maca_session");
     router.push("/login");
   };
 

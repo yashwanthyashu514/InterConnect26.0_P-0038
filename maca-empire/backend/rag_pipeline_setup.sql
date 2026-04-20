@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS document_chunks (
 );
 
 -- 2. Document Embeddings Table (pgvector)
--- Using 1024 dimensions for nvidia/nv-embedqa-e5-v5
+-- Using 4096 dimensions for nvidia/nv-embed-v1
 CREATE TABLE IF NOT EXISTS document_embeddings (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   chunk_id UUID REFERENCES document_chunks(id) ON DELETE CASCADE,
-  embedding extensions.vector(1024),
+  embedding extensions.vector(4096),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -48,7 +48,7 @@ CREATE INDEX IF NOT EXISTS idx_chunks_hash ON document_chunks(content_hash);
 
 -- Match Documents RPC with Filter and Scoping
 CREATE OR REPLACE FUNCTION match_documents (
-  query_embedding extensions.vector(1024),
+  query_embedding extensions.vector(4096),
   match_count INT,
   filter JSONB DEFAULT '{}'::JSONB
 )

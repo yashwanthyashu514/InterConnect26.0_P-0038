@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
 import { Bell, Check, Clock, ArrowLeft, Loader2 } from "lucide-react";

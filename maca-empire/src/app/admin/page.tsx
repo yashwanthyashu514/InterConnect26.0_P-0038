@@ -1,188 +1,294 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, Gem, Cpu, Megaphone, Bell, ChevronRight, RefreshCw, ShieldCheck } from "lucide-react";
+import {
+  Activity, Gem, Cpu, Megaphone, Bell, ChevronRight,
+  RefreshCw, ShieldCheck, FileText, TrendingUp, Users,
+  AlertTriangle, CheckCircle, Download, Zap, BarChart3
+} from "lucide-react";
 
 const ADMIN_KEY = "imperio-admin-2025";
-const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
-const agentCards = [
-  { id: "cfo",       label: "CFO AI",       sublabel: "Layer 1 · FINANCIAL ENGINE",  icon: <Gem size={18} />, color: "#B5FF2E", href: "/admin/cfo" },
-  { id: "cto",       label: "CTO AI",       sublabel: "Layer 2 · CORE SYSTEMS",      icon: <Cpu size={18} />, color: "#60A5FA", href: "/admin/cto" },
-  { id: "hr",        label: "HR AI",        sublabel: "Layer 3 · OVERWATCH",         icon: <ShieldCheck size={18} />, color: "#C084FC", href: "/admin/hr" },
-  { id: "marketing", label: "MARKETING AI", sublabel: "Layer 4 · BRAND REACH",       icon: <Megaphone size={18} />, color: "#FB923C", href: "/admin/marketing" },
-];
+type DeptReport = {
+  title: string;
+  headline: string;
+  summary: string;
+  metrics: { label: string; value: string | number }[];
+};
+
+type Report = {
+  generated_at: string;
+  status: string;
+  cfo: DeptReport;
+  hr: DeptReport;
+  cto: DeptReport;
+  marketing: DeptReport;
+  decisions_needed: string[];
+};
+
+const DEPT_META = {
+  cfo:       { icon: <Gem size={20} />,        color: "#B5FF2E", bg: "rgba(181,255,46,0.08)",  border: "rgba(181,255,46,0.25)" },
+  hr:        { icon: <Users size={20} />,       color: "#C084FC", bg: "rgba(192,132,252,0.08)", border: "rgba(192,132,252,0.25)" },
+  cto:       { icon: <Cpu size={20} />,         color: "#60A5FA", bg: "rgba(96,165,250,0.08)",  border: "rgba(96,165,250,0.25)" },
+  marketing: { icon: <Megaphone size={20} />,   color: "#FB923C", bg: "rgba(251,146,60,0.08)",  border: "rgba(251,146,60,0.25)" },
+};
 
 export default function AdminDashboard() {
-  const [briefing, setBriefing] = useState<any>(null);
-  const [alerts, setAlerts] = useState<any[]>([]);
-  const [activity, setActivity] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [report, setReport] = useState<Report | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [generated, setGenerated] = useState(false);
+  const [alerts, setAlerts] = useState<{label: string}[]>([]);
 
-  const fetchData = async () => {
+  const generateReport = async () => {
     setLoading(true);
+    setGenerated(false);
     try {
-      const [bRes, aRes, actRes] = await Promise.all([
-        fetch(`${BACKEND}/internal/briefing/today?admin_key=${ADMIN_KEY}`),
-        fetch(`${BACKEND}/internal/alerts/active?admin_key=${ADMIN_KEY}`),
-        fetch(`${BACKEND}/internal/activity/recent?admin_key=${ADMIN_KEY}`),
-      ]);
-      const b = await bRes.json();
-      const a = await aRes.json();
-      const act = await actRes.json();
-      setBriefing(b);
-      setAlerts(a.alerts || []);
-      setActivity(act.activity || []);
-    } catch {}
+      const res = await fetch("/api/admin/generate-report", {
+        headers: { "x-admin-key": ADMIN_KEY },
+      });
+      const data: Report = await res.json();
+      setReport(data);
+      setAlerts(data.decisions_needed?.map(d => ({ label: d })) || []);
+      setGenerated(true);
+    } catch {
+      alert("Report generation failed. Check your connection.");
+    }
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(); }, []);
+  // Auto-load on mount
+  useEffect(() => {
+    generateReport();
+  }, []);
+
+  const handleExport = () => {
+    if (!report) return;
+    const lines: string[] = [
+      "████████████████████████████████████████████████████",
+      "     maCA EMPIRE — CEO COMMAND BRIEFING REPORT",
+      `     Generated: ${new Date(report.generated_at).toLocaleString("en-IN")}`,
+      "████████████████████████████████████████████████████",
+      "",
+    ];
+    (["cfo", "hr", "cto", "marketing"] as const).forEach(dept => {
+      const d = report[dept];
+      lines.push(`\n═══ ${d.title.toUpperCase()} ═══`);
+      lines.push(d.headline);
+      lines.push(`\nSummary:\n${d.summary}`);
+      lines.push("\nMetrics:");
+      d.metrics.forEach(m => lines.push(`  • ${m.label}: ${m.value}`));
+      lines.push("");
+    });
+    if (report.decisions_needed?.length > 0) {
+      lines.push("\n⚠ DECISIONS REQUIRED:");
+      report.decisions_needed.forEach(d => lines.push(`  → ${d}`));
+    }
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `CEO_Report_${new Date().toISOString().split("T")[0]}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <div style={{ padding: "120px 40px 80px", maxWidth: "1100px" }}>
-      {/* Header */}
+    <div style={{ padding: "40px 48px 80px", maxWidth: "1200px" }}>
+
+      {/* ── Header ───────────────────────────────────────────────────── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "40px" }}>
         <div>
-          <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Imperio Neural Internal</span>
-          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "32px", letterSpacing: "-1px", color: "#fff", margin: "6px 0 4px" }}>Command Centre</h1>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Chain-of-command status · CEO View · Not visible to platform users</p>
+          <span style={{ fontSize: "10px", fontWeight: 800, letterSpacing: "2px", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>
+            Imperio Neural Internal
+          </span>
+          <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "32px", letterSpacing: "-1px", color: "#fff", margin: "6px 0 4px" }}>
+            Command Centre
+          </h1>
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>
+            CEO View · Chain-of-command status · Live Supabase data
+          </p>
         </div>
-        <button onClick={fetchData} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 16px", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "rgba(255,255,255,0.5)", fontSize: "12px", cursor: "pointer" }}>
-          <RefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ display: "flex", gap: "10px" }}>
+          {generated && (
+            <button onClick={handleExport} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(181,255,46,0.08)", border: "1px solid rgba(181,255,46,0.25)", borderRadius: "10px", color: "#B5FF2E", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+              <Download size={14} /> Export Report
+            </button>
+          )}
+          <button onClick={generateReport} disabled={loading} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "10px 18px", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", borderRadius: "10px", color: "rgba(255,255,255,0.5)", fontSize: "12px", cursor: "pointer" }}>
+            <RefreshCw size={14} className={loading ? "animate-spin" : ""} /> {loading ? "Generating..." : "Refresh"}
+          </button>
+        </div>
       </div>
 
-      {/* Alert Banner */}
-      {alerts.filter(a => a.severity === "critical").length > 0 && (
-        <div style={{ padding: "14px 20px", background: "rgba(255,80,80,0.08)", border: "0.5px solid rgba(255,80,80,0.3)", borderRadius: "12px", marginBottom: "32px", display: "flex", alignItems: "center", gap: "12px" }}>
-          <Bell size={16} color="#FF5050" />
-          <span style={{ fontSize: "13px", color: "#FF5050", fontWeight: 700 }}>{alerts.filter(a => a.severity === "critical").length} critical alert(s) require your attention</span>
-          <Link href="/admin/alerts" style={{ marginLeft: "auto", fontSize: "12px", color: "#FF5050", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}>
-            View all <ChevronRight size={12} />
-          </Link>
+      {/* ── Decisions Needed Banner ───────────────────────────────────── */}
+      {alerts.length > 0 && (
+        <div style={{ padding: "16px 20px", background: "rgba(251,146,60,0.06)", border: "0.5px solid rgba(251,146,60,0.3)", borderRadius: "14px", marginBottom: "32px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
+            <AlertTriangle size={16} color="#FB923C" />
+            <span style={{ fontSize: "12px", fontWeight: 800, color: "#FB923C", textTransform: "uppercase", letterSpacing: "1px" }}>
+              {alerts.length} Action{alerts.length > 1 ? "s" : ""} Required by CEO
+            </span>
+          </div>
+          {alerts.map((a, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", paddingTop: "8px", borderTop: i > 0 ? "0.5px solid rgba(251,146,60,0.1)" : "none" }}>
+              <ChevronRight size={13} color="#FB923C" style={{ flexShrink: 0, marginTop: "2px" }} />
+              <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.7)", lineHeight: 1.5 }}>{a.label}</span>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* A2A Force Command (NEW) */}
-      <div style={{ padding: "32px", background: "rgba(181, 255, 46, 0.05)", border: "1px solid rgba(181, 255, 46, 0.2)", borderRadius: "24px", marginBottom: "40px", display: "flex", alignItems: "center", gap: "24px" }}>
-        <div style={{ width: "48px", height: "48px", background: "#B5FF2E", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000" }}>
-           <Activity size={24} />
+      {/* ── Generate / A2A Banner ─────────────────────────────────────── */}
+      <div style={{ padding: "28px 32px", background: "rgba(181,255,46,0.04)", border: "1px solid rgba(181,255,46,0.15)", borderRadius: "20px", marginBottom: "40px", display: "flex", alignItems: "center", gap: "24px" }}>
+        <div style={{ width: "44px", height: "44px", background: "#B5FF2E", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", color: "#000", flexShrink: 0 }}>
+          <Activity size={22} />
         </div>
         <div style={{ flex: 1 }}>
-          <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "18px", fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>LIVE A2A COMMAND</h3>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", margin: 0 }}>Trigger immediate Agent-to-Agent sequential synthesis. Bypass 08:00 IST schedule.</p>
+          <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "16px", fontWeight: 800, color: "#fff", margin: "0 0 4px" }}>LIVE CEO BRIEFING REPORT</h3>
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", margin: 0 }}>
+            {generated && report
+              ? `Last generated: ${new Date(report.generated_at).toLocaleString("en-IN")}`
+              : "Pull real-time intelligence from CFO, HR, CTO & Marketing layers."}
+          </p>
         </div>
-        <button 
-          onClick={async () => {
-             setLoading(true);
-             try {
-               await fetch(`${BACKEND}/internal/briefing/force-compile?admin_key=${ADMIN_KEY}`, { method: "POST" });
-               await fetchData();
-             } catch (e) { alert("Synthesis Error: Check Terminal"); }
-             setLoading(false);
-          }}
+        <button
+          onClick={generateReport}
           disabled={loading}
-          style={{ padding: "14px 28px", background: "#B5FF2E", border: "none", borderRadius: "12px", color: "#000", fontSize: "13px", fontWeight: 900, cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}
+          style={{ padding: "13px 24px", background: loading ? "rgba(255,255,255,0.08)" : "#B5FF2E", border: "none", borderRadius: "12px", color: loading ? "rgba(255,255,255,0.3)" : "#000", fontSize: "13px", fontWeight: 900, cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}
         >
-          {loading ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />} SYNTHESIZE A2A NOW
+          {loading ? <RefreshCw size={15} className="animate-spin" /> : <Zap size={15} />}
+          {loading ? "Synthesizing..." : "Generate Report"}
         </button>
       </div>
 
-      {/* Main Intel Grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "24px", marginBottom: "40px" }}>
-        
-        {/* Left: Daily Briefing */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
-            <Activity size={16} color="#B5FF2E" />
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "#fff" }}>Today's Briefing</h2>
-            {briefing?.status && (
-              <span style={{ padding: "2px 10px", borderRadius: "100px", fontSize: "10px", fontWeight: 800, background: briefing.status === "ready" ? "rgba(181,255,46,0.1)" : "rgba(255,255,255,0.04)", color: briefing.status === "ready" ? "#B5FF2E" : "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
-                {briefing.status}
-              </span>
-            )}
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {[
-              { label: "CFO (FINANCIAL)", content: briefing?.cfo_section, color: "#B5FF2E", icon: <Gem size={18} color="#B5FF2E" /> },
-              { label: "CTO (CORE ENGINE)", content: briefing?.cto_section, color: "#60A5FA", icon: <Cpu size={18} color="#60A5FA" /> },
-              { label: "HR (OVERWATCH)", content: briefing?.hr_section, color: "#C084FC", icon: <ShieldCheck size={18} color="#C084FC" /> },
-              { label: "MARKETING (REACH)", content: briefing?.marketing_section, color: "#FB923C", icon: <Megaphone size={18} color="#FB923C" /> },
-            ].map((section, i) => (
-              <div key={i} style={{ padding: "24px", background: "#FFF", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "20px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                  {React.cloneElement(section.icon as React.ReactElement<any>, { color: "#000" })}
-                  <p style={{ fontSize: "11px", fontWeight: 900, color: "rgba(0,0,0,0.5)", textTransform: "uppercase", letterSpacing: "1.5px", margin: 0 }}>{section.label}</p>
-                </div>
-                <p style={{ fontSize: "14px", color: "#000", fontWeight: 600, lineHeight: 1.6, margin: 0 }}>
-                  {loading ? "Synthesizing..." : section.content || "Awaiting Command."}
-                </p>
-              </div>
-            ))}
-            {briefing?.decisions_needed && (
-              <div style={{ gridColumn: "span 2", padding: "24px", background: "#FFF", border: "2px solid #B5FF2E", borderRadius: "20px" }}>
-                 <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                   <Activity size={18} color="#000" />
-                   <p style={{ fontSize: "11px", fontWeight: 900, color: "#000", textTransform: "uppercase", letterSpacing: "1.5px", margin: 0 }}>STRATEGIC DECISIONS NEEDED</p>
-                 </div>
-                 <p style={{ fontSize: "14px", color: "#000", fontWeight: 700, lineHeight: 1.6, margin: 0 }}>{briefing.decisions_needed}</p>
-              </div>
-            )}
-          </div>
+      {/* ── Loading State ─────────────────────────────────────────────── */}
+      {loading && (
+        <div style={{ textAlign: "center", padding: "80px 40px" }}>
+          <div style={{ width: "48px", height: "48px", border: "3px solid rgba(255,255,255,0.05)", borderTop: "3px solid #B5FF2E", borderRadius: "50%", margin: "0 auto 24px", animation: "spin 1s linear infinite" }} />
+          <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px" }}>Synthesizing intelligence across all 4 departments...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </div>
+      )}
 
-        {/* Right: A2A Neural Activity Feed */}
-        <div style={{ background: "#FFF", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "24px", padding: "32px", boxShadow: "0 10px 40px rgba(0,0,0,0.1)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "24px" }}>
-            <Activity size={20} color="#000" />
-            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "16px", color: "#000", textTransform: "uppercase", letterSpacing: "1.5px" }}>GLOBAL TELEMETRY</h2>
+      {/* ── Department Report Cards ───────────────────────────────────── */}
+      {!loading && generated && report && (
+        <>
+          {/* Timestamp */}
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
+            <CheckCircle size={14} color="#B5FF2E" />
+            <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.35)", fontWeight: 700 }}>
+              REPORT SYNTHESIZED · {new Date(report.generated_at).toLocaleString("en-IN")}
+            </span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {activity.length > 0 ? activity.map((act, i) => (
-              <div key={i} style={{ padding: "16px", background: "rgba(0,0,0,0.03)", borderRadius: "14px", border: "0.5px solid rgba(0,0,0,0.05)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                   <span style={{ fontSize: "10px", fontWeight: 900, color: act.type === 'alert' ? '#FF5050' : '#000', textTransform: "uppercase" }}>{act.agent}</span>
-                   <ChevronRight size={10} color="rgba(0,0,0,0.2)" />
-                   <span style={{ fontSize: "10px", fontWeight: 900, color: "rgba(0,0,0,0.3)", textTransform: "uppercase" }}>{act.to}</span>
-                   <span style={{ marginLeft: "auto", fontSize: "10px", color: "rgba(0,0,0,0.4)", fontWeight: 700 }}>{new Date(act.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+
+          {/* 2x2 Department Grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "32px" }}>
+            {(["cfo", "hr", "cto", "marketing"] as const).map((dept) => {
+              const d = report[dept];
+              const meta = DEPT_META[dept];
+              return (
+                <div key={dept} style={{ background: meta.bg, border: `1px solid ${meta.border}`, borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>
+                  {/* Glow accent */}
+                  <div style={{ position: "absolute", top: 0, right: 0, width: "150px", height: "150px", background: `radial-gradient(circle, ${meta.color}10 0%, transparent 70%)`, pointerEvents: "none" }} />
+
+                  {/* Header */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+                    <div style={{ color: meta.color }}>{meta.icon}</div>
+                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "14px", color: meta.color, textTransform: "uppercase", letterSpacing: "1px", margin: 0 }}>
+                      {d.title}
+                    </h3>
+                  </div>
+
+                  {/* Headline */}
+                  <p style={{ fontSize: "15px", fontWeight: 700, color: "#fff", marginBottom: "16px", lineHeight: 1.4 }}>
+                    {d.headline}
+                  </p>
+
+                  {/* Metrics */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "20px" }}>
+                    {d.metrics.slice(0, 5).map((m, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "0.5px solid rgba(255,255,255,0.05)" }}>
+                        <span style={{ fontSize: "12px", color: "rgba(255,255,255,0.4)", fontWeight: 600 }}>{m.label}</span>
+                        <span style={{ fontSize: "13px", color: meta.color, fontWeight: 800 }}>{m.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Summary */}
+                  <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", lineHeight: 1.7, borderTop: `0.5px solid rgba(255,255,255,0.07)`, paddingTop: "16px", margin: 0 }}>
+                    {d.summary}
+                  </p>
                 </div>
-                <p style={{ fontSize: "12px", color: "#000", margin: 0, fontWeight: 600 }}>{act.subject}</p>
-              </div>
-            )) : (
-              <p style={{ fontSize: "13px", color: "rgba(0,0,0,0.3)", textAlign: "center", padding: "30px", fontWeight: 600 }}>No autonomous activity detected.</p>
-            )}
+              );
+            })}
           </div>
-        </div>
 
-      </div>
+          {/* Full Metrics Breakdown Table */}
+          <div style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "24px", padding: "32px", marginBottom: "32px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
+              <BarChart3 size={18} color="#B5FF2E" />
+              <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "16px", color: "#fff", margin: 0 }}>Full Metrics Ledger</h2>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "32px" }}>
+              {(["cfo", "hr", "cto", "marketing"] as const).map(dept => {
+                const d = report[dept];
+                const meta = DEPT_META[dept];
+                return (
+                  <div key={dept}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "16px" }}>
+                      <span style={{ color: meta.color }}>{meta.icon}</span>
+                      <span style={{ fontSize: "11px", fontWeight: 800, color: meta.color, textTransform: "uppercase", letterSpacing: "1.5px" }}>{d.title}</span>
+                    </div>
+                    {d.metrics.map((m, i) => (
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "0.5px solid rgba(255,255,255,0.04)" }}>
+                        <span style={{ fontSize: "13px", color: "rgba(255,255,255,0.45)" }}>{m.label}</span>
+                        <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{m.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-      {/* Agent Status Grid */}
-      <div>
-        <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "#fff", marginBottom: "16px" }}>Executive Team Status</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-          {agentCards.map(agent => (
-            <Link key={agent.id} href={agent.href} style={{ textDecoration: "none", display: "block", padding: "24px 20px", background: "#FFF", border: "1px solid rgba(0,0,0,0.1)", borderRadius: "20px", transition: "all 0.2s", cursor: "pointer", boxShadow: "0 10px 40px rgba(0,0,0,0.05)" }}
-              onMouseEnter={e => (e.currentTarget.style.borderColor = "#000")}
-              onMouseLeave={e => (e.currentTarget.style.borderColor = "rgba(0,0,0,0.1)")}>
-              
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "12px" }}>
-                <div style={{ padding: "8px", background: "rgba(0,0,0,0.05)", borderRadius: "8px", color: "#000" }}>
-                   {React.cloneElement(agent.icon as React.ReactElement<any>, { color: "#000" })}
-                </div>
-                <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 900, fontSize: "14px", color: "#000", margin: 0, textTransform: "uppercase", letterSpacing: "1px", wordBreak: "break-word" }}>{agent.label}</p>
-              </div>
-              <p style={{ fontSize: "10px", color: "rgba(0,0,0,0.4)", fontWeight: 800, lineHeight: 1.4, marginBottom: "16px", textTransform: "uppercase", letterSpacing: "1px" }}>{agent.sublabel}</p>
-              
-              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#000" }} />
-                <span style={{ fontSize: "10px", color: "#000", fontWeight: 900 }}>{agent.id === 'hr' ? 'AUTONOMOUS OVERWATCH' : 'A2A ACTIVE'}</span>
-              </div>
-            </Link>
-          ))}
+          {/* Quick Nav to Sub-Dashboards */}
+          <div>
+            <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "15px", color: "#fff", marginBottom: "16px" }}>
+              Deep Dive — Executive Sub-Dashboards
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
+              {([
+                { label: "CFO Engine",     href: "/admin/cfo",       meta: DEPT_META.cfo },
+                { label: "CTO Systems",    href: "/admin/cto",       meta: DEPT_META.cto },
+                { label: "HR Overwatch",   href: "/admin/hr",        meta: DEPT_META.hr },
+                { label: "Marketing Reach",href: "/admin/marketing", meta: DEPT_META.marketing },
+              ]).map(item => (
+                <Link key={item.href} href={item.href} style={{ textDecoration: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: item.meta.bg, border: `0.5px solid ${item.meta.border}`, borderRadius: "14px", transition: "all 0.2s" }}
+                  onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
+                  onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ color: item.meta.color }}>{item.meta.icon}</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#fff" }}>{item.label}</span>
+                  </div>
+                  <ChevronRight size={14} color={item.meta.color} />
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Empty State ───────────────────────────────────────────────── */}
+      {!loading && !generated && (
+        <div style={{ textAlign: "center", padding: "80px 40px", background: "rgba(255,255,255,0.01)", border: "0.5px dashed rgba(255,255,255,0.08)", borderRadius: "24px" }}>
+          <FileText size={40} color="rgba(255,255,255,0.1)" style={{ marginBottom: "16px" }} />
+          <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "15px", fontWeight: 600 }}>No report generated yet.</p>
+          <p style={{ color: "rgba(255,255,255,0.2)", fontSize: "13px" }}>Click Generate Report to synthesize live intelligence.</p>
         </div>
-      </div>
+      )}
     </div>
   );
 }

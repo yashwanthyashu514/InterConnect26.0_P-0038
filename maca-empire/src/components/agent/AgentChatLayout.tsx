@@ -7,7 +7,7 @@ import { User, Share2, Download, FileText, Landmark, Scale, Briefcase, Globe, Sh
 interface Message {
   role: "user" | "assistant";
   content: string;
-  citations?: any[];
+  citations?: unknown[];
 }
 
 interface AgentChatLayoutProps {
@@ -111,7 +111,7 @@ export default function AgentChatLayout({
 
   const renderIcon = (icon: React.ReactNode, size: number) => {
     if (React.isValidElement(icon)) {
-      return React.cloneElement(icon as React.ReactElement<any>, { size });
+      return React.cloneElement(icon as React.ReactElement<{ size?: number }>, { size });
     }
     return <span style={{ fontSize: `${size}px`, display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</span>;
   };
@@ -133,7 +133,7 @@ export default function AgentChatLayout({
 
     try {
       let endpoint = `${BACKEND_URL}/ask`;
-      let payload: any = { query: userMsg.content, agent_id: agentId };
+      let payload: Record<string, unknown> = { query: userMsg.content, agent_id: agentId };
 
       if (selectedImage) {
         payload.image = selectedImage;
@@ -191,7 +191,7 @@ export default function AgentChatLayout({
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-      let assistantMsg: Message = { role: "assistant", content: "" };
+      const assistantMsg: Message = { role: "assistant", content: "" };
       setMessages(prev => [...prev, assistantMsg]);
 
       if (reader) {

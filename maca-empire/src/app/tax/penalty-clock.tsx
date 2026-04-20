@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 
 interface PenaltyClockProps {
   gstin?: string;
@@ -8,23 +8,23 @@ interface PenaltyClockProps {
 }
 
 export default function PenaltyClock({ gstin, dueDateStr = "2026-04-11" }: PenaltyClockProps) {
-  const [accrued, setAccrued] = useState(0);
-  const [daysOverdue, setDaysOverdue] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    // FIX: compute dates inside effect, not as component-level objects
-    // (avoids new Date() on every render causing infinite loop)
+  const daysOverdue = useMemo(() => {
     const dueDate = new Date(dueDateStr);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
 
     const msOverdue = today.getTime() - dueDate.getTime();
-    const days = msOverdue > 0 ? Math.ceil(msOverdue / 86400000) : 0;
-    setDaysOverdue(days);
+    return msOverdue > 0 ? Math.ceil(msOverdue / 86400000) : 0;
+  }, [dueDateStr]);
 
-    const basePenalty = days * 50; // Rs. 50/day per Section 47 CGST Act
+  const basePenalty = useMemo(() => daysOverdue * 50, [daysOverdue]); // Rs. 50/day per Section 47 CGST Act
+
+  const [accrued, setAccrued] = useState(basePenalty);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAccrued(basePenalty);
 
     // Tick every second: Rs.50/day = Rs.0.000578/second
@@ -35,7 +35,7 @@ export default function PenaltyClock({ gstin, dueDateStr = "2026-04-11" }: Penal
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [dueDateStr]); // only re-run if the due date prop changes
+  }, [basePenalty]); // only re-run if the due date-derived baseline changes
 
   const color = daysOverdue === 0 ? "#16a34a" : daysOverdue <= 10 ? "#f59e0b" : "#dc2626";
 

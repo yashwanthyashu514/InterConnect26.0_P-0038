@@ -13,7 +13,15 @@ const severityConfig: Record<string, { color: string; icon: React.ReactNode; bg:
 };
 
 export default function AdminAlertsPage() {
-  const [alerts, setAlerts] = useState<any[]>([]);
+  type AlertRow = {
+    id: string;
+    severity: string;
+    message: string;
+    created_at: string;
+    source_agent?: string | null;
+  };
+
+  const [alerts, setAlerts] = useState<AlertRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [acking, setAcking] = useState<string | null>(null);
 
@@ -43,7 +51,10 @@ export default function AdminAlertsPage() {
     for (const a of alerts) await ackAlert(a.id);
   };
 
-  useEffect(() => { fetchAlerts(); }, []);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchAlerts();
+  }, []);
 
   return (
     <div style={{ padding: "40px", maxWidth: "800px" }}>

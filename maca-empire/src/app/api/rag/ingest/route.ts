@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-// @ts-ignore
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 import crypto from "crypto";
 
 const supabase = createClient(
@@ -29,7 +28,8 @@ export async function POST(req: Request) {
     
     // S1-T1: PDF Ingestion
     if (file.type === "application/pdf") {
-      const data = await pdf(buffer);
+      const parser = new PDFParse({ data: buffer });
+      const data = await parser.getText();
       text = data.text;
     } else if (file.type.startsWith("image/")) {
       // S1-T2: Image Ingestion (OCR Placeholder)
@@ -102,7 +102,8 @@ export async function POST(req: Request) {
       chunks: insertedChunks 
     });
 
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown ingestion error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

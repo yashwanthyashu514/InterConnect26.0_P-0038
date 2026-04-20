@@ -12,14 +12,19 @@ maca-empire/.vercel/
 maca-empire/*.tsbuildinfo
 maca-empire/next-env.d.ts
 
-# Secrets & Private Strategy (Protecting "import stuff")
-# maca-empire/.env (Uncommented for private collaboration)
+# Secrets & Private Strategy
 maca-empire/docs/
 maca-empire/supabase_check.txt
 *.local
 *.secret
 credentials.json
 token.json
+
+# Private Strategy & Demonstration Files
+maca-empire/JUDGE_CHEATSHEET.md
+maca-empire/AGI_NEURAL_REGISTRY.md
+maca-empire/SUPREME_TAX_AGI_FEATURE_AUDIT.md
+
 .vscode/
 
 # Debug logs

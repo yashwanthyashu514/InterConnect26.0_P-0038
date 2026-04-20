@@ -12,7 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+
+    // Monorepo folders with their own tooling/config:
+    "marketplace-backend/**", // CommonJS Node backend (uses require)
+    "supreme-tax/frontend/**", // Separate Vite app with its own lint setup
+    "scripts/**", // Node scripts (often CommonJS)
   ]),
+
 ]);
 
 export default eslintConfig;

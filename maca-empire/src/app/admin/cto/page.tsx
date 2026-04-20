@@ -5,6 +5,16 @@ import { Cpu, Activity, AlertTriangle, CheckCircle, RefreshCw } from "lucide-rea
 const ADMIN_KEY = "imperio-admin-2025";
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
+function StatusPill({ label, status }: { label: string; status: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "10px" }}>
+      {status === "UP" ? <CheckCircle size={16} color="#34D399" /> : <AlertTriangle size={16} color="#FF5050" />}
+      <span style={{ fontSize: "13px", color: "#fff", flex: 1 }}>{label}</span>
+      <span style={{ fontSize: "11px", fontWeight: 800, color: status === "UP" ? "#34D399" : "#FF5050" }}>{status}</span>
+    </div>
+  );
+}
+
 export default function AdminCTOPage() {
   const [report, setReport] = useState<string>("");
   const [briefing, setBriefing] = useState<string>("");
@@ -48,18 +58,11 @@ export default function AdminCTOPage() {
   };
 
   useEffect(() => { 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchBriefing();
     // Background health check
     fetch(`${BACKEND}/health`).then(h => setHealth({ backend: h.ok ? "UP" : "DEGRADED", db: "UP" })).catch(() => setHealth({ backend: "DOWN", db: "UNKNOWN" }));
   }, []);
-
-  const StatusPill = ({ label, status }: { label: string; status: string }) => (
-    <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px", background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)", borderRadius: "10px" }}>
-      {status === "UP" ? <CheckCircle size={16} color="#34D399" /> : <AlertTriangle size={16} color="#FF5050" />}
-      <span style={{ fontSize: "13px", color: "#fff", flex: 1 }}>{label}</span>
-      <span style={{ fontSize: "11px", fontWeight: 800, color: status === "UP" ? "#34D399" : "#FF5050" }}>{status}</span>
-    </div>
-  );
 
   return (
     <div style={{ padding: "40px", maxWidth: "900px" }}>

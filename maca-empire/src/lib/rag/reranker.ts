@@ -9,7 +9,7 @@ export interface Chunk {
   booking_id: string;
   chunk_text: string;
   similarity: number;
-  metadata: any;
+  metadata: Record<string, unknown>;
 }
 
 const PRIMARY_THRESHOLD = 0.65;

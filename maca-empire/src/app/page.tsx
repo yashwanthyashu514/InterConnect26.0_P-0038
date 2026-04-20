@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Footer from "@/components/shared/Footer";
+import { supabase } from "@/lib/supabase";
 import { 
   FileText, Landmark, Scale, Briefcase, Globe, Shield, 
   Wallet, DollarSign, Calendar, Lock, Mic, Search, 
@@ -26,6 +27,7 @@ const agents = [
   { id: "A8", name: "Filing Ops", icon: <Scale size={18} />, desc: "E-court filing automation and RTI drafting.", tag: "GROWTH", href: "/court-filer" },
   { id: "A12", name: "Forensic Audit", icon: <Lock size={18} />, desc: "Investigative auditing for fraud and leakage.", tag: "GROWTH", href: "/audit-shield" },
   { id: "A13", name: "Trade & Forex", icon: <Globe size={18} />, desc: "FEMA compliance and EXIM logistics intelligence.", tag: "GROWTH", href: "/trade" },
+  { id: "A21", name: "DPDP Shield", icon: <Shield size={18} />, desc: "India DPDP Act 2023 & MeitY compliance authority.", tag: "GROWTH", href: "/dpdp" },
   { id: "A25", name: "Data & AI Safety", icon: <Brain size={18} />, desc: "DPDP Act and EU AI Act Governance.", tag: "GROWTH", href: "/ai-governance" },
 
   // SPECIALIZED INTELLIGENCE (ELITE) - 6 Agents
@@ -63,8 +65,14 @@ export default function LandingPage() {
 
   useEffect(() => {
     // Check session
-    const session = localStorage.getItem("maca_session");
-    if (session === "active") setIsLoggedIn(true);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsLoggedIn(!!session);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsLoggedIn(!!session);
+    });
 
     // Parallax scroll listener
     const handleScroll = () => setScrollY(window.scrollY);
@@ -91,6 +99,7 @@ export default function LandingPage() {
     return () => { 
       clearInterval(timer); 
       window.removeEventListener("scroll", handleScroll);
+      subscription.unsubscribe();
     };
   }, []); // Run once on mount
 
@@ -184,7 +193,7 @@ export default function LandingPage() {
                 backgroundColor: "transparent", 
                 mixBlendMode: "screen",
                 filter: "contrast(1.25) brightness(0.85) grayscale(0.1)",
-                // @ts-ignore
+                // @ts-expect-error Webkit-specific CSS property is not in React.CSSProperties
                 WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
               }} />
             </div>

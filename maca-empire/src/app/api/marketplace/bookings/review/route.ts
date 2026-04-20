@@ -33,7 +33,8 @@ export async function POST(req: Request) {
     await supabase.rpc("increment_ca_reviews", { ca_id_input: ca_id, rating_input: rating });
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

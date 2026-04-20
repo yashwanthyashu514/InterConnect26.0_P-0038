@@ -48,4 +48,4 @@ subprocess.run([sys.executable, "backend/ingester.py", "--agent", "esg_compass"]
 print("Running Ingestion for HeirGuard...")
 subprocess.run([sys.executable, "backend/ingester.py", "--agent", "heirguard"], check=True)
 
-print("runng")
+print("Setup complete.")

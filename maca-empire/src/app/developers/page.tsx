@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react/no-unescaped-entities */
 
 import React from "react";
 import Link from "next/link";
-import { Code2, Terminal, Shield, Zap, BookOpen, Key, ArrowRight, Share2, Server, Check } from "lucide-react";
+import { Code2, Terminal, Shield, Zap, BookOpen, Key, ArrowRight, Share2, Server, Check, Home } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 export default function DeveloperPortal() {
@@ -112,9 +114,30 @@ export default function DeveloperPortal() {
       <div style={{ height: "100px" }} /> {/* Spacer for Global Nav */}
       
       <header style={{ padding: "0 10% 40px", borderBottom: "1px solid #111", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Link href="/" style={{ textDecoration: "none" }}>
-          <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "20px", color: "var(--acid)" }}>maCA Dev Portal</span>
-        </Link>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <Link href="/dashboard" style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            justifyContent: "center",
+            width: "40px", 
+            height: "40px", 
+            borderRadius: "12px", 
+            background: "rgba(181,255,46,0.08)", 
+            border: "1px solid rgba(181,255,46,0.2)", 
+            textDecoration: "none",
+            transition: "all 0.3s ease",
+            flexShrink: 0
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(181,255,46,0.15)"; e.currentTarget.style.borderColor = "var(--acid)"; e.currentTarget.style.transform = "scale(1.08)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(181,255,46,0.08)"; e.currentTarget.style.borderColor = "rgba(181,255,46,0.2)"; e.currentTarget.style.transform = "scale(1)"; }}
+          title="Back to Dashboard"
+          >
+            <Home size={18} color="var(--acid)" />
+          </Link>
+          <Link href="/" style={{ textDecoration: "none" }}>
+            <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "20px", color: "var(--acid)" }}>maCA Dev Portal</span>
+          </Link>
+        </div>
         <div style={{ display: "flex", gap: "32px", fontSize: "12px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>
           <Link href="#docs" style={{ color: "#fff", textDecoration: "none" }}>Documentation</Link>
           <Link href="#auth" style={{ color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>Authentication</Link>
