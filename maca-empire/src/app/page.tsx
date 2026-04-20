@@ -167,8 +167,8 @@ export default function LandingPage() {
               </h1>
 
               <div className="fade-up visible hero-cta-group" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "16px", width: "100%", maxWidth: "600px", padding: "0 20px", marginTop: "32px", animationDelay: "0.4s", boxSizing: "border-box" }}>
-                <Link href={isLoggedIn ? "/dashboard" : "/login?mode=signup"} className="btn-primary" style={{ fontSize: "15px", padding: "14px 28px", flex: 1, textAlign: "center" }}>
-                  {isLoggedIn ? "Enter Empire Dashboard →" : "Request Invitation →"}
+                <Link href="/login?mode=signup" className="btn-primary" style={{ fontSize: "15px", padding: "14px 28px", flex: 1, textAlign: "center" }}>
+                  Request Invitation →
                 </Link>
                 <Link href="#agents" className="btn-ghost" style={{ fontSize: "15px", padding: "14px 24px", flex: 1, textAlign: "center" }}>
                   Institutional Vectors
