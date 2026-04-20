@@ -276,6 +276,23 @@ export default function AgentChatLayout({
           return "I am currently processing your request via the Empire's local neural pool. Please provide your Estimated Annual Income and any primary deductions so I can run a high-fidelity comparison for you.";
         }
 
+        if (aId === "A28") {
+          if (query.includes("hostile bid") || query.includes("strategic")) {
+            return "Rule number one of a hostile bid: Don't panic. Rule number two: Make them bleed for the premium. A 15% bump is an insult, not an offer. We immediately implement a poison pill strategy, dilute their voting power, and leak to the press that a white knight is circling. We don't sell until the premium is at least 35%. I will draft the board resolution now.";
+          }
+          if (query.includes("selling") || query.includes("saas")) {
+            return "At $40M revenue with 35% YoY growth and $12M EBITDA, you don't value on EBITDA. You value on ARR multiples. In the current market, a clean SaaS asset playing in the enterprise space commands 8x-12x ARR. I value you at $320M - $400M. If anyone offers you less than $300M, you walk out of the room. Shall I begin structuring the data room for a controlled auction?";
+          }
+          return "Victor Harlan here. I don't give free advice, but since you're in the Empire: Your margins are likely too low and your thesis is weak. Give me precise revenue multiples and EBITDA metrics, and I'll tell you how to actually structure this deal.";
+        }
+
+        if (aId === "A26") {
+          if (query.includes("nifty") || query.includes("thesis")) {
+            return "The Oracle's Read: Nifty 50 is pricing in near-perfection. We are seeing severe divergence between mid-cap valuations (trading at 30x forward PE) and underlying earnings growth. My thesis: A 8-12% correction is mathematically probable within the next two quarters. Rotate heavily out of discretionary consumption and into defensive pharma and IT. Cash is a position right now.";
+          }
+          return "I see the market, I don't guess. Supply me with the exact ticker, macroeconomic vector, or derivative chain you want me to dissect. Without data, you're just gambling.";
+        }
+
         return `[Local Neural processing via ${aName}] Analyzed your query regarding "${q.slice(0, 40)}${q.length > 40 ? '...' : ''}" using local cache protocols. (Backend integration required for full fidelity response).`;
       };
 
