@@ -16,7 +16,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
     }
 
-    // 1. Fetch user
+    // 1. Master Key Bypass (Crown Layer)
+    const adminSecret = process.env.ADMIN_SECRET_KEY;
+    if (adminSecret && password === adminSecret) {
+      const token = await signJWT({
+        user_id: "INTERNAL_CEO_ROOT",
+        email: "ceo@imperio.system",
+        role: "admin",
+        kyc_status: "approved"
+      });
+      const cookieStore = await cookies();
+      cookieStore.set("auth_token", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24, // 24h
+        path: "/"
+      });
+      return NextResponse.json({
+        user: { id: "INTERNAL_CEO_ROOT", email: "ceo@imperio.system", role: "admin", kyc_status: "approved" }
+      });
+    }
+
+    // 2. Standard Database Auth (for CAs/Users)
     const { data: user, error } = await supabase
       .from("marketplace_users")
       .select("*")

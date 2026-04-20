@@ -287,11 +287,13 @@ class ChatRequest(BaseModel):
     agent_id: Optional[str] = None
     image: Optional[str] = None # Base64 encoded image
     language: Optional[str] = "English"
+    conversation_history: Optional[List[Dict[str, str]]] = []
 
 class AgentQueryRequest(BaseModel):
     user_message: str
     session_id: str = "default"
     user_context: dict = {}
+    conversation_history: List[Dict[str, str]] = []
 
 # --- Usage Logging ---
 async def log_api_usage(api_name: str, tokens: int = 0, cost_inr: float = 0.0):
@@ -473,6 +475,10 @@ async def ask_generic(request: ChatRequest):
     model_name = "meta/llama-3.3-70b-instruct"
     messages = [{"role": "system", "content": system_prompt}]
     
+    # Inject conversation history if available
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    
     # VISION LOGIC: If image exists, switch to vision model and include image in message
     if request.image:
         model_name = "meta/llama-3.2-11b-vision-instruct" 
@@ -520,13 +526,15 @@ async def dpdp_shield_query(request: AgentQueryRequest):
     intent = classify_intent(request.user_message, 'A21')
     context, citations = await fetch_agent_rag('A21', request.user_message)
 
+    messages = [{"role": "system", "content": f"{DPDP_SYSTEM_PROMPT}\n\nRELEVANT CONTEXT:\n{context}"}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({"role": "user", "content": f"{request.user_message}\n\nIntent: {intent.intent}"})
+
     async def generate():
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
-            messages=[
-                {"role": "system", "content": f"{DPDP_SYSTEM_PROMPT}\n\nRELEVANT CONTEXT:\n{context}"},
-                {"role": "user", "content": f"{request.user_message}\n\nIntent: {intent.intent}"}
-            ],
+            messages=messages,
             stream=True
         )
         async for chunk in stream:
@@ -549,13 +557,15 @@ async def cryptotax_pro_query(request: AgentQueryRequest):
     fema_warning = f"\n[FEMA FLAG: User mentioned {intent.extracted_exchange}]" if intent.extracted_exchange else ""
     context, citations = await fetch_agent_rag('A22', request.user_message)
 
+    messages = [{"role": "system", "content": f"{CRYPTOTAX_SYSTEM_PROMPT}\n\n{live_injection}\n\nCONTEXT:\n{context}"}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({"role": "user", "content": f"{request.user_message}{fema_warning}\n\nIntent: {intent.intent}"})
+
     async def generate():
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
-            messages=[
-                {"role": "system", "content": f"{CRYPTOTAX_SYSTEM_PROMPT}\n\n{live_injection}\n\nCONTEXT:\n{context}"},
-                {"role": "user", "content": f"{request.user_message}{fema_warning}\n\nIntent: {intent.intent}"}
-            ],
+            messages=messages,
             stream=True
         )
         async for chunk in stream:
@@ -624,16 +634,16 @@ async def esg_compass_query(request: AgentQueryRequest):
     if context:
         system_with_context += f'\n\nRELEVANT SEBI BRSR AND ESG FRAMEWORK SECTIONS:\n{context}'
 
-    messages = [
-        {'role': 'system', 'content': system_with_context},
-        {
-            'role': 'user',
-            'content': (
-                f'{request.user_message}{company_context}'
-                f'\nDetected Intent: {intent.intent}'
-            )
-        }
-    ]
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({
+        'role': 'user',
+        'content': (
+            f'{request.user_message}{company_context}'
+            f'\nDetected Intent: {intent.intent}'
+        )
+    })
 
     return await stream_nim_response(messages, citations)
 
@@ -668,16 +678,16 @@ async def heirguard_query(request: AgentQueryRequest):
     if context:
         system_with_context += f'\n\nRELEVANT SUCCESSION ACTS AND CASE LAW:\n{context}'
 
-    messages = [
-        {'role': 'system', 'content': system_with_context},
-        {
-            'role': 'user',
-            'content': (
-                f'{request.user_message}{religion_context}{user_profile}'
-                f'\nDetected Intent: {intent.intent}'
-            )
-        }
-    ]
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({
+        'role': 'user',
+        'content': (
+            f'{request.user_message}{religion_context}{user_profile}'
+            f'\nDetected Intent: {intent.intent}'
+        )
+    })
 
     return await stream_nim_response(messages, citations)
 
@@ -753,16 +763,16 @@ async def ai_governance_query(request: AgentQueryRequest):
     if context:
         system_with_context += f'\n\nRELEVANT AI GOVERNANCE FRAMEWORKS AND REGULATIONS:\n{context}'
 
-    messages = [
-        {'role': 'system', 'content': system_with_context},
-        {
-            'role': 'user',
-            'content': (
-                f'{request.user_message}{org_context}'
-                f'\nDetected Intent: {intent.intent}'
-            )
-        }
-    ]
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({
+        'role': 'user',
+        'content': (
+            f'{request.user_message}{org_context}'
+            f'\nDetected Intent: {intent.intent}'
+        )
+    })
 
     return await stream_nim_response(messages, citations)
 
@@ -842,10 +852,10 @@ async def oracle_query(request: AgentQueryRequest):
         f'\nDetected Intent: {intent.intent}'
     ).strip()
 
-    messages = [
-        {'role': 'system', 'content': system_with_context},
-        {'role': 'user', 'content': user_message_enriched}
-    ]
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({'role': 'user', 'content': user_message_enriched})
 
     return await stream_nim_response(messages, all_citations)
 

@@ -27,7 +27,7 @@ export default function AdminAlertsPage() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BACKEND}/internal/alerts/active`);
+      const res = await fetch("/api/admin/internal/proxy?path=alerts/active");
       const data = await res.json();
       setAlerts(data.alerts || []);
     } catch {}
@@ -37,9 +37,10 @@ export default function AdminAlertsPage() {
   const ackAlert = async (id: string) => {
     setAcking(id);
     try {
-      await fetch(`${BACKEND}/internal/alerts/ack`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alert_id: id }),
+      await fetch("/api/admin/internal/proxy", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: "alerts/ack", method: "POST", body: { alert_id: id } }),
       });
       setAlerts(prev => prev.filter(a => a.id !== id));
     } catch {}

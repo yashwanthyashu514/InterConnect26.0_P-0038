@@ -138,7 +138,7 @@ export default function VoicePage() {
       <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -60%)", width: micState === "listening" || micState === "speaking" ? "700px" : "500px", height: micState === "listening" || micState === "speaking" ? "700px" : "500px", background: `radial-gradient(ellipse at center, rgba(181,255,46,${micState === "listening" ? 0.15 : micState === "speaking" ? 0.1 : 0.05}) 0%, transparent 65%)`, transition: "all 0.8s ease" }} />
       
       <div style={{ position: "relative", zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: "32px", maxWidth: "600px", textAlign: "center" }}>
-        <Link href="/dashboard" style={{ textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)", color: "#B5FF2E", fontFamily: "Syne", fontWeight: 800 }}>maCA VOICE CA (A6)</Link>
+        <Link href="/dashboard" style={{ textDecoration: "none", background: "#080B07", padding: "6px 14px", borderRadius: "100px", border: "1px solid rgba(181, 255, 46, 0.2)", color: "#B5FF2E", fontFamily: "Syne", fontWeight: 800 }}>maCA VOICE CA (A6) · Powered by Sarvam & NVIDIA</Link>
         
         <h1 style={{ fontFamily: "Syne", fontSize: "40px", fontWeight: 800, margin: 0 }}>{micState === "speaking" ? "maCA is Speaking..." : "Multimodal Advisory"}</h1>
 

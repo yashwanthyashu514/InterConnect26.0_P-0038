@@ -157,38 +157,36 @@ export default function AgentChatLayout({
       setUploadedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
 
+      const history = messages.map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
+      // Base payload for any agent
+      payload = { 
+        query: userMsg.content, 
+        user_message: userMsg.content,
+        agent_id: agentId,
+        conversation_history: history,
+        latest_message: userMsg.content 
+      };
+
       if (agentId === "A1") {
         endpoint = `${BACKEND_URL}/api/agents/supreme-tax/rag`;
-        // Convert history for 3-step RAG
-        const history = messages.map(m => ({
-          role: m.role,
-          content: m.content
-        }));
-        payload = { 
-          conversation_history: history,
-          latest_message: userMsg.content 
-        };
       } else if (agentId === "A21") {
         endpoint = `${BACKEND_URL}/api/agents/dpdp-shield/query`;
-        payload = { user_message: userMsg.content };
       } else if (agentId === "A22") {
         endpoint = `${BACKEND_URL}/api/agents/cryptotax-pro/query`;
-        payload = { user_message: userMsg.content };
       } else if (agentId === "A23") {
         endpoint = `${BACKEND_URL}/api/agents/esg-compass/query`;
-        payload = { user_message: userMsg.content };
       } else if (agentId === "A24") {
         endpoint = `${BACKEND_URL}/api/agents/heirguard/query`;
-        payload = { user_message: userMsg.content };
       } else if (agentId === "A25") {
         endpoint = `${BACKEND_URL}/api/agents/ai-governance/query`;
-        payload = { user_message: userMsg.content };
       } else if (agentId === "A26") {
         endpoint = `${BACKEND_URL}/api/agents/the-oracle/query`;
-        payload = { user_message: userMsg.content };
-      } else if (agentId === "A28") {
+      } else {
         endpoint = `${BACKEND_URL}/ask`;
-        payload = { query: userMsg.content, agent_id: "A28" };
       }
 
       const response = await fetch(endpoint, {
@@ -277,9 +275,18 @@ export default function AgentChatLayout({
         }
 
         if (aId === "A28") {
-          const isConfirm = query.includes("yes") || query.includes("ok") || query.includes("let's go") || query.includes("sure") || query.includes("can");
+          const affirmativeTerms = ["yes", "ok", "go", "proceed", "sure", "confirmed", "agreement", "fine", "yeah", "yep", "do it", "engage", "schedule", "start", "begin"];
+          const isConfirm = affirmativeTerms.some(term => query.includes(term));
+          const isOrchestrate = query.includes("a3") || query.includes("a7") || query.includes("coordinate") || query.includes("legal") || query.includes("hr");
+          const hasVDR = history.some(m => m.content.includes("Data Room") || m.content.includes("VDR"));
           const hasValuation = history.some(m => m.content.includes("value") || m.content.includes("multiple"));
 
+          if (isOrchestrate && hasVDR) {
+            return "Victor Harlan here. Directive received. I am cross-linking with A3 (HR) on retention schedules and A7 (Legal) on the IP audit. The 'Project Phoenix' data room is now under multi-agent lockdown. I'll have the coordinated briefing on your desk before the first management call. Buyers are being engaged now. We own the room.";
+          }
+          if (isConfirm && hasVDR) {
+            return "Victor Harlan here. Management calls are being locked in for Tuesday and Wednesday. I've alerted the 'Project Phoenix' task force. Once the CAP Table is verified in the VDR, I'll release the preliminary list of the 3 shortlisted Tier-1 firms. We don't show our cards until they've signed the airtight NDAs I'm drafting. Anything else before I engage the buyers?";
+          }
           if (isConfirm && hasValuation) {
             return "Good. We move fast. I'm initiating the Virtual Data Room (VDR) setup and drafting the Non-Disclosure Agreements (NDAs). To maximize that 12x multiple, I need your clean CAP Table and the last 3 years of audited financials. Shall we schedule the first round of management calls for next week?";
           }

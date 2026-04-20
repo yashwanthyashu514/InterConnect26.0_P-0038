@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { Shield, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
@@ -18,13 +17,13 @@ export default function AdminLoginPage() {
     const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email: "admin@internal.system", password }), // Email is ignored by the new master key logic
     });
     const data = await res.json();
     if (res.ok && data?.user?.role === "admin") {
       router.push("/admin");
     } else {
-      setError("Only admin accounts can access this page.");
+      setError("Invalid Secure Access Key.");
     }
     setLoading(false);
   };
@@ -39,31 +38,22 @@ export default function AdminLoginPage() {
           <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "24px", color: "#fff", letterSpacing: "-0.5px", marginBottom: "8px" }}>
             Imperio Neural
           </h1>
-          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Internal Command Centre · CEO Access Only</p>
+          <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)" }}>Internal Command Centre · CEO Access</p>
         </div>
 
         <form onSubmit={handleLogin}>
           <div style={{ position: "relative", marginBottom: "16px" }}>
             <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="Admin email"
+              type={show ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter Secure Access Key"
               style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "12px", padding: "14px 48px 14px 16px", color: "#fff", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
             />
             <button type="button" onClick={() => setShow(!show)}
               style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex" }}>
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
-          </div>
-          <div style={{ position: "relative", marginBottom: "16px" }}>
-            <input
-              type={show ? "text" : "password"}
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Password"
-              style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "12px", padding: "14px 16px", color: "#fff", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
-            />
           </div>
 
           {error && (
@@ -72,9 +62,9 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <button type="submit" disabled={!email || !password || loading}
-            style={{ width: "100%", padding: "14px", background: email && password && !loading ? "#B5FF2E" : "rgba(181,255,46,0.2)", color: email && password && !loading ? "#000" : "rgba(181,255,46,0.4)", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "14px", cursor: email && password ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>
-            {loading ? "Verifying..." : "Access Command Centre"}
+          <button type="submit" disabled={!password || loading}
+            style={{ width: "100%", padding: "14px", background: password && !loading ? "#B5FF2E" : "rgba(181,255,46,0.2)", color: password && !loading ? "#000" : "rgba(181,255,46,0.4)", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "14px", cursor: password ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>
+            {loading ? "Verifying Protocol..." : "Access Command Centre"}
           </button>
         </form>
 

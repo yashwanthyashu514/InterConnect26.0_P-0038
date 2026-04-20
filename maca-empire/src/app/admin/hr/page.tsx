@@ -12,7 +12,7 @@ export default function AdminHRPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today`);
+      const res = await fetch("/api/admin/internal/proxy?path=briefing/today");
       const data = await res.json();
       if (data?.hr_section) setBriefing(data.hr_section);
     } catch {}
@@ -20,9 +20,9 @@ export default function AdminHRPage() {
 
   const generateLiveReport = async () => {
     setLoading(true); setReport("");
-    const res = await fetch(`${BACKEND}/internal/hr/status`, {
+    const res = await fetch("/api/admin/internal/proxy", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Compile chain-of-command deep scan. Include Marketing synthesis." }),
+      body: JSON.stringify({ path: "hr/status", method: "POST", body: { message: "Compile chain-of-command deep scan. Include Marketing synthesis." } }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();

@@ -17,7 +17,7 @@ export default function CFODashboard() {
       setData(json);
       
       // Fetch A2A Briefing (Synthesis)
-      const bRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/internal/briefing/today`);
+      const bRes = await fetch("/api/admin/internal/proxy?path=briefing/today");
       const bData = await bRes.json();
       if (bData?.cfo_section) setBriefing(bData.cfo_section);
 

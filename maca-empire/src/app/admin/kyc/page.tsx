@@ -25,11 +25,13 @@ export default function AdminKYCQueue() {
 
   useEffect(() => { fetchQueue(); }, []);
 
-  const handleAction = async (profile_id: string, action: "approve" | "reject") => {
-    let reason = "";
-    if (action === "reject") {
-      reason = prompt("Enter rejection reason:") || "Incomplete documentation";
-      if (!reason) return;
+  const [reasonModal, setReasonModal] = useState<{ open: boolean, profileId: string }>({ open: false, profileId: "" });
+  const [rejectReason, setRejectReason] = useState("");
+
+  const handleAction = async (profile_id: string, action: "approve" | "reject", reasonArg?: string) => {
+    if (action === "reject" && !reasonArg) {
+      setReasonModal({ open: true, profileId: profile_id });
+      return;
     }
 
     setProcessingId(profile_id);
@@ -37,11 +39,13 @@ export default function AdminKYCQueue() {
       const res = await fetch("/api/admin/kyc/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ profile_id, action, reason })
+        body: JSON.stringify({ profile_id, action, reason: reasonArg || "Incomplete documentation" })
       });
 
       if (res.ok) {
         setQueue(prev => prev.filter(p => p.id !== profile_id));
+        setReasonModal({ open: false, profileId: "" });
+        setRejectReason("");
       } else {
         alert("Action failed");
       }
@@ -54,6 +58,36 @@ export default function AdminKYCQueue() {
 
   return (
     <div style={{ padding: "40px", maxWidth: "1000px", minHeight: "100vh", background: "#000", color: "#fff" }}>
+      {/* Rejection Reason Modal */}
+      {reasonModal.open && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "20px" }}>
+          <div style={{ width: "100%", maxWidth: "400px", background: "#111", border: "1px solid rgba(255,80,80,0.2)", borderRadius: "24px", padding: "32px", boxShadow: "0 20px 50px rgba(0,0,0,0.5)" }}>
+            <h3 style={{ fontFamily: "'Syne', sans-serif", fontSize: "20px", fontWeight: 800, marginBottom: "8px", color: "#FF5050" }}>Rejection Reason</h3>
+            <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", marginBottom: "24px" }}>Provide a specific reason for declining this CA application.</p>
+            <textarea
+              autoFocus
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="e.g., ICAI certificate is expired or blurred..."
+              style={{ width: "100%", height: "100px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", padding: "12px", color: "#fff", fontSize: "14px", fontFamily: "inherit", outline: "none", marginBottom: "24px", resize: "none" }}
+            />
+            <div style={{ display: "flex", gap: "12px" }}>
+              <button 
+                onClick={() => setReasonModal({ open: false, profileId: "" })}
+                style={{ flex: 1, padding: "12px", background: "none", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px", color: "rgba(255,255,255,0.5)", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}>
+                Cancel
+              </button>
+              <button 
+                onClick={() => handleAction(reasonModal.profileId, "reject", rejectReason)}
+                disabled={!rejectReason}
+                style={{ flex: 2, padding: "12px", background: "#FF5050", border: "none", borderRadius: "12px", color: "#fff", fontSize: "13px", fontWeight: 800, cursor: "pointer", opacity: rejectReason ? 1 : 0.5 }}>
+                Confirm Rejection
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: "8px", color: "rgba(255,255,255,0.4)", textDecoration: "none", fontSize: "12px", marginBottom: "32px" }}>
         <ArrowLeft size={14} /> Back to Command Centre
       </Link>

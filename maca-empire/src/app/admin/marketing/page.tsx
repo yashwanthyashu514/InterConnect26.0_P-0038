@@ -20,7 +20,7 @@ export default function AdminMarketingPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today`);
+      const res = await fetch("/api/admin/internal/proxy?path=briefing/today");
       const data = await res.json();
       if (data?.marketing_section) setBriefing(data.marketing_section);
     } catch {}
@@ -28,9 +28,9 @@ export default function AdminMarketingPage() {
 
   const generateLiveReport = async () => {
     setLoading(true); setReport("");
-    const res = await fetch(`${BACKEND}/internal/marketing/task`, {
+    const res = await fetch("/api/admin/internal/proxy", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Execute full market scan and calendar audit. Maintain invitation-only authority." }),
+      body: JSON.stringify({ path: "marketing/task", method: "POST", body: { message: "Execute full market scan and calendar audit. Maintain invitation-only authority." } }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();

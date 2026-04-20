@@ -14,7 +14,7 @@ export const SYSTEM_CONFIG = {
       government_option: "Bhashini NMT (MeitY) — Secondary Fallback"
     },
     stt_stack: {
-      primary: "Sarvam AI sarvam-1 (sk_u2f6...) — Primary Audio Vector",
+      primary: "Sarvam AI saaras:v3 (sk_u2f6...) — Primary Audio Vector",
       fallback: "Google Cloud Speech-to-Text v2",
       government_option: "Bhashini ASR (MeitY)"
     },

@@ -22,7 +22,7 @@ export default function AdminCTOPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today`);
+      const res = await fetch("/api/admin/internal/proxy?path=briefing/today");
       const data = await res.json();
       if (data?.cto_section) setBriefing(data.cto_section);
     } catch {}
@@ -30,16 +30,16 @@ export default function AdminCTOPage() {
 
   const generateLiveReport = async () => {
     setLoading(true); setReport("");
-    // Health ping
+    // Health ping (direct is fine for public health, but we keep it through proxy if needed)
     try {
       const h = await fetch(`${BACKEND}/health`);
       setHealth({ backend: h.ok ? "UP" : "DEGRADED", db: "UP" });
     } catch { setHealth({ backend: "DOWN", db: "UNKNOWN" }); }
 
-    const res = await fetch(`${BACKEND}/internal/cto/report`, {
+    const res = await fetch("/api/admin/internal/proxy", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Generate deep-dive system health assessment." }),
+      body: JSON.stringify({ path: "cto/report", method: "POST", body: { message: "Generate deep-dive system health assessment." } }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();
