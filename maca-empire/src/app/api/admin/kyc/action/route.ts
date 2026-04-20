@@ -62,7 +62,7 @@ export async function POST(req: Request) {
              return NextResponse.json({ error: `Surepass Identity Mismatch: ${spData.message}` }, { status: 400 });
           }
         }
-      } catch (spErr: any) {
+      } catch (spErr: unknown) {
         console.error("Surepass API Network Error:", spErr);
         return NextResponse.json({ error: "External verification service (Surepass) is currently unreachable." }, { status: 502 });
       }

@@ -10,6 +10,16 @@ interface Message {
   citations?: unknown[];
 }
 
+type Citation = { source: string };
+
+function isCitation(value: unknown): value is Citation {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as Record<string, unknown>).source === "string"
+  );
+}
+
 interface AgentChatLayoutProps {
   agentName: string;
   agentIcon: React.ReactNode;
@@ -388,9 +398,9 @@ export default function AgentChatLayout({
                       <div style={{ fontSize: "14px", lineHeight: 1.6, color: "var(--text-primary)", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.content}</div>
                       {m.citations && (
                         <div style={{ marginTop: "12px", display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                          {m.citations.map((c, j) => (
+                          {m.citations.filter(isCitation).map((c, j) => (
                             <span key={j} style={{ padding: "3px 8px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", fontSize: "10px", color: "var(--text-muted)" }}>{c.source}</span>
-                          ))}
+                          ))} 
                         </div>
                       )}
                     </div>

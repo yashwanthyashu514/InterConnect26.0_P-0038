@@ -193,7 +193,6 @@ export default function LandingPage() {
                 backgroundColor: "transparent", 
                 mixBlendMode: "screen",
                 filter: "contrast(1.25) brightness(0.85) grayscale(0.1)",
-                // @ts-expect-error Webkit-specific CSS property is not in React.CSSProperties
                 WebkitMaskImage: "linear-gradient(to top, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%)",
               }} />
             </div>

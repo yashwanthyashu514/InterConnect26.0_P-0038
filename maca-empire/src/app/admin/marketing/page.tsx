@@ -9,7 +9,14 @@ export default function AdminMarketingPage() {
   const [report, setReport] = useState("");
   const [briefing, setBriefing] = useState("");
   const [loading, setLoading] = useState(false);
-  type Inquiry = Record<string, unknown>;
+  type Inquiry = {
+    company: string;
+    date: string;
+    name: string;
+    email: string;
+    teamSize: string | number;
+    useCase: string;
+  };
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const fetchBriefing = async () => {
@@ -48,7 +55,24 @@ export default function AdminMarketingPage() {
     // Load local inquiries submitted from /b2b
     const saved = localStorage.getItem("b2b_inquiries");
     if (saved) {
-      setInquiries(JSON.parse(saved) as Inquiry[]);
+      try {
+        const parsed: unknown = JSON.parse(saved);
+        const arr = Array.isArray(parsed) ? parsed : [];
+        const normalized: Inquiry[] = arr.map((row) => {
+          const r = (row ?? {}) as Record<string, unknown>;
+          return {
+            company: typeof r.company === "string" ? r.company : "Unknown",
+            date: typeof r.date === "string" ? r.date : new Date().toISOString(),
+            name: typeof r.name === "string" ? r.name : "Unknown",
+            email: typeof r.email === "string" ? r.email : "Unknown",
+            teamSize: typeof r.teamSize === "string" || typeof r.teamSize === "number" ? r.teamSize : "Unknown",
+            useCase: typeof r.useCase === "string" ? r.useCase : "",
+          };
+        });
+        setInquiries(normalized);
+      } catch {
+        setInquiries([]);
+      }
     }
   }, []);
 

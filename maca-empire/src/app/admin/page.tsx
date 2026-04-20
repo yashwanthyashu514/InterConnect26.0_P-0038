@@ -1,5 +1,5 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
@@ -60,6 +60,7 @@ export default function AdminDashboard() {
 
   // Auto-load on mount
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- initial mount triggers report generation to hydrate dashboard state
     generateReport();
   }, []);
 

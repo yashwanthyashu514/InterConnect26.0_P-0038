@@ -91,7 +91,7 @@ export default function CADashboard() {
             
             <div style={{ background: "rgba(255,255,255,0.02)", border: "0.1px solid rgba(255,255,255,0.1)", borderRadius: "32px", padding: "40px", marginBottom: "32px" }}>
                <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "2px", fontWeight: 700, marginBottom: "12px" }}>Neural Payout Balance</p>
-               <h3 style={{ fontSize: "56px", fontWeight: 800, fontFamily: "'Syne', sans-serif", color: "#B5FF2E", letterSpacing: "-2px", marginBottom: "24px" }}>₹{(earnings?.pending_payout_paise / 100 || 0).toLocaleString()}</h3>
+               <h3 style={{ fontSize: "56px", fontWeight: 800, fontFamily: "'Syne', sans-serif", color: "#B5FF2E", letterSpacing: "-2px", marginBottom: "24px" }}>₹{(((earnings?.pending_payout_paise ?? 0) / 100) || 0).toLocaleString()}</h3>
                <button style={{ padding: "16px 32px", background: "#B5FF2E", color: "#000", border: "none", borderRadius: "100px", fontWeight: 800, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
                  Withdraw to Bank <ArrowUpRight size={18} />
                </button>
@@ -175,8 +175,8 @@ export default function CADashboard() {
             {/* ── Statistics Grid ── */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "24px", marginBottom: "64px" }}>
               {[
-                { label: "Total Revenue Generated", val: `₹${(earnings?.total_earned_paise / 100 || 0).toLocaleString()}`, icon: <TrendingUp size={20} />, trend: "+12.5%" },
-                { label: "Neutral Settlements Pending", val: `₹${(earnings?.pending_payout_paise / 100 || 0).toLocaleString()}`, icon: <Wallet size={20} />, color: "#B5FF2E" },
+                { label: "Total Revenue Generated", val: `₹${(((earnings?.total_earned_paise ?? 0) / 100) || 0).toLocaleString()}`, icon: <TrendingUp size={20} />, trend: "+12.5%" },
+                { label: "Neutral Settlements Pending", val: `₹${(((earnings?.pending_payout_paise ?? 0) / 100) || 0).toLocaleString()}`, icon: <Wallet size={20} />, color: "#B5FF2E" },
                 { label: "Active Advisory Count", val: earnings?.session_count || 0, icon: <Users size={20} />, trend: "Elite Status" }
               ].map((stat, i) => (
                 <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "0.1px solid rgba(255,255,255,0.08)", borderRadius: "24px", padding: "32px", position: "relative", overflow: "hidden" }}>

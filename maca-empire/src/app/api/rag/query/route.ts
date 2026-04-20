@@ -5,6 +5,7 @@ import { rewriteQuery } from "@/lib/rag/queryRewriter";
 import { getEmbedding, keywordFallbackSearch } from "@/lib/rag/embedder";
 import { rerankChunks } from "@/lib/rag/reranker";
 import { buildContext } from "@/lib/rag/contextBuilder";
+import type { Chunk } from "@/lib/rag/reranker";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,23 @@ const supabase = createClient(
 
 const FALLBACK_MESSAGE = "Insufficient document data — please consult your CA directly.";
 
-type RetrievedChunk = Record<string, unknown> & { similarity?: number };
+type MatchDocumentsRow = {
+  chunk_id: string;
+  booking_id: string;
+  chunk_text: string;
+  similarity: number;
+  metadata: Record<string, unknown>;
+};
+
+function toChunk(row: MatchDocumentsRow): Chunk {
+  return {
+    id: row.chunk_id,
+    booking_id: row.booking_id,
+    chunk_text: row.chunk_text,
+    similarity: row.similarity,
+    metadata: row.metadata ?? {},
+  };
+}
 
 async function generateGroundedAnswer(query: string, context: string): Promise<string> {
   const apiKey = process.env.NVIDIA_API_KEY;
@@ -73,14 +90,14 @@ export async function POST(req: Request) {
 
     // 2. Embedding (Cache + NIM + Fallback) (F4.1, F6)
     let embedding = await getCachedEmbedding(query);
-    let chunks: RetrievedChunk[] = [];
+    let chunks: Chunk[] = [];
     let usedFallback = false;
 
     if (!embedding) {
       const { vector, fallback } = await getEmbedding(query);
       if (fallback) {
         usedFallback = true;
-        chunks = await keywordFallbackSearch(query, booking_id);
+        chunks = (await keywordFallbackSearch(query, booking_id)) as unknown as Chunk[];
       } else {
         embedding = vector;
         await setCachedEmbedding(query, embedding!);
@@ -94,7 +111,10 @@ export async function POST(req: Request) {
         match_count: 10,
         filter: { source_booking_id: booking_id }
       });
-      if (!error) chunks = (data as RetrievedChunk[]) ?? [];
+      if (!error) {
+        const rows = (data as MatchDocumentsRow[]) ?? [];
+        chunks = rows.map(toChunk);
+      }
     }
 
     // 4. Hallucination Guard (F5 - Short Circuit < 100ms)

@@ -89,7 +89,7 @@ export async function POST(req: Request) {
              rejectionReason = spError.message || "Invalid ICAI Number";
           }
         }
-      } catch (spErr: any) {
+      } catch (spErr: unknown) {
         console.error("Surepass API Network Error during registration:", spErr);
         // Fallback to pending if network drops
       }

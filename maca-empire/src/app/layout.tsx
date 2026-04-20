@@ -1,8 +1,8 @@
 import React from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans, Syne } from "next/font/google";
 import "./globals.css";
 import GlobalNav from "@/components/shared/GlobalNav";
-import Footer from "@/components/shared/Footer";
 
 export const metadata: Metadata = {
   title: "maCA Empire — The Future of Indian Legal & Financial Intelligence",
@@ -17,10 +17,6 @@ export const metadata: Metadata = {
     "legal tech India",
     "CA AI",
   ],
-  // ── Responsive viewport — prevents mobile zoom-out ──
-  viewport: "width=device-width, initial-scale=1, maximum-scale=5",
-  // ── Native feel on Android Chrome ──
-  themeColor: "#000000",
   openGraph: {
     title: "maCA Empire — AI-Powered Legal & Financial Intelligence",
     description:
@@ -29,7 +25,26 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#000000",
+};
+
 import Script from "next/script";
+
+const syne = Syne({
+  subsets: ["latin"],
+  weight: ["700", "800"],
+  variable: "--font-syne",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+  variable: "--font-dm-sans",
+});
 
 export default function RootLayout({
   children,
@@ -38,15 +53,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body suppressHydrationWarning>
+      <body className={`${syne.variable} ${dmSans.variable}`} suppressHydrationWarning>
         <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
         <GlobalNav />
         {children}

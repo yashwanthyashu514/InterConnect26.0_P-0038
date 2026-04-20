@@ -76,7 +76,7 @@ export default function AdminMarketplace() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadTab(tab);
   }, [tab, statusFilter]);
 
@@ -90,8 +90,9 @@ export default function AdminMarketplace() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Approval Failed");
       loadTab("kyc");
-    } catch (err: any) {
-      alert(`⚠️ KYC Approval Failed:\n${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert(`⚠️ KYC Approval Failed:\n${message}`);
     }
   };
 
@@ -105,8 +106,9 @@ export default function AdminMarketplace() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Rejection Failed");
       loadTab("kyc");
-    } catch (err: any) {
-      alert(`⚠️ KYC Rejection Failed:\n${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Unknown error";
+      alert(`⚠️ KYC Rejection Failed:\n${message}`);
     }
   };
 
