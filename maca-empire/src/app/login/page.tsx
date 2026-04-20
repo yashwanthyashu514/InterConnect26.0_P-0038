@@ -225,7 +225,11 @@ function LoginContent() {
           {isSignUp ? "Already part of the Empire?" : "New to the Empire?"}{" "}
           <button 
             type="button"
-            onClick={() => setIsSignUp(!isSignUp)}
+            onClick={() => {
+              const nextMode = !isSignUp;
+              setIsSignUp(nextMode);
+              router.push(`/login${nextMode ? "?mode=signup" : ""}`);
+            }}
             style={{ background: "none", border: "none", color: "var(--acid)", textDecoration: "none", fontWeight: 700, cursor: "pointer", padding: 0 }}>
             {isSignUp ? "Login here" : "Register now"}
           </button>
