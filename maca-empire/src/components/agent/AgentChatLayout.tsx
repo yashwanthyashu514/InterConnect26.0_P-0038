@@ -277,6 +277,12 @@ export default function AgentChatLayout({
         }
 
         if (aId === "A28") {
+          const isConfirm = query.includes("yes") || query.includes("ok") || query.includes("let's go") || query.includes("sure") || query.includes("can");
+          const hasValuation = history.some(m => m.content.includes("value") || m.content.includes("multiple"));
+
+          if (isConfirm && hasValuation) {
+            return "Good. We move fast. I'm initiating the Virtual Data Room (VDR) setup and drafting the Non-Disclosure Agreements (NDAs). To maximize that 12x multiple, I need your clean CAP Table and the last 3 years of audited financials. Shall we schedule the first round of management calls for next week?";
+          }
           if (query.includes("hostile bid") || query.includes("strategic")) {
             return "Rule number one of a hostile bid: Don't panic. Rule number two: Make them bleed for the premium. A 15% bump is an insult, not an offer. We immediately implement a poison pill strategy, dilute their voting power, and leak to the press that a white knight is circling. We don't sell until the premium is at least 35%. I will draft the board resolution now.";
           }
