@@ -14,9 +14,25 @@ function LoginContent() {
   // Initialize state based on search params
   const [isSignUp, setIsSignUp] = useState(searchParams.get("mode") === "signup");
 
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  // Check for existing session
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push("/");
+      } else {
+        setCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, [router]);
+
   // Keep state in sync if URL changes
   useEffect(() => {
-    if (searchParams.get("mode") === "signup") {
+    const mode = searchParams.get("mode");
+    if (mode === "signup") {
       setIsSignUp(true);
     } else {
       setIsSignUp(false);
@@ -152,6 +168,16 @@ function LoginContent() {
     }
   };
 
+  if (checkingSession) {
+    return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px", background: "#000000" }}>
+        <div style={{ width: "24px", height: "24px", border: "2px solid var(--acid)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        <p style={{ marginTop: "16px", color: "var(--acid)", fontSize: "11px", fontWeight: 800, letterSpacing: "1px" }}>AUTHENTICATING...</p>
+        <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+      </div>
+    );
+  }
+
   return (
     <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px", background: "#000000" }}>
       <div style={{ width: "100%", maxWidth: "400px" }}>
@@ -223,16 +249,11 @@ function LoginContent() {
 
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.4)", fontFamily: "'DM Sans', sans-serif", textAlign: "center", marginTop: "40px" }}>
           {isSignUp ? "Already part of the Empire?" : "New to the Empire?"}{" "}
-          <button 
-            type="button"
-            onClick={() => {
-              const nextMode = !isSignUp;
-              setIsSignUp(nextMode);
-              router.push(`/login${nextMode ? "?mode=signup" : ""}`);
-            }}
-            style={{ background: "none", border: "none", color: "var(--acid)", textDecoration: "none", fontWeight: 700, cursor: "pointer", padding: 0 }}>
+          <Link 
+            href={isSignUp ? "/login" : "/login?mode=signup"}
+            style={{ color: "var(--acid)", textDecoration: "none", fontWeight: 700, cursor: "pointer" }}>
             {isSignUp ? "Login here" : "Register now"}
-          </button>
+          </Link>
         </p>
       </div>
     </div>
