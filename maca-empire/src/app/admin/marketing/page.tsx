@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Megaphone, RefreshCw, AlertCircle } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export default function AdminMarketingPage() {
@@ -21,7 +20,7 @@ export default function AdminMarketingPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today?admin_key=${ADMIN_KEY}`);
+      const res = await fetch(`${BACKEND}/internal/briefing/today`);
       const data = await res.json();
       if (data?.marketing_section) setBriefing(data.marketing_section);
     } catch {}
@@ -31,7 +30,7 @@ export default function AdminMarketingPage() {
     setLoading(true); setReport("");
     const res = await fetch(`${BACKEND}/internal/marketing/task`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Execute full market scan and calendar audit. Maintain invitation-only authority.", admin_key: ADMIN_KEY }),
+      body: JSON.stringify({ message: "Execute full market scan and calendar audit. Maintain invitation-only authority." }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();

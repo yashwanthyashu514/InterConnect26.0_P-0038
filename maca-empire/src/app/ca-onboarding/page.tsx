@@ -32,9 +32,14 @@ export default function CARegistrationPage() {
           email: formData.email,
           password: formData.password,
           name: formData.name,
+          phone: formData.phone,
           role: "ca",
           icai_number: formData.icai_registration_no,
-          specialty: formData.specialties[0] || "General"
+          specialties: formData.specialties.length > 0 ? formData.specialties : ["General"],
+          bio: formData.bio,
+          listed_price_inr: formData.listed_price_inr,
+          bank_account_number: formData.bank_account_number,
+          bank_ifsc: formData.bank_ifsc
         })
       });
       const data = await res.json();
@@ -43,8 +48,7 @@ export default function CARegistrationPage() {
         if (data.status === "approved") {
            setSuccess(true);
         } else {
-           alert("Registration completed but pending admin review (Sandbox API may be off).");
-           // Redirect to login or show pending state
+           alert(data.error || "Automatic ICAI verification failed. Please retry with valid details.");
            window.location.href = "/login";
         }
       } else {

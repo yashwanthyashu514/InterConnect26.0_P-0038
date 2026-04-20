@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthSession } from "@/lib/auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_KEY!
 );
 
-const ADMIN_KEY = process.env.ADMIN_SECRET_KEY || "imperio-admin-2025";
-
 export async function GET(req: Request) {
-  const adminKey = req.headers.get("x-admin-key");
-  if (adminKey !== ADMIN_KEY) {
+  const session = await getAuthSession();
+  if (!session || session.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -146,6 +146,14 @@ export async function GET(req: Request) {
         parseFloat(growthRate7d) < 5 ? "User growth below 5% WoW — consider running acquisition campaigns." : null,
       ].filter(Boolean) as string[],
     };
+
+    await logAdminAudit({
+      adminUserId: String(session.user_id ?? ""),
+      action: "admin.generate_report",
+      metadata: { decisions_count: report.decisions_needed.length },
+      ipAddress: req.headers.get("x-forwarded-for"),
+      userAgent: req.headers.get("user-agent"),
+    });
 
     return NextResponse.json(report);
 

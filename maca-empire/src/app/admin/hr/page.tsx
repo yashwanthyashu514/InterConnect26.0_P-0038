@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import { Users, RefreshCw, Package, UserCheck } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export default function AdminHRPage() {
@@ -13,7 +12,7 @@ export default function AdminHRPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today?admin_key=${ADMIN_KEY}`);
+      const res = await fetch(`${BACKEND}/internal/briefing/today`);
       const data = await res.json();
       if (data?.hr_section) setBriefing(data.hr_section);
     } catch {}
@@ -23,7 +22,7 @@ export default function AdminHRPage() {
     setLoading(true); setReport("");
     const res = await fetch(`${BACKEND}/internal/hr/status`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Compile chain-of-command deep scan. Include Marketing synthesis.", admin_key: ADMIN_KEY }),
+      body: JSON.stringify({ message: "Compile chain-of-command deep scan. Include Marketing synthesis." }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();

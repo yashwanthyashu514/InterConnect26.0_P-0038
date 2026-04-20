@@ -11,12 +11,16 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
+    const cleanEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+    if (!cleanEmail || !password) {
+      return NextResponse.json({ error: "Missing credentials" }, { status: 400 });
+    }
 
     // 1. Fetch user
     const { data: user, error } = await supabase
       .from("marketplace_users")
       .select("*")
-      .eq("email", email)
+      .eq("email", cleanEmail)
       .single();
 
     if (error || !user) {

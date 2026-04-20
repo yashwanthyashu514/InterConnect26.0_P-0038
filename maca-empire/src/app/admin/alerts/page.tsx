@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Bell, CheckCheck, AlertTriangle, Info, AlertCircle, RefreshCw } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 const severityConfig: Record<string, { color: string; icon: React.ReactNode; bg: string }> = {
@@ -28,7 +27,7 @@ export default function AdminAlertsPage() {
   const fetchAlerts = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${BACKEND}/internal/alerts/active?admin_key=${ADMIN_KEY}`);
+      const res = await fetch(`${BACKEND}/internal/alerts/active`);
       const data = await res.json();
       setAlerts(data.alerts || []);
     } catch {}
@@ -40,7 +39,7 @@ export default function AdminAlertsPage() {
     try {
       await fetch(`${BACKEND}/internal/alerts/ack`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alert_id: id, admin_key: ADMIN_KEY }),
+        body: JSON.stringify({ alert_id: id }),
       });
       setAlerts(prev => prev.filter(a => a.id !== id));
     } catch {}

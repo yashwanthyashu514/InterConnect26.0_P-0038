@@ -23,7 +23,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
 
     if (error) throw error;
 
-    return NextResponse.json({ ca: data });
+    const { bank_account_number_enc, bank_ifsc, ...safeProfile } = (data ?? {}) as Record<string, unknown>;
+    const ifsc = typeof bank_ifsc === "string" ? bank_ifsc : "";
+
+    return NextResponse.json({
+      ca: {
+        ...safeProfile,
+        bank_ifsc_masked: ifsc ? `${ifsc.slice(0, 4)}XXXXXXX` : null,
+      }
+    });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json({ error: message }, { status: 500 });

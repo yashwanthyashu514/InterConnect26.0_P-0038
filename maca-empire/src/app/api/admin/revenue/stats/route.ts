@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthSession } from "@/lib/auth";
+import { logAdminAudit } from "@/lib/admin-audit";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.SUPABASE_KEY!; 
@@ -7,8 +9,8 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 export async function GET(req: Request) {
   try {
-    const adminKey = req.headers.get("x-admin-key");
-    if (adminKey !== (process.env.ADMIN_SECRET_KEY || "imperio-admin-2025")) {
+    const session = await getAuthSession();
+    if (!session || session.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -26,7 +28,7 @@ export async function GET(req: Request) {
     const totalRevenue = revenue?.reduce((acc, r) => acc + r.amount, 0) || 0;
     const totalGTV = bookings?.filter(b => b.status === "paid" || b.status === "completed").reduce((acc, b) => acc + b.amount_paise, 0) || 0;
 
-    return NextResponse.json({
+    const response = {
       revenue_ledger: revenue,
       summary: {
         total_revenue_paise: totalRevenue,
@@ -34,7 +36,17 @@ export async function GET(req: Request) {
         booking_count: bookings?.length || 0,
         paid_count: bookings?.filter(b => b.status === "paid").length || 0
       }
+    };
+
+    await logAdminAudit({
+      adminUserId: String(session.user_id ?? ""),
+      action: "admin.revenue_stats.read",
+      metadata: { booking_count: response.summary.booking_count },
+      ipAddress: req.headers.get("x-forwarded-for"),
+      userAgent: req.headers.get("user-agent"),
     });
+
+    return NextResponse.json(response);
 
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Unknown error";

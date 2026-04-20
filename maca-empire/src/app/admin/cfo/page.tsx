@@ -5,8 +5,6 @@ import React, { useEffect, useState } from "react";
 import { Gem, TrendingUp, BarChart3, AlertCircle, Loader2, ArrowLeft, BrainCircuit } from "lucide-react";
 import Link from "next/link";
 
-const ADMIN_KEY = "imperio-admin-2025";
-
 export default function CFODashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -14,14 +12,12 @@ export default function CFODashboard() {
 
   const fetchData = async () => {
     try {
-      const res = await fetch("/api/admin/revenue/stats", {
-        headers: { "x-admin-key": ADMIN_KEY }
-      });
+      const res = await fetch("/api/admin/revenue/stats");
       const json = await res.json();
       setData(json);
       
       // Fetch A2A Briefing (Synthesis)
-      const bRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/internal/briefing/today?admin_key=${ADMIN_KEY}`);
+      const bRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000"}/internal/briefing/today`);
       const bData = await bRes.json();
       if (bData?.cfo_section) setBriefing(bData.cfo_section);
 

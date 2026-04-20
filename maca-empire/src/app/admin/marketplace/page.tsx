@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { ShieldCheck, XCircle, CheckCircle, CreditCard, Users, TrendingUp, Filter, ExternalLink } from "lucide-react";
 
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-const ADMIN_KEY = "imperio-admin-2025";
 
 const STATUS_COLORS: Record<string, string> = {
   requested: "#FBBF24", accepted: "#60A5FA", paid: "#34D399",
@@ -53,18 +52,18 @@ export default function AdminMarketplace() {
     setLoading(true);
     try {
       if (t === "kyc") {
-        const res = await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals?admin_key=${ADMIN_KEY}`);
+        const res = await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals`);
         const data: { pending?: CAPending[] } = await res.json();
         setPending(data.pending ?? []);
       } else if (t === "bookings") {
         const url = statusFilter
-          ? `${BACKEND}/api/marketplace/admin/bookings?status_filter=${statusFilter}&admin_key=${ADMIN_KEY}`
-          : `${BACKEND}/api/marketplace/admin/bookings?admin_key=${ADMIN_KEY}`;
+          ? `${BACKEND}/api/marketplace/admin/bookings?status_filter=${statusFilter}`
+          : `${BACKEND}/api/marketplace/admin/bookings`;
         const res = await fetch(url);
         const data: { bookings?: BookingRow[] } = await res.json();
         setBookings(data.bookings ?? []);
       } else if (t === "revenue") {
-        const res = await fetch(`${BACKEND}/api/marketplace/admin/revenue?admin_key=${ADMIN_KEY}`);
+        const res = await fetch(`${BACKEND}/api/marketplace/admin/revenue`);
         const data: Revenue = await res.json();
         setRevenue(data);
       }
@@ -84,7 +83,7 @@ export default function AdminMarketplace() {
     try {
       const res = await fetch(`/api/admin/kyc/action`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile_id: caId, action: "approve" })
       });
       const data = await res.json();
@@ -100,7 +99,7 @@ export default function AdminMarketplace() {
     try {
       const res = await fetch(`/api/admin/kyc/action`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile_id: caId, action: "reject" })
       });
       const data = await res.json();
@@ -169,13 +168,8 @@ export default function AdminMarketplace() {
                     <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)", marginBottom: "4px" }}>Listed Price</p>
                     <p style={{ fontSize: "18px", fontWeight: 800 }}>₹{ca.listed_price_paise / 100}</p>
                   </div>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button onClick={() => handleApprove(ca.id)} style={{ flex: 1, padding: "10px", background: "#B5FF2E", color: "#000", border: "none", borderRadius: "10px", fontWeight: 800, fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                      <CheckCircle size={14} /> Approve
-                    </button>
-                    <button onClick={() => handleReject(ca.id)} style={{ flex: 1, padding: "10px", background: "rgba(248,113,113,0.1)", color: "#F87171", border: "1px solid rgba(248,113,113,0.2)", borderRadius: "10px", fontWeight: 800, fontSize: "12px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "4px" }}>
-                      <XCircle size={14} /> Reject
-                    </button>
+                  <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>
+                    Auto ICAI verification enabled
                   </div>
                 </div>
               ))}

@@ -9,7 +9,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 export async function GET() {
   try {
     const session = await getAuthSession();
-    if (!session || session.role !== "ca") {
+    if (!session || session.role !== "ca" || session.kyc_status !== "approved") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

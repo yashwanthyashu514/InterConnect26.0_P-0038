@@ -5,8 +5,6 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, Check, X, ExternalLink, ArrowLeft, Loader2 } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
-
 export default function AdminKYCQueue() {
   const [queue, setQueue] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,9 +13,7 @@ export default function AdminKYCQueue() {
   const fetchQueue = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/kyc/pending", {
-        headers: { "x-admin-key": ADMIN_KEY }
-      });
+      const res = await fetch("/api/admin/kyc/pending");
       const data = await res.json();
       setQueue(data.queue || []);
     } catch (e) {
@@ -40,10 +36,7 @@ export default function AdminKYCQueue() {
     try {
       const res = await fetch("/api/admin/kyc/action", {
         method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "x-admin-key": ADMIN_KEY 
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ profile_id, action, reason })
       });
 

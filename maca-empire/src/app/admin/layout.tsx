@@ -5,8 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Cpu, Users, TrendingUp, Megaphone, Bell, MessageSquare, LogOut, ChevronRight, Gem, Briefcase } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
-
 const navItems = [
   { label: "Command Centre", href: "/admin",            icon: <BarChart3 size={16} />,   layer: null },
   { label: "CFO AI",         href: "/admin/cfo",        icon: <Gem size={16} />,         layer: "L1" },
@@ -23,7 +21,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (pathname === "/admin/login") return;
-    fetch(`/api/admin/alerts-count?admin_key=${ADMIN_KEY}`)
+    fetch("/api/admin/alerts-count")
       .then(r => r.json())
       .then(d => setAlertCount(d.count || 0))
       .catch(() => {});

@@ -1,5 +1,4 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
@@ -48,8 +47,9 @@ function LoginContent() {
 
       if (error) throw error;
       setMessage("Neural recovery link dispatched to your inbox.");
-    } catch (err: any) {
-      setError(err.message || "Failed to send recovery link");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to send recovery link";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -78,8 +78,9 @@ function LoginContent() {
 
       if (error) throw error;
       setMessage("Digital Key dispatched. Check your inbox for the access link!");
-    } catch (err: any) {
-      setError(err.message || "Magic Link failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Magic Link failed";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -103,30 +104,32 @@ function LoginContent() {
         return;
       }
 
-      // Standard Login via Supabase
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Standard Login via backend auth route (sets secure auth_token cookie)
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
+      const loginData: {
+        error?: string;
+        user?: { role?: string; kyc_status?: string };
+      } = await loginRes.json();
+      if (!loginRes.ok) {
+        throw new Error(loginData.error || "Authentication failed");
+      }
 
-      if (authError) throw authError;
-
-      // Fetch user role from our marketplace_users table
-      const { data: userData } = await supabase
-        .from("marketplace_users")
-        .select("role")
-        .eq("email", email)
-        .single();
-
-      const role = userData?.role || "user";
+      const role = loginData.user?.role || "user";
+      const kycStatus = loginData.user?.kyc_status || "pending";
 
       if (role === "admin") router.push("/admin");
-      else if (role === "ca") router.push("/ca-dashboard");
+      else if (role === "ca" && kycStatus === "approved") router.push("/ca-dashboard");
+      else if (role === "ca") router.push("/ca-onboarding?kyc=pending");
       else if (role === "developer") router.push("/developers");
       else router.push("/");
 
-    } catch (err: any) {
-      setError(err.message || "Authentication failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Authentication failed";
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -142,8 +145,9 @@ function LoginContent() {
         },
       });
       if (error) throw error;
-    } catch (err: any) {
-      setError(err.message || "Google login failed");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Google login failed";
+      setError(message);
       setLoading(false);
     }
   };

@@ -1,16 +1,24 @@
 "use client";
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 type MicState = "idle" | "listening" | "processing" | "speaking";
+type VoiceAssistResponse = {
+  text_response: string;
+  transcript: string;
+  detected_language: string;
+  audio_base64: string;
+  audio_mime_type: string;
+};
 
 export default function VoicePage() {
   const [micState, setMicState] = useState<MicState>("idle");
   const [language, setLanguage] = useState<string>("en-IN");
+  const [detectedLanguage, setDetectedLanguage] = useState<string>("en-IN");
   const [transcript, setTranscript] = useState("");
   const [aiResponse, setAiResponse] = useState("");
+  const [error, setError] = useState("");
 
   const languages = [
     { code: "en-IN", name: "English" },
@@ -21,95 +29,107 @@ export default function VoicePage() {
     { code: "mr-IN", name: "Marathi" }
   ];
   
-  const recognitionRef = useRef<any>(null);
-  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    // Initialize Speech Recognition
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (SpeechRecognition) {
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      
-      recognitionRef.current.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        setTranscript(text);
-        setMicState("processing");
-        processQuery(text);
-      };
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      }
+    };
+  }, []);
 
-      recognitionRef.current.onerror = () => setMicState("idle");
-      recognitionRef.current.onend = () => { if (micState === "listening") setMicState("idle"); };
-    }
-    
-    synthRef.current = window.speechSynthesis;
-    return () => { if (synthRef.current) synthRef.current.cancel(); };
-  }, [micState]);
-
-  const processQuery = async (query: string) => {
+  const processAudio = async (audioBlob: Blob) => {
     try {
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
-      const res = await fetch(`${backendUrl}/ask`, {
+      setError("");
+      setMicState("processing");
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "voice-query.webm");
+      formData.append("language_hint", language);
+
+      const res = await fetch("/api/voice/assist", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query, agent_id: "A6", language_code: language }),
+        body: formData,
       });
-      
-      if (!res.ok) throw new Error("Backend Error");
 
-      const reader = res.body?.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-
-      if (reader) {
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.replace("data: ", "").trim();
-              if (dataStr === "[DONE]") continue;
-              try {
-                const data = JSON.parse(dataStr);
-                if (data.token) fullText += data.token;
-              } catch (e) {}
-            }
-          }
-        }
+      const data = (await res.json()) as Partial<VoiceAssistResponse> & { error?: string };
+      if (!res.ok) {
+        throw new Error(data.error || "Voice CA request failed");
       }
 
-      setAiResponse(fullText);
-      speak(fullText);
-    } catch (err) {
+      const nextTranscript = data.transcript ?? "";
+      const nextText = data.text_response ?? "";
+      const nextLang = data.detected_language ?? language;
+      const audioBase64 = data.audio_base64 ?? "";
+      const audioMime = data.audio_mime_type ?? "audio/mpeg";
+
+      setTranscript(nextTranscript);
+      setAiResponse(nextText);
+      setDetectedLanguage(nextLang);
+      setLanguage(nextLang);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        URL.revokeObjectURL(audioRef.current.src);
+      }
+      const audioBytes = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+      const audioBlobOut = new Blob([audioBytes], { type: audioMime });
+      const audioUrl = URL.createObjectURL(audioBlobOut);
+      const audio = new Audio(audioUrl);
+      audioRef.current = audio;
+      audio.onplay = () => setMicState("speaking");
+      audio.onended = () => setMicState("idle");
+      audio.onerror = () => {
+        setMicState("idle");
+        setError("Audio playback failed");
+      };
+      await audio.play();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Voice pipeline failed";
+      setError(message);
       setMicState("idle");
     }
   };
 
-  const speak = (text: string) => {
-    if (!synthRef.current) return;
-    synthRef.current.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = language;
-    utterance.rate = 1;
-    utterance.onstart = () => setMicState("speaking");
-    utterance.onend = () => setMicState("idle");
-    synthRef.current.speak(utterance);
-  };
-
-  const handleMicClick = () => {
+  const handleMicClick = async () => {
     if (micState === "idle") {
       setAiResponse("");
       setTranscript("");
-      setMicState("listening");
-      recognitionRef.current.lang = language;
-      recognitionRef.current.start();
+      setError("");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+        chunksRef.current = [];
+        const recorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
+        mediaRecorderRef.current = recorder;
+        recorder.ondataavailable = (e: BlobEvent) => {
+          if (e.data.size > 0) chunksRef.current.push(e.data);
+        };
+        recorder.onstop = async () => {
+          const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+          stream.getTracks().forEach((t) => t.stop());
+          await processAudio(blob);
+        };
+        recorder.start();
+        setMicState("listening");
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : "Microphone access denied";
+        setError(message);
+        setMicState("idle");
+      }
     } else {
-      if (recognitionRef.current) recognitionRef.current.stop();
-      if (synthRef.current) synthRef.current.cancel();
-      setMicState("idle");
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        mediaRecorderRef.current.stop();
+      } else {
+        setMicState("idle");
+      }
     }
   };
 
@@ -126,7 +146,7 @@ export default function VoicePage() {
         <div style={{ background: "rgba(181,255,46,0.1)", padding: "8px 16px", borderRadius: "12px", border: "1px solid rgba(181,255,46,0.2)", display: "flex", alignItems: "center", gap: "8px" }}>
           <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "#B5FF2E" }} />
           <span style={{ fontSize: "11px", fontWeight: 800, color: "#B5FF2E", textTransform: "uppercase", letterSpacing: "1px" }}>
-            Responding in {languages.find(l => l.code === language)?.name} · {language}
+            Detected {languages.find(l => l.code === detectedLanguage)?.name ?? "English"} · Replying in {languages.find(l => l.code === language)?.name ?? "English"}
           </span>
         </div>
 
@@ -152,9 +172,10 @@ export default function VoicePage() {
           ))}
         </div>
 
-        <button onClick={handleMicClick} style={{ width: "100px", height: "100px", borderRadius: "50%", border: "none", background: micState === "listening" ? "#B5FF2E" : "#1A1F18", color: micState === "listening" ? "#000" : "#B5FF2E", fontSize: "40px", cursor: "pointer", transition: "all 0.3s", boxShadow: micState === "listening" ? "0 0 40px rgba(181,255,46,0.4)" : "none" }}>{micState === "processing" ? "⌛" : "🎤"}</button>
+        <button onClick={handleMicClick} style={{ width: "100px", height: "100px", borderRadius: "50%", border: "none", background: micState === "listening" ? "#B5FF2E" : "#1A1F18", color: micState === "listening" ? "#000" : "#B5FF2E", fontSize: "40px", cursor: "pointer", transition: "all 0.3s", boxShadow: micState === "listening" ? "0 0 40px rgba(181,255,46,0.4)" : "none" }}>{micState === "processing" ? "⌛" : micState === "listening" ? "⏹" : "🎤"}</button>
 
         <div style={{ minHeight: "100px" }}>
+          {error && <p style={{ color: "#ff7676", fontSize: "13px" }}>{error}</p>}
           {transcript && <p style={{ fontSize: "18px", opacity: 0.7 }}>&ldquo;{transcript}&rdquo;</p>}
           {aiResponse && <div style={{ marginTop: "20px", padding: "20px", background: "rgba(255,255,255,0.03)", borderRadius: "16px", border: "1px solid rgba(255,255,255,0.05)", textAlign: "left", fontSize: "14px", lineHeight: 1.6 }}>{aiResponse}</div>}
         </div>

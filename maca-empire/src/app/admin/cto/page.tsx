@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { Cpu, Activity, AlertTriangle, CheckCircle, RefreshCw } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
 const BACKEND = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 function StatusPill({ label, status }: { label: string; status: string }) {
@@ -23,7 +22,7 @@ export default function AdminCTOPage() {
 
   const fetchBriefing = async () => {
     try {
-      const res = await fetch(`${BACKEND}/internal/briefing/today?admin_key=${ADMIN_KEY}`);
+      const res = await fetch(`${BACKEND}/internal/briefing/today`);
       const data = await res.json();
       if (data?.cto_section) setBriefing(data.cto_section);
     } catch {}
@@ -40,7 +39,7 @@ export default function AdminCTOPage() {
     const res = await fetch(`${BACKEND}/internal/cto/report`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: "Generate deep-dive system health assessment.", admin_key: ADMIN_KEY }),
+      body: JSON.stringify({ message: "Generate deep-dive system health assessment." }),
     });
     const reader = res.body?.getReader();
     const decoder = new TextDecoder();

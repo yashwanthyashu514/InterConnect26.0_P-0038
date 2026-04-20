@@ -9,8 +9,6 @@ import {
   AlertTriangle, CheckCircle, Download, Zap, BarChart3
 } from "lucide-react";
 
-const ADMIN_KEY = "imperio-admin-2025";
-
 type DeptReport = {
   title: string;
   headline: string;
@@ -45,10 +43,11 @@ export default function AdminDashboard() {
     setLoading(true);
     setGenerated(false);
     try {
-      const res = await fetch("/api/admin/generate-report", {
-        headers: { "x-admin-key": ADMIN_KEY },
-      });
+      const res = await fetch("/api/admin/generate-report");
       const data: Report = await res.json();
+      if (!res.ok) {
+        throw new Error("Unauthorized");
+      }
       setReport(data);
       setAlerts(data.decisions_needed?.map(d => ({ label: d })) || []);
       setGenerated(true);

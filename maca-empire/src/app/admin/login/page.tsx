@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { Shield, Eye, EyeOff } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const [key, setKey] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,15 +15,16 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await fetch("/api/admin/auth", {
+    const res = await fetch("/api/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ key }),
+      body: JSON.stringify({ email, password }),
     });
-    if (res.ok) {
+    const data = await res.json();
+    if (res.ok && data?.user?.role === "admin") {
       router.push("/admin");
     } else {
-      setError("Invalid admin key. Access denied.");
+      setError("Only admin accounts can access this page.");
     }
     setLoading(false);
   };
@@ -43,16 +45,25 @@ export default function AdminLoginPage() {
         <form onSubmit={handleLogin}>
           <div style={{ position: "relative", marginBottom: "16px" }}>
             <input
-              type={show ? "text" : "password"}
-              value={key}
-              onChange={e => setKey(e.target.value)}
-              placeholder="Enter admin key"
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Admin email"
               style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "12px", padding: "14px 48px 14px 16px", color: "#fff", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
             />
             <button type="button" onClick={() => setShow(!show)}
               style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex" }}>
               {show ? <EyeOff size={16} /> : <Eye size={16} />}
             </button>
+          </div>
+          <div style={{ position: "relative", marginBottom: "16px" }}>
+            <input
+              type={show ? "text" : "password"}
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Password"
+              style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.12)", borderRadius: "12px", padding: "14px 16px", color: "#fff", fontSize: "14px", fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box" }}
+            />
           </div>
 
           {error && (
@@ -61,8 +72,8 @@ export default function AdminLoginPage() {
             </div>
           )}
 
-          <button type="submit" disabled={!key || loading}
-            style={{ width: "100%", padding: "14px", background: key && !loading ? "#B5FF2E" : "rgba(181,255,46,0.2)", color: key && !loading ? "#000" : "rgba(181,255,46,0.4)", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "14px", cursor: key ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>
+          <button type="submit" disabled={!email || !password || loading}
+            style={{ width: "100%", padding: "14px", background: email && password && !loading ? "#B5FF2E" : "rgba(181,255,46,0.2)", color: email && password && !loading ? "#000" : "rgba(181,255,46,0.4)", border: "none", borderRadius: "12px", fontWeight: 800, fontSize: "14px", cursor: email && password ? "pointer" : "not-allowed", fontFamily: "'DM Sans', sans-serif" }}>
             {loading ? "Verifying..." : "Access Command Centre"}
           </button>
         </form>
