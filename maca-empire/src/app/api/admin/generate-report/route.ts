@@ -41,29 +41,25 @@ export async function GET(req: Request) {
     // ── HR / USER DATA ────────────────────────────────────────────────────
     const { data: users } = await supabase
       .from("marketplace_users")
-      .select("role, created_at, is_kyc_verified");
+      .select("role, created_at");
 
     const totalUsers = users?.length || 0;
     const newUsersToday = users?.filter(u => u.created_at >= startOfDay).length || 0;
     const newUsersWeek = users?.filter(u => u.created_at >= last7Days).length || 0;
     const newUsersMonth = users?.filter(u => u.created_at >= last30Days).length || 0;
     const caCount = users?.filter(u => u.role === "ca").length || 0;
-    const kycVerified = users?.filter(u => u.is_kyc_verified === true).length || 0;
 
-    const { data: caPending } = await supabase
+    const { data: caProfiles } = await supabase
       .from("ca_profiles")
-      .select("id, is_approved")
-      .eq("is_approved", false);
-    const kycPendingCount = caPending?.length || 0;
+      .select("id, kyc_status");
+      
+    const kycPendingCount = caProfiles?.filter(ca => ca.kyc_status === "pending").length || 0;
+    const kycVerified = caProfiles?.filter(ca => ca.kyc_status === "approved").length || 0;
 
     // ── CTO / SYSTEM DATA ─────────────────────────────────────────────────
-    const { data: payments } = await supabase
-      .from("payments")
-      .select("status, created_at")
-      .gte("created_at", last7Days);
-
-    const totalPayments = payments?.length || 0;
-    const failedPayments = payments?.filter(p => p.status === "failed").length || 0;
+    // Using bookings table to infer transactions since payments table is not heavily used
+    const totalPayments = bookings?.filter(b => b.created_at >= last7Days).length || 0;
+    const failedPayments = bookings?.filter(b => b.status === "failed" || b.status === "disputed").length || 0;
     const paymentSuccessRate = totalPayments > 0
       ? (((totalPayments - failedPayments) / totalPayments) * 100).toFixed(1)
       : "100.0";

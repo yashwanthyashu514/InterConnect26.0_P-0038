@@ -1,0 +1,26 @@
+RBI / SEBI Macro-to-Market Transmission Primer — The Oracle
+
+RBI policy rate changes:
+- Affects funding costs, bank lending rates, bond yields, and risk-free discount rates.
+- Higher rates typically tighten liquidity, compress equity valuations, and strengthen currency (context dependent).
+
+Liquidity and forex:
+- RBI liquidity operations (OMO, VRR, CRR) influence short-term rates and currency stability.
+- Forex intervention impacts INR volatility and import/export competitiveness.
+
+Equity impact channels:
+1) Discount rate channel (valuation multiples)
+2) Earnings channel (borrowers’ interest expense, demand)
+3) Risk premium channel (global risk-on/off)
+4) Sector rotation (financials vs rate-sensitive sectors)
+
+Bond yield curve:
+- A steepening curve can signal inflation expectations or growth; flattening can signal slowdown risk.
+- Policy expectations drive short end; fiscal supply and term premium drive long end.
+
+SEBI market structure:
+- Circuit breakers and margin rules impact volatility propagation.
+- Market microstructure (F&O changes, position limits) can impact liquidity/impact costs.
+
+Practical interpretation:
+- Always interpret policy changes with inflation trajectory, fiscal stance, global dollar liquidity, and risk appetite.

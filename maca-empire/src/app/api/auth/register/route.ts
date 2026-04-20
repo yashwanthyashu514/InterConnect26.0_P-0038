@@ -54,18 +54,64 @@ export async function POST(req: Request) {
        return NextResponse.json({ error: `Auth Error: ${authError.message}. Ensure SERVICE_ROLE_KEY is valid.` }, { status: 500 });
     }
 
-    // 4. If CA, create profile
+    // 5. If CA, create profile and verify via Surepass immediately
     if (role === "ca" && icai_number) {
+      let isApproved = false;
+      let rejectionReason = "";
+
+      // SUREPASS ICAI VERIFICATION
+      try {
+        const surepassBase = process.env.SUREPASS_API_BASE_URL || 'https://sandbox.surepass.app';
+        const surepassToken = process.env.SUREPASS_BEARER_TOKEN;
+        
+        if (!surepassToken) {
+           console.warn("No Surepass API Token found. Proceeding as 'pending'.");
+        } else {
+          const spRes = await fetch(`${surepassBase}/api/v1/corporate/icai`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${surepassToken}`
+            },
+            body: JSON.stringify({ id_number: icai_number })
+          });
+
+          if (spRes.ok) {
+            const spData = await spRes.json();
+            // In the sandbox, if it's successful, we approve it automatically
+            if (spData.success !== false) {
+              isApproved = true;
+            } else {
+              rejectionReason = spData.message || "Surepass Identity Mismatch";
+            }
+          } else {
+             const spError = await spRes.json();
+             rejectionReason = spError.message || "Invalid ICAI Number";
+          }
+        }
+      } catch (spErr: any) {
+        console.error("Surepass API Network Error during registration:", spErr);
+        // Fallback to pending if network drops
+      }
+
+      const finalKycStatus = isApproved ? "approved" : (rejectionReason ? "rejected" : "pending");
+
       const { error: profileError } = await supabase
         .from("ca_profiles")
         .insert({
           user_id: user.id,
           icai_registration_no: icai_number,
           specialties: specialty ? [specialty] : [],
-          kyc_status: "pending"
+          kyc_status: finalKycStatus
         });
 
       if (profileError) throw profileError;
+
+      if (finalKycStatus === "rejected") {
+        return NextResponse.json({ error: `ICAI Verification Failed: ${rejectionReason}` }, { status: 400 });
+      } else if (finalKycStatus === "approved") {
+        return NextResponse.json({ message: "Registration successful. ICAI Verified Automatically.", status: "approved" }, { status: 201 });
+      }
     }
 
     return NextResponse.json({ message: "Registration successful" }, { status: 201 });

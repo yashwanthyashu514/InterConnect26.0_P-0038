@@ -1,0 +1,30 @@
+Probate & Succession Checklist (India) — HeirGuard
+
+High-level flow:
+1) Identify estate assets: bank accounts, demat, mutual funds, real estate, insurance, PF/EPF, business interests.
+2) Determine governing law and forum: religion-specific personal laws, Indian Succession Act, local jurisdiction of property/court.
+3) Check if Will exists and whether probate is required in the relevant jurisdiction.
+
+Core documents (typical):
+- Death certificate
+- Identity and address proofs of legal heirs
+- Will (original) if available
+- Property documents: sale deed, mutation records, encumbrance certificate
+- Bank statements / passbooks, fixed deposit receipts
+- Demat holdings statement, CAS statement for mutual funds
+- Nomination details for EPF/insurance/demat where applicable
+
+Court-facing (probate / letters of administration):
+- Petition with schedule of assets
+- Affidavits, witness statements, valuation documents
+- Public notice / newspaper publication proof where required
+
+Operational controls:
+- Build asset register with evidence links.
+- Track nomination vs legal heir conflicts.
+- Maintain a timeline: notice period, objections, court hearings.
+
+Risks:
+- Missing original Will and witness issues
+- Multiple claimants and disputes
+- Cross-jurisdiction assets and compliance delays

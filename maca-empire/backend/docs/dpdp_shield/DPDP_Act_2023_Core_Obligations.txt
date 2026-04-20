@@ -1,0 +1,31 @@
+Digital Personal Data Protection Act, 2023 (India) - Core Obligations
+
+Scope and Applicability:
+The DPDP Act applies to digital personal data processed in India and to processing outside India when connected with offering goods or services to data principals in India. Personal data means any data about an individual who is identifiable by or in relation to such data.
+
+Notice and Consent:
+Data fiduciaries must provide a clear notice describing personal data collected, purpose of processing, and how data principals can exercise rights. Consent must be free, specific, informed, unconditional, and unambiguous with clear affirmative action.
+
+Legitimate Uses:
+Certain processing may be permitted without explicit consent for legitimate uses such as compliance with law, medical emergencies, disasters, and employment-related purposes subject to safeguards.
+
+Rights of Data Principals:
+Rights include access to information on processing, correction and erasure of personal data, grievance redressal, and nomination in case of death or incapacity.
+
+Duties of Data Principals:
+Data principals should not impersonate another person, suppress material information, or file false/frivolous complaints.
+
+Significant Data Fiduciaries:
+The government may notify significant data fiduciaries based on volume and sensitivity of personal data, risk to rights, impact on sovereignty and integrity, electoral democracy, and public order. Such entities may require data protection impact assessments, audits, and data protection officers.
+
+Children's Data:
+Processing of personal data of children and persons with disability having lawful guardian requires verifiable parental/guardian consent. Tracking, behavioral monitoring, and targeted advertising directed at children is restricted.
+
+Security Safeguards:
+Data fiduciaries must implement reasonable security safeguards to prevent personal data breaches. In case of breach, they may be required to notify the Data Protection Board of India and affected data principals.
+
+Cross-Border Transfers:
+Transfers may be allowed except to countries restricted by government notification.
+
+Penalties:
+The Act allows substantial financial penalties based on the nature and gravity of non-compliance, including failures in security safeguards and breach notification.

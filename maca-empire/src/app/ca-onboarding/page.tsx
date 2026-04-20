@@ -25,28 +25,33 @@ export default function CARegistrationPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${MARKETPLACE_BACKEND}/api/marketplace/auth/register-ca`, {
+      const res = await fetch(`/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          full_name: formData.name,
-          icai_membership_number: formData.icai_registration_no,
-          city: "Mumbai", // Default or extract from bio
-          specialization: formData.specialties[0] || "General",
-          experience_years: 5 // Default or extract
+          name: formData.name,
+          role: "ca",
+          icai_number: formData.icai_registration_no,
+          specialty: formData.specialties[0] || "General"
         })
       });
       const data = await res.json();
       
-      if (res.ok && (data.verification_status === 'approved' || data.verification_status === 'pending')) {
-        setSuccess(true);
+      if (res.ok) {
+        if (data.status === "approved") {
+           setSuccess(true);
+        } else {
+           alert("Registration completed but pending admin review (Sandbox API may be off).");
+           // Redirect to login or show pending state
+           window.location.href = "/login";
+        }
       } else {
-        alert(data.message || "Verification failed: " + (data.rejection_reason || "Invalid credentials"));
+        alert(data.error || "Verification failed: Invalid credentials");
       }
     } catch (err) {
-      alert("Verification server unavailable. Ensure backend is running on port 5000.");
+      alert("Verification server or network error. Please try again.");
     } finally {
       setLoading(false);
     }

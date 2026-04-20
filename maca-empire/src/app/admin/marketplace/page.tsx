@@ -81,13 +81,33 @@ export default function AdminMarketplace() {
   }, [tab, statusFilter]);
 
   const handleApprove = async (caId: string) => {
-    await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals/${caId}/approve`, { method: "POST" });
-    loadTab("kyc");
+    try {
+      const res = await fetch(`/api/admin/kyc/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY },
+        body: JSON.stringify({ profile_id: caId, action: "approve" })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Approval Failed");
+      loadTab("kyc");
+    } catch (err: any) {
+      alert(`⚠️ KYC Approval Failed:\n${err.message}`);
+    }
   };
 
   const handleReject = async (caId: string) => {
-    await fetch(`${BACKEND}/api/marketplace/admin/ca-approvals/${caId}/reject`, { method: "POST" });
-    loadTab("kyc");
+    try {
+      const res = await fetch(`/api/admin/kyc/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": ADMIN_KEY },
+        body: JSON.stringify({ profile_id: caId, action: "reject" })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Rejection Failed");
+      loadTab("kyc");
+    } catch (err: any) {
+      alert(`⚠️ KYC Rejection Failed:\n${err.message}`);
+    }
   };
 
   const handlePayout = async (bookingId: string) => {

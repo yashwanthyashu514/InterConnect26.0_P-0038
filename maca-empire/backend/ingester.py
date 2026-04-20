@@ -58,7 +58,9 @@ AGENT_CONFIG = {
     },
     'supreme_tax': {
         'folder': BASE_DIR / 'docs/supreme_tax/',
-        'table': 'supreme_tax_documents',
+        # Preferred production table for Supreme Tax is `tax_knowledge` (see `supreme_tax_rag_setup.sql`).
+        # If not provisioned, ingestion will fall back to `oracle_static_kb` with a `supreme_tax::` source prefix.
+        'table': 'tax_knowledge',
         'default_category': 'Taxation & Law'
     }
 }
@@ -88,7 +90,25 @@ def split_sentences(text: str) -> list[str]:
     return [p.strip() for p in parts if p.strip()]
 
 
-def chunk_text(full_text: str, target_tokens: int = 220, overlap_tokens: int = 40) -> list[str]:
+def enforce_chunk_caps(chunks: list[str], max_tokens: int = 260, overlap_words: int = 30) -> list[str]:
+    capped: list[str] = []
+    for chunk in chunks:
+        if estimate_tokens(chunk) <= max_tokens:
+            capped.append(chunk)
+            continue
+        words = chunk.split()
+        i = 0
+        window_words = 160
+        step_words = max(20, window_words - overlap_words)
+        while i < len(words):
+            piece = " ".join(words[i:i + window_words]).strip()
+            if piece and estimate_tokens(piece) > 0:
+                capped.append(piece)
+            i += step_words
+    return capped
+
+
+def chunk_text(full_text: str, target_tokens: int = 180, overlap_tokens: int = 30) -> list[str]:
     sentences = split_sentences(full_text)
     if not sentences:
         return []
@@ -146,6 +166,8 @@ def chunk_text(full_text: str, target_tokens: int = 220, overlap_tokens: int = 4
         current_tokens += sentence_tokens
 
     flush_current()
+    chunks = enforce_chunk_caps(chunks, max_tokens=260, overlap_words=30)
+
     # Remove exact duplicates while preserving order
     seen = set()
     deduped: list[str] = []
@@ -246,13 +268,20 @@ def extract_text_from_txt(txt_path: str) -> list[str]:
     return chunk_text(full_text)
 
 def embed_text(text: str) -> list[float]:
-    response = nim_client.embeddings.create(
-        input=[text],
-        model='nvidia/nv-embed-v1',
-        encoding_format='float',
-        extra_body={'input_type': 'passage', 'truncate': 'END'}
-    )
-    return response.data[0].embedding
+    last_error = None
+    for _ in range(3):
+        try:
+            response = nim_client.embeddings.create(
+                input=[text],
+                model='nvidia/nv-embed-v1',
+                encoding_format='float',
+                extra_body={'input_type': 'passage', 'truncate': 'END'}
+            )
+            return response.data[0].embedding
+        except Exception as err:
+            last_error = err
+            continue
+    raise RuntimeError(f"Embedding failed after retries: {last_error}")
 
 
 def get_existing_hashes(table: str, source_name: str) -> set[str]:
@@ -270,37 +299,73 @@ def get_existing_hashes(table: str, source_name: str) -> set[str]:
 
 def build_payload(agent_name: str, file_name: str, chunk: str, embedding: list[float], category: str) -> dict:
     meta = infer_metadata(agent_name, file_name, chunk)
-    payload = {
-        "content": chunk,
-        "embedding": embedding,
-        "source": file_name,
-        "category": category,
-        "last_updated": date.today().isoformat(),
-    }
+    payload = {"last_updated": date.today().isoformat()}
 
     if agent_name == "dpdp_shield":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["rule_number"] = meta["section_ref"]
-        payload["section"] = meta["section_ref"]
     elif agent_name == "cryptotax_pro":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["section_number"] = meta["section_ref"]
         payload["cbdt_circular"] = meta["topic_tag"]
     elif agent_name == "esg_compass":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["framework"] = meta["topic_tag"]
         payload["section"] = meta["section_ref"]
     elif agent_name == "heirguard":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["act_name"] = meta["topic_tag"]
         payload["section_number"] = meta["section_ref"]
         payload["religion"] = meta["jurisdiction"]
     elif agent_name == "ai_governance_counsel":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["framework"] = meta["topic_tag"]
         payload["jurisdiction"] = meta["jurisdiction"]
         payload["risk_level"] = "medium"
     elif agent_name == "the_oracle":
+        payload.update({"content": chunk, "embedding": embedding, "source": file_name, "category": category})
         payload["asset_class"] = meta["asset_class"]
         payload["knowledge_type"] = meta["knowledge_type"]
         payload["era"] = meta["effective_date"][:4] if meta["effective_date"] else "current"
+    elif agent_name == "supreme_tax":
+        # Supreme Tax uses a different schema (`tax_knowledge`) in production:
+        # { topic_tag, section_ref, ay, content, embedding }
+        payload = {
+            "topic_tag": meta["topic_tag"],
+            "section_ref": meta["section_ref"],
+            "ay": "2025-26",
+            "content": chunk,
+            "embedding": embedding,
+        }
 
     return payload
+
+
+def table_exists(table: str) -> bool:
+    try:
+        supabase.table(table).select("*").limit(1).execute()
+        return True
+    except Exception:
+        return False
+
+
+def insert_with_schema_fallback(table: str, payload: dict) -> None:
+    mutable = dict(payload)
+    for _ in range(6):
+        try:
+            supabase.table(table).insert(mutable).execute()
+            return
+        except Exception as err:
+            err_str = str(err)
+            # PostgREST missing-column errors (PGRST204 / schema drift)
+            missing = re.search(r"Could not find the '([^']+)' column", err_str)
+            if missing:
+                key = missing.group(1)
+                if key in mutable:
+                    mutable.pop(key, None)
+                    continue
+            raise
+    raise RuntimeError(f"Insert failed after schema fallback attempts for table {table}")
 
 def ingest_agent(agent_name: str, folder: str = None):
     config = AGENT_CONFIG.get(agent_name)
@@ -310,6 +375,9 @@ def ingest_agent(agent_name: str, folder: str = None):
 
     docs_folder = Path(folder or config['folder'])
     table = config['table']
+    if agent_name == "supreme_tax" and table == "tax_knowledge" and not table_exists("tax_knowledge"):
+        # Supabase not provisioned with Supreme Tax schema yet.
+        table = "oracle_static_kb"
 
     if not docs_folder.exists():
         print(f'Creating folder: {docs_folder}')
@@ -337,7 +405,10 @@ def ingest_agent(agent_name: str, folder: str = None):
             print(f'  Error reading {file_path.name}: {e}')
             continue
         print(f'  Extracted {len(chunks)} chunks')
-        existing_hashes = get_existing_hashes(table, file_path.name)
+        source_name = file_path.name if table != "oracle_static_kb" else (
+            f"supreme_tax::{file_path.name}" if agent_name == "supreme_tax" else file_path.name
+        )
+        existing_hashes = get_existing_hashes(table, source_name)
         inserted_count = 0
         skipped_duplicates = 0
 
@@ -349,20 +420,20 @@ def ingest_agent(agent_name: str, folder: str = None):
                     continue
                 embedding = embed_text(chunk)
                 try:
-                    payload = build_payload(agent_name, file_path.name, chunk, embedding, config['default_category'])
-                    supabase.table(table).insert(payload).execute()
+                    payload = build_payload(agent_name, source_name, chunk, embedding, config['default_category'])
+                    insert_with_schema_fallback(table, payload)
                 except Exception as insert_error:
                     err_str = str(insert_error)
-                    if agent_name == 'supreme_tax' and 'PGRST205' in err_str:
-                        # Fallback ingestion target when supreme_tax table is not provisioned yet.
+                    if agent_name == 'supreme_tax':
+                        # Always allow a robust fallback into oracle when tax_knowledge isn't available.
                         fallback_source = f"supreme_tax::{file_path.name}"
-                        fallback_hashes = get_existing_hashes('oracle_static_kb', fallback_source)
+                        fallback_hashes = get_existing_hashes("oracle_static_kb", fallback_source)
                         if chunk_hash in fallback_hashes:
                             skipped_duplicates += 1
                             continue
-                        payload = build_payload('the_oracle', fallback_source, chunk, embedding, 'Taxation & Law')
-                        payload['source'] = fallback_source
-                        supabase.table('oracle_static_kb').insert(payload).execute()
+                        payload = build_payload("the_oracle", fallback_source, chunk, embedding, "Taxation & Law")
+                        payload["source"] = fallback_source
+                        insert_with_schema_fallback("oracle_static_kb", payload)
                     else:
                         raise
                 inserted_count += 1

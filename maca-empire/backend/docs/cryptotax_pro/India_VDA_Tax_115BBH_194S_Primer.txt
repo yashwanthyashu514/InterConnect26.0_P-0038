@@ -1,0 +1,28 @@
+India VDA Tax Primer: Section 115BBH and Section 194S
+
+Background:
+Virtual Digital Assets (VDAs) include crypto assets and NFTs covered by the Income-tax Act framework.
+
+Section 115BBH (Tax on VDA Income):
+- Income from transfer of a VDA is taxed at a special rate.
+- No deduction is allowed except cost of acquisition.
+- Set-off of loss from transfer of VDA against any other income is generally not permitted.
+- Carry-forward of such loss is also restricted under the special regime.
+
+Section 194S (TDS on VDA Transfer):
+- Tax deduction at source applies on payment/consideration for transfer of VDA beyond prescribed threshold.
+- Deductor responsibilities differ for specified persons and non-specified persons.
+- In barter or exchange transactions, compliance may require ensuring tax payment before release of consideration.
+
+Compliance Records:
+- Maintain transaction-level ledger with timestamp, wallet/exchange references, INR value, acquisition cost, transfer consideration, and fees.
+- Reconcile exchange statements with internal books.
+- Preserve working papers for valuation methodology.
+
+Practical Classification:
+- Investment vs trading classification impacts treatment in financial statements and reporting posture.
+- Maintain consistency in accounting policy and documentation.
+
+GST and FEMA Touchpoints:
+- GST and cross-border remittance implications may arise depending on business model.
+- Evaluate separately with legal-advisory support for exchange/platform operations.

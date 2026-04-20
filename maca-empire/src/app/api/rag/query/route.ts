@@ -15,6 +15,50 @@ const FALLBACK_MESSAGE = "Insufficient document data — please consult your CA 
 
 type RetrievedChunk = Record<string, unknown> & { similarity?: number };
 
+async function generateGroundedAnswer(query: string, context: string): Promise<string> {
+  const apiKey = process.env.NVIDIA_API_KEY;
+  if (!apiKey) {
+    throw new Error("NVIDIA_API_KEY missing");
+  }
+
+  const systemPrompt =
+    "You are a legal-tax assistant. Answer only from the provided context. " +
+    "If context is insufficient, say so clearly. Include short source references like [Context 1], [Context 2].";
+
+  const userPrompt = `Question: ${query}\n\nContext:\n${context}\n\nReturn a concise, structured answer.`;
+
+  const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "meta/llama-3.3-70b-instruct",
+      temperature: 0.1,
+      top_p: 0.9,
+      max_tokens: 800,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`NIM_CHAT_ERROR_${response.status}`);
+  }
+
+  const data: {
+    choices?: Array<{ message?: { content?: string } }>;
+  } = await response.json();
+  const content = data.choices?.[0]?.message?.content?.trim();
+  if (!content) {
+    throw new Error("NIM_EMPTY_RESPONSE");
+  }
+  return content;
+}
+
 export async function POST(req: Request) {
   const startTime = Date.now();
   try {
@@ -69,7 +113,9 @@ export async function POST(req: Request) {
     const reranked = await rerankChunks(chunks);
     const { context, tokenCount } = buildContext(reranked);
 
-    // 6. Generation with Streaming (F4.3)
+    // 6. Grounded generation + stream back response
+    const groundedAnswer = await generateGroundedAnswer(query, context);
+
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
@@ -77,12 +123,10 @@ export async function POST(req: Request) {
         const startupLatency = Date.now() - startTime;
         controller.enqueue(encoder.encode(JSON.stringify({ type: "meta", latency_ms: startupLatency, chunks: reranked }) + "\n"));
 
-        // Simulate streaming tokens (In production, replace with LLM stream)
-        const responseText = `Based on context from your engagement docs (${reranked.length} source chunks), regarding "${query}": The documents indicate that ... [Source: Chunk 1]. Please consult your CA for final verification.`;
-        const words = responseText.split(" ");
+        const words = groundedAnswer.split(" ");
         for (const word of words) {
           controller.enqueue(encoder.encode(JSON.stringify({ type: "token", text: word + " " }) + "\n"));
-          await new Promise(r => setTimeout(r, 60)); // Simulate generation thinking
+          await new Promise(r => setTimeout(r, 20));
         }
 
         // Final latency log
