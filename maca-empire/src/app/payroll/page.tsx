@@ -81,7 +81,7 @@ export default function PayrollPage() {
                   nativeInputValueSetter?.call(input, p);
                   input.dispatchEvent(new Event('input', { bubbles: true }));
                   setTimeout(() => {
-                    const sendBtn = document.querySelector('.chat-input-bar button:not([disabled])') as HTMLButtonElement;
+                    const sendBtn = document.querySelector('.neural-send-button:not([disabled])') as HTMLButtonElement;
                     sendBtn?.click();
                   }, 100);
                 }
@@ -102,7 +102,7 @@ export default function PayrollPage() {
               nativeInputValueSetter?.call(input, prompt);
               input.dispatchEvent(new Event('input', { bubbles: true }));
               setTimeout(() => {
-                const sendBtn = document.querySelector('.chat-input-bar button:not([disabled])') as HTMLButtonElement;
+                const sendBtn = document.querySelector('.neural-send-button:not([disabled])') as HTMLButtonElement;
                 sendBtn?.click();
               }, 100);
             }

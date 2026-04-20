@@ -112,7 +112,7 @@ export default function EliteWealthPage() {
                   nativeInputValueSetter?.call(input, p);
                   input.dispatchEvent(new Event("input", { bubbles: true }));
                   setTimeout(() => {
-                    const sendBtn = document.querySelector(".chat-input-bar button:not([disabled])") as HTMLButtonElement;
+                    const sendBtn = document.querySelector(".neural-send-button:not([disabled])") as HTMLButtonElement;
                     sendBtn?.click();
                   }, 100);
                 }

@@ -139,8 +139,8 @@ async function synthesizeAudioWithOpenAI(text: string, languageCode: string, api
 export async function POST(req: Request) {
   try {
     const openAiApiKey = process.env.OPENAI_API_KEY;
-    if (!openAiApiKey) {
-      return NextResponse.json({ error: "OPENAI_API_KEY missing for server STT/TTS" }, { status: 503 });
+    if (!openAiApiKey || openAiApiKey === "ROTATE_REQUIRED_SET_NEW_OPENAI_KEY") {
+      return NextResponse.json({ error: "OpenAI API Key is not configured. Please set a valid OPENAI_API_KEY in your .env file to enable Voice CA features." }, { status: 503 });
     }
 
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";

@@ -441,6 +441,7 @@ export default function AgentChatLayout({
               <button
                 onClick={() => handleSend()}
                 disabled={isTyping}
+                className="neural-send-button"
                 style={{ background: isTyping ? "var(--text-muted)" : "var(--acid)", color: "#000", border: "none", borderRadius: "50px", padding: "6px 12px", fontWeight: 800, fontSize: "11px", cursor: "pointer" }}
               >
                 {isTyping ? "..." : "Send"}
