@@ -1,38 +1,55 @@
 # Dependencies
-maca-empire/node_modules/
-maca-empire/.pnp
-maca-empire/.pnp.*
-maca-empire/.yarn/*
+node_modules/
+**/node_modules/
+.pnp
+.pnp.*
+.yarn/*
 
 # Next.js & Build
-maca-empire/.next/
-maca-empire/out/
-maca-empire/build/
-maca-empire/.vercel/
-maca-empire/*.tsbuildinfo
-maca-empire/next-env.d.ts
+.next/
+**/.next/
+out/
+**/out/
+build/
+**/build/
+.vercel
+*.tsbuildinfo
+next-env.d.ts
 
 # Secrets & Private Strategy
-maca-empire/docs/
-maca-empire/supabase_check.txt
+.env
+.env.*
+!.env.example
 *.local
 *.secret
 credentials.json
 token.json
+supabase_check.txt
+docs/
 
 # Private Strategy & Demonstration Files
-maca-empire/JUDGE_CHEATSHEET.md
-maca-empire/AGI_NEURAL_REGISTRY.md
-maca-empire/SUPREME_TAX_AGI_FEATURE_AUDIT.md
+JUDGE_CHEATSHEET.md
+AGI_NEURAL_REGISTRY.md
+SUPREME_TAX_AGI_FEATURE_AUDIT.md
 
 .vscode/
 
 # Debug logs
-maca-empire/npm-debug.log*
-maca-empire/yarn-debug.log*
-maca-empire/yarn-error.log*
-maca-empire/.pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
 # Misc
 .DS_Store
 *.pem
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.venv/
+*.sqlite3
+*.db
