@@ -132,6 +132,40 @@ export default function AgentChatLayout({
     }
   }, [messages]);
 
+  const CACHE_KEY = agentId ? `maca_chat_history_${agentId}` : `maca_chat_history_general`;
+  const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(CACHE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Date.now() - parsed.timestamp < CACHE_DURATION) {
+          if (Array.isArray(parsed.data) && parsed.data.length > 0) {
+            setMessages(parsed.data);
+          }
+        } else {
+          localStorage.removeItem(CACHE_KEY); // Expired
+        }
+      }
+    } catch (e) {
+      console.error("Failed to load chat history", e);
+    }
+  }, [CACHE_KEY]);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: messages
+        }));
+      } catch (e) {
+        console.error("Failed to save chat history", e);
+      }
+    }
+  }, [messages, CACHE_KEY]);
+
   const handleSend = async (overrideValue?: string) => {
     const val = overrideValue || inputValue;
     if (!val.trim() || isTyping) return;

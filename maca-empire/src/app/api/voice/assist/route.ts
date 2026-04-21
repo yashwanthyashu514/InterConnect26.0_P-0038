@@ -90,11 +90,14 @@ async function transcribeAudioWithOpenAI(file: File, apiKey: string): Promise<st
 }
 
 async function streamAskResponse(query: string, languageCode: string, backendUrl: string): Promise<string> {
+  // Inject brevity and plain-text constraints directly into the prompt for extreme speed
+  const speedyQuery = `${query}\n\n[SYSTEM INSTRUCTION FOR VOICE CA: Your output is being spoken aloud. You MUST respond in a minimum of 3 clear, conversational sentences, but keep them concise for rapid audio generation. Do NOT use markdown, bullet points, or list formatting.]`;
+
   const response = await fetch(`${backendUrl}/ask`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      query,
+      query: speedyQuery,
       agent_id: "A6",
       language: languageCode,
       language_code: languageCode,
@@ -133,7 +136,28 @@ async function streamAskResponse(query: string, languageCode: string, backendUrl
   return fullText.trim();
 }
 
+function chunkText(text: string, maxLength: number = 490): string[] {
+  const chunks: string[] = [];
+  let remaining = text;
+  while (remaining.length > 0) {
+    if (remaining.length <= maxLength) {
+      chunks.push(remaining);
+      break;
+    }
+    // try to find a space to break
+    let breakIndex = remaining.lastIndexOf(" ", maxLength);
+    if (breakIndex === -1) {
+      breakIndex = maxLength;
+    }
+    chunks.push(remaining.substring(0, breakIndex).trim());
+    remaining = remaining.substring(breakIndex).trim();
+  }
+  return chunks;
+}
+
 async function synthesizeAudioWithSarvam(text: string, languageCode: string, apiKey: string): Promise<{ base64: string; mimeType: string }> {
+  const textChunks = chunkText(text, 490);
+  
   const response = await fetch("https://api.sarvam.ai/text-to-speech", {
     method: "POST",
     headers: {
@@ -141,10 +165,10 @@ async function synthesizeAudioWithSarvam(text: string, languageCode: string, api
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      inputs: [text],
+      inputs: textChunks,
       target_language_code: languageCode,
       speaker: "anushka",
-      model: "bulbul:v1",
+      model: "bulbul:v3",
     }),
   });
 
@@ -154,7 +178,10 @@ async function synthesizeAudioWithSarvam(text: string, languageCode: string, api
   }
 
   const data = (await response.json()) as { audios: string[] };
-  return { base64: data.audios[0], mimeType: "audio/mpeg" };
+  
+  // Returning the first chunk ensures valid WAV header parsing by the browser
+  // (Concatenating raw WAV buffers corrupts the multimedia container)
+  return { base64: data.audios[0] || "", mimeType: "audio/wav" };
 }
 
 async function synthesizeAudioWithOpenAI(text: string, languageCode: string, apiKey: string): Promise<{ base64: string; mimeType: string }> {
@@ -228,11 +255,16 @@ export async function POST(req: Request) {
     }
 
     // 3. Synthesis (TTS)
-    let tts;
-    if (isSarvamValid) {
-      tts = await synthesizeAudioWithSarvam(textResponse, responseLanguage, sarvamApiKey!);
-    } else {
-      tts = await synthesizeAudioWithOpenAI(textResponse, responseLanguage, openAiApiKey!);
+    let tts = { base64: "", mimeType: "audio/mpeg" };
+    try {
+      if (isSarvamValid) {
+        tts = await synthesizeAudioWithSarvam(textResponse, responseLanguage, sarvamApiKey!);
+      } else {
+        tts = await synthesizeAudioWithOpenAI(textResponse, responseLanguage, openAiApiKey!);
+      }
+    } catch (ttsErr) {
+      console.error("TTS Failed but returning text:", ttsErr);
+      // tts remains empty, so audio just won't play
     }
 
     const payload: VoiceAssistPayload = {

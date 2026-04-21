@@ -75,22 +75,30 @@ export default function VoicePage() {
       setDetectedLanguage(nextLang);
       setLanguage(nextLang);
 
-      if (audioRef.current) {
-        audioRef.current.pause();
-        URL.revokeObjectURL(audioRef.current.src);
-      }
-      const audioBytes = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
-      const audioBlobOut = new Blob([audioBytes], { type: audioMime });
-      const audioUrl = URL.createObjectURL(audioBlobOut);
-      const audio = new Audio(audioUrl);
-      audioRef.current = audio;
-      audio.onplay = () => setMicState("speaking");
-      audio.onended = () => setMicState("idle");
-      audio.onerror = () => {
+      if (audioBase64) {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          URL.revokeObjectURL(audioRef.current.src);
+        }
+        try {
+          const audioBytes = Uint8Array.from(atob(audioBase64), (c) => c.charCodeAt(0));
+          const audioBlobOut = new Blob([audioBytes], { type: audioMime });
+          const audioUrl = URL.createObjectURL(audioBlobOut);
+          const audio = new Audio(audioUrl);
+          audioRef.current = audio;
+          audio.onplay = () => setMicState("speaking");
+          audio.onended = () => setMicState("idle");
+          audio.onerror = () => {
+            setMicState("idle");
+          };
+          await audio.play();
+        } catch (playErr) {
+          console.warn("Audio play skipped:", playErr);
+          setMicState("idle");
+        }
+      } else {
         setMicState("idle");
-        setError("Audio playback failed");
-      };
-      await audio.play();
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Voice pipeline failed";
       setError(message);
