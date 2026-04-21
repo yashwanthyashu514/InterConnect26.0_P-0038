@@ -33,7 +33,7 @@ function LoginContent() {
            const { data: profile } = await supabase
              .from("ca_profiles")
              .select("kyc_status")
-             .eq("user_id", userData.id)
+             .eq("user_id", session.user.id)
              .maybeSingle();
            
            if (profile?.kyc_status === "approved") router.push("/ca-dashboard");
@@ -134,9 +134,7 @@ function LoginContent() {
       const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
       if (isSignUp) {
-        const password = (form.elements.namedItem("password") as HTMLInputElement).value;
-        // Step 1: Redirect to onboarding with both email and password context
-        // We'll pass them securely or handle them via the session
+        // Redirect to onboarding with both email and password context
         router.push(`/onboarding?email=${encodeURIComponent(email)}&p=${encodeURIComponent(password)}&mode=signup`);
         return;
       }

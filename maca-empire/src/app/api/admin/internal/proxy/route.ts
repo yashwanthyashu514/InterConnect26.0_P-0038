@@ -10,19 +10,22 @@ export async function POST(req: Request) {
   try {
     const { path, method, body } = await req.json();
     const BACKEND = process.env.PYTHON_BACKEND_URL || "http://localhost:8000";
+    const adminKey = process.env.ADMIN_SECRET_KEY || "";
     const url = `${BACKEND}/internal/${path}`;
     
+    // Inject admin_key into body — required by FastAPI InternalChatRequest model
+    const enrichedBody = body ? { ...body, admin_key: adminKey } : { admin_key: adminKey };
+
     const res = await fetch(url, {
       method: method || "GET",
       headers: {
         "Content-Type": "application/json",
-        "x-admin-key": process.env.ADMIN_SECRET_KEY || "",
+        "x-admin-key": adminKey,
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(enrichedBody),
     });
 
     if (res.headers.get("content-type")?.includes("text/event-stream")) {
-       // Handle streaming if needed, but for now we'll just return the status
        return new Response(res.body, { headers: res.headers });
     }
 
@@ -46,11 +49,13 @@ export async function GET(req: Request) {
 
   try {
     const BACKEND = process.env.PYTHON_BACKEND_URL || "http://localhost:8000";
-    const url = `${BACKEND}/internal/${path}`;
+    const adminKey = process.env.ADMIN_SECRET_KEY || "";
+    // Inject admin_key as query param — required by FastAPI GET route handlers
+    const url = `${BACKEND}/internal/${path}?admin_key=${encodeURIComponent(adminKey)}`;
     
     const res = await fetch(url, {
       headers: {
-        "x-admin-key": process.env.ADMIN_SECRET_KEY || "",
+        "x-admin-key": adminKey,
       }
     });
 
