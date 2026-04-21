@@ -10,6 +10,7 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
   const [showProfile, setShowProfile] = useState(false);
   const [user, setUser] = useState<{ email?: string } | null>(null);
   const [role, setRole] = useState<string>("User");
+  const [homePath, setHomePath] = useState<string>("/");
   const router = useRouter();
 
   useEffect(() => {
@@ -21,12 +22,29 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
         // Fetch role from marketplace_users
         const { data: userData } = await supabase
           .from("marketplace_users")
-          .select("role")
+          .select("id, role")
           .eq("email", session.user.email)
           .single();
         
         if (userData?.role) {
-          setRole(userData.role.toUpperCase());
+          const r = userData.role.toLowerCase();
+          setRole(r.toUpperCase());
+          
+          if (r === "ca") {
+            // check kyc_status
+            const { data: profile } = await supabase
+              .from("ca_profiles")
+              .select("kyc_status")
+              .eq("user_id", userData.id)
+              .maybeSingle();
+            
+            if (profile?.kyc_status === "approved") setHomePath("/ca-dashboard");
+            else setHomePath("/ca-onboarding?kyc=pending");
+          } else if (r === "admin") {
+            setHomePath("/admin");
+          } else {
+            setHomePath("/");
+          }
         }
       }
     };
@@ -49,9 +67,9 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
             <Menu size={24} />
           </button>
         )}
-        <Link href="/" style={{ background: "none", border: "0.5px solid #1a1a1a", color: "rgba(255,255,255,0.5)", borderRadius: "8px", padding: "6px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "#fff"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "#1a1a1a"}>
+        <Link href={homePath} style={{ background: "none", border: "0.5px solid #1a1a1a", color: "rgba(255,255,255,0.5)", borderRadius: "8px", padding: "6px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", transition: "all 0.2s", textDecoration: "none" }} onMouseEnter={(e) => e.currentTarget.style.borderColor = "#fff"} onMouseLeave={(e) => e.currentTarget.style.borderColor = "#1a1a1a"}>
           <Home size={16} />
-          <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>Home</span>
+          <span style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase" }}>{role === "CA" ? "Portal" : "Home"}</span>
         </Link>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", padding: "6px 14px", background: "#080808", border: "0.5px solid #1a1a1a", borderRadius: "8px" }}>
            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: "var(--acid)" }} />

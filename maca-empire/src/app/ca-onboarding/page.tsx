@@ -53,6 +53,9 @@ export default function CARegistrationPage() {
         }
       } else {
         alert(data.error || "Verification failed: Invalid credentials");
+        if (data.error && data.error.includes("ICAI")) {
+          setStep(2);
+        }
       }
     } catch (err) {
       alert("Verification server or network error. Please try again.");
@@ -108,7 +111,7 @@ export default function CARegistrationPage() {
               </div>
               <div className="input-group">
                 <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "rgba(0,0,0,0.5)", marginBottom: "8px", textTransform: "uppercase" }}>Secure Password</label>
-                <input type="password" placeholder="••••••••" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} style={{ width: "100%", padding: "16px", borderRadius: "14px", border: "1.5px solid rgba(0,0,0,0.08)", outline: "none" }} />
+                <input type="password" placeholder="Min 8 characters" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} style={{ width: "100%", padding: "16px", borderRadius: "14px", border: "1.5px solid rgba(0,0,0,0.08)", outline: "none" }} />
               </div>
               <button 
                 onClick={() => { if(formData.name && formData.email) setStep(2); }} 

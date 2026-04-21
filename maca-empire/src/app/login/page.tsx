@@ -21,7 +21,28 @@ function LoginContent() {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        router.push("/");
+        // Fetch role from marketplace_users to redirect correctly
+        const { data: userData } = await supabase
+          .from("marketplace_users")
+          .select("role")
+          .eq("email", session.user.email)
+          .single();
+
+        if (userData?.role === "ca") {
+           // check profile for kyc status
+           const { data: profile } = await supabase
+             .from("ca_profiles")
+             .select("kyc_status")
+             .eq("user_id", userData.id)
+             .maybeSingle();
+           
+           if (profile?.kyc_status === "approved") router.push("/ca-dashboard");
+           else router.push("/ca-onboarding?kyc=pending");
+        } else if (userData?.role === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/");
+        }
       } else {
         setCheckingSession(false);
       }

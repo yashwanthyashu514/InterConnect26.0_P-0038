@@ -35,6 +35,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    if (phone) {
+      const { data: existingPhoneUser } = await supabase
+        .from("marketplace_users")
+        .select("email")
+        .eq("phone", phone)
+        .maybeSingle();
+
+      if (existingPhoneUser && existingPhoneUser.email !== cleanEmail) {
+        return NextResponse.json({ error: "This phone number is already linked to another account. Please use a different one." }, { status: 400 });
+      }
+    }
+
     // 1. Handled by upsert logic below (Account Upgrade)
 
     // 2. Hash password (if new user) or use existing if we wanted to sync (but user wants 'register again' feel)
@@ -63,7 +75,7 @@ export async function POST(req: Request) {
       user_metadata: { name, role }
     });
 
-    if (authError && !authError.message.includes("already registered")) {
+    if (authError && !authError.message.toLowerCase().includes("already")) {
        console.error("Identity Engine Failure:", authError.message);
        return NextResponse.json({ error: `Auth Error: ${authError.message}. Ensure SERVICE_ROLE_KEY is valid.` }, { status: 500 });
     }
