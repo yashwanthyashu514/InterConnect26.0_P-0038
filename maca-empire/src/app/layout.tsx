@@ -3,11 +3,12 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, Syne } from "next/font/google";
 import "./globals.css";
 import GlobalNav from "@/components/shared/GlobalNav";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "maCA Empire — The Future of Indian Legal & Financial Intelligence",
   description:
-    "Big 4 quality consulting at consumer scale. 15 autonomous AI agents for tax, compliance, legal disputes, and financial matters. From just ₹1,499/month.",
+    "Big 4 quality consulting at consumer scale. 19 autonomous AI agents for tax, compliance, legal disputes, and financial matters. From just ₹1,499/month.",
   keywords: [
     "Indian legal AI",
     "GST compliance",
@@ -31,8 +32,6 @@ export const viewport: Viewport = {
   maximumScale: 5,
   themeColor: "#000000",
 };
-
-import Script from "next/script";
 
 const syne = Syne({
   subsets: ["latin"],

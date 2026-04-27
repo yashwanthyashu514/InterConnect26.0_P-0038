@@ -8,6 +8,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   citations?: unknown[];
+  sub_agent?: string;
 }
 
 type Citation = { source: string };
@@ -176,6 +177,9 @@ export default function AgentChatLayout({
     setIsTyping(true);
 
     try {
+      // Neural Dispatch: Immediate handover to backend
+      // await new Promise(resolve => setTimeout(resolve, 500)); // Optional: subtle 500ms breathe room
+
       let endpoint = `${BACKEND_URL}/ask`;
       let payload: Record<string, unknown> = { query: userMsg.content, agent_id: agentId };
 
@@ -219,6 +223,16 @@ export default function AgentChatLayout({
         endpoint = `${BACKEND_URL}/api/agents/ai-governance/query`;
       } else if (agentId === "A26") {
         endpoint = `${BACKEND_URL}/api/agents/the-oracle/query`;
+      } else if (agentId === "E1") {
+        endpoint = `${BACKEND_URL}/api/v2/empire/chancellor`;
+      } else if (agentId === "E2") {
+        endpoint = `${BACKEND_URL}/api/v2/empire/advocate`;
+      } else if (agentId === "E3") {
+        endpoint = `${BACKEND_URL}/api/v2/empire/banker`;
+      } else if (agentId === "E4") {
+        endpoint = `${BACKEND_URL}/api/v2/empire/sentinel`;
+      } else if (agentId === "E5") {
+        endpoint = `${BACKEND_URL}/api/v2/empire/optimizer`;
       } else {
         endpoint = `${BACKEND_URL}/ask`;
       }
@@ -250,19 +264,18 @@ export default function AgentChatLayout({
               try {
                 const data = JSON.parse(dataStr);
                 if (data.token) {
-                  assistantMsg.content += data.token;
                   setMessages(prev => {
-                    const newMsgs = [...prev];
-                    newMsgs[newMsgs.length - 1] = { ...assistantMsg };
-                    return newMsgs;
+                    const last = prev[prev.length - 1];
+                    if (last.role === "assistant") {
+                      return [...prev.slice(0, -1), { ...last, content: last.content + data.token }];
+                    }
+                    return [...prev, { role: "assistant", content: data.token }];
                   });
-
-                  // Neural Context Update: Broadcast token to UI listeners
-                  window.dispatchEvent(new CustomEvent('neural-context-update', { 
-                    detail: { token: data.token, agentId, fullContent: assistantMsg.content } 
-                  }));
                 } else if (data.citations) {
-                  assistantMsg.citations = data.citations;
+                  setMessages(prev => {
+                    const last = prev[prev.length - 1];
+                    return [...prev.slice(0, -1), { ...last, citations: data.citations, sub_agent: data.sub_agent }];
+                  });
                 }
               } catch (e) { }
             }
@@ -473,6 +486,22 @@ export default function AgentChatLayout({
                           {m.citations.filter(isCitation).map((c, j) => (
                             <span key={j} style={{ padding: "3px 8px", background: "var(--surface)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", fontSize: "10px", color: "var(--text-muted)" }}>{c.source}</span>
                           ))} 
+                        </div>
+                      )}
+
+                      {m.sub_agent && (
+                        <div style={{ display: "flex", gap: "6px", marginTop: "10px", flexWrap: "wrap" }}>
+                          {m.sub_agent.split(", ").map((label: string, i: number) => (
+                            <span key={i} style={{
+                              background: "rgba(181,255,46,0.08)",
+                              border: "1px solid rgba(181,255,46,0.2)",
+                              color: "var(--acid)",
+                              fontSize: "10px", fontWeight: 700,
+                              padding: "2px 8px", borderRadius: "20px"
+                            }}>
+                              ⚡ {label}
+                            </span>
+                          ))}
                         </div>
                       )}
                     </div>

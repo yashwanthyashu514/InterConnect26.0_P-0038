@@ -107,24 +107,32 @@ function OnboardingComponent() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsLoggedIn(true);
-        setRegData(prev => ({ ...prev, email: session.user.email || prev.email }));
-        
-        // If user already exists in the marketplace database, skip onboarding
-        const { data: userData } = await supabase
-          .from("marketplace_users")
-          .select("id")
-          .eq("email", session.user.email)
-          .maybeSingle();
-        
-        if (userData) {
-          router.push("/");
-          return;
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const { user: session } = await res.json();
+          if (session) {
+            setIsLoggedIn(true);
+            setRegData(prev => ({ ...prev, email: session.email || prev.email }));
+            
+            // If user already exists in the marketplace database, skip onboarding
+            const { data: userData } = await supabase
+              .from("marketplace_users")
+              .select("id")
+              .eq("id", session.user_id)
+              .maybeSingle();
+            
+            if (userData) {
+              router.push("/");
+              return;
+            }
+          }
         }
+      } catch (err) {
+        console.error("Onboarding auth sync error:", err);
+      } finally {
+        setCheckingUserInfo(false);
       }
-      setCheckingUserInfo(false);
     };
     checkUser();
   }, [router]);
@@ -146,10 +154,12 @@ function OnboardingComponent() {
 
     try {
       let submitEmail = regData.email;
-      const { data: { session: authSession } } = await supabase.auth.getSession();
-      
-      if (authSession?.user?.email) {
-        submitEmail = authSession.user.email;
+      const authRes = await fetch("/api/auth/me");
+      if (authRes.ok) {
+        const { user: session } = await authRes.json();
+        if (session?.email) {
+          submitEmail = session.email;
+        }
       }
 
       if (!submitEmail) {

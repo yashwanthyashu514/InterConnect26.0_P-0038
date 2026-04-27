@@ -16,34 +16,33 @@ function LoginContent() {
 
   const [checkingSession, setCheckingSession] = useState(true);
 
-  // Check for existing session
+  // Check for existing session using our custom JWT system
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Fetch role from marketplace_users to redirect correctly
-        const { data: userData } = await supabase
-          .from("marketplace_users")
-          .select("role")
-          .eq("email", session.user.email)
-          .single();
-
-        if (userData?.role === "ca") {
-           // check profile for kyc status
-           const { data: profile } = await supabase
-             .from("ca_profiles")
-             .select("kyc_status")
-             .eq("user_id", session.user.id)
-             .maybeSingle();
-           
-           if (profile?.kyc_status === "approved") router.push("/ca-dashboard");
-           else router.push("/ca-onboarding?kyc=pending");
-        } else if (userData?.role === "admin") {
-          router.push("/admin");
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const { user: session } = await res.json();
+          if (session) {
+            const role = (session.role || "user").toLowerCase();
+            if (role === "ca") {
+              if (session.kyc_status === "approved") router.push("/ca-dashboard");
+              else router.push("/ca-onboarding?kyc=pending");
+            } else if (role === "admin") {
+              router.push("/admin");
+            } else if (role === "developer") {
+              router.push("/developers");
+            } else {
+              router.push("/");
+            }
+          } else {
+            setCheckingSession(false);
+          }
         } else {
-          router.push("/");
+          setCheckingSession(false);
         }
-      } else {
+      } catch (err) {
+        console.warn("Auth Kernel sync deferred: custom token check failed.");
         setCheckingSession(false);
       }
     };

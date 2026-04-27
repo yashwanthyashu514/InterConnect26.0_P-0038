@@ -38,6 +38,9 @@ export default function SupremeTaxDashboard() {
     setLoading(true);
 
     try {
+      // Simulate 2-3 second delay 
+      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 1000));
+
       const response = await fetch('/api/supreme-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

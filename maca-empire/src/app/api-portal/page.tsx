@@ -71,11 +71,58 @@ export default function APIPortalPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [dailyHeights, setDailyHeights] = useState<number[] | null>(null);
 
+  // Dynamic Key Management
+  const [keys, setKeys] = useState<any[]>([]);
+  const [newKeyData, setNewKeyData] = useState<any | null>(null);
+  const [keyName, setKeyName] = useState("Production Key");
+  const [isLoading, setIsLoading] = useState(true);
+
+  const fetchKeys = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch("/api/marketplace/developer/keys");
+      if (res.ok) {
+        const data = await res.json();
+        setKeys(data.keys || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch keys", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Generate simulated chart data once on mount (avoid impure calls during render)
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchKeys();
+    // Generate simulated chart data once on mount
     setDailyHeights(Array.from({ length: 30 }, () => Math.floor(40 + Math.random() * 120)));
   }, []);
+
+  const handleGenerateKey = async () => {
+    try {
+      const res = await fetch("/api/marketplace/developer/keys/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: keyName })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNewKeyData(data.key);
+      }
+    } catch (err) {
+      console.error("Failed to generate key", err);
+    }
+  };
+
+  const handleRevokeKey = async (id: string) => {
+    if (!confirm("Are you sure you want to revoke this key? It will stop working immediately.")) return;
+    try {
+      const res = await fetch(`/api/marketplace/developer/keys/${id}/revoke`, { method: "POST" });
+      if (res.ok) fetchKeys();
+    } catch (err) {
+      console.error("Failed to revoke key", err);
+    }
+  };
 
   const getCode = () => {
     if (codeLanguage === "curl") return curlExample;
@@ -83,8 +130,8 @@ export default function APIPortalPage() {
     return nodeExample;
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(getCode());
+  const handleCopy = (text?: string) => {
+    navigator.clipboard.writeText(text || getCode());
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -231,7 +278,7 @@ export default function APIPortalPage() {
                       </button>
                     ))}
                   </div>
-                  <button onClick={handleCopy} style={{ fontSize: "12px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "5px 14px", color: copied ? "var(--text-primary)" : "var(--text-muted)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
+                  <button onClick={() => handleCopy()} style={{ fontSize: "12px", background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "6px", padding: "5px 14px", color: copied ? "var(--text-primary)" : "var(--text-muted)", cursor: "pointer", fontFamily: "'DM Sans', sans-serif" }}>
                     {copied ? "✓ Copied" : "Copy"}
                   </button>
                 </div>
@@ -256,43 +303,77 @@ export default function APIPortalPage() {
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {apiKeys.map((key, i) => (
-                  <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "20px" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                      <div>
-                        <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>{key.name}</p>
-                        <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px" }}>{key.prefix}</p>
-                        <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-                          {key.permissions.map((p) => (
-                            <span key={p} className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{p}</span>
-                          ))}
+                {isLoading ? (
+                  <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "20px" }}>Loading keys...</p>
+                ) : keys.length === 0 ? (
+                  <p style={{ textAlign: "center", color: "var(--text-muted)", padding: "20px" }}>No active API keys found.</p>
+                ) : (
+                  keys.map((key, i) => (
+                    <div key={i} style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "14px", padding: "20px", opacity: key.is_active ? 1 : 0.5 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", color: "var(--text-primary)", marginBottom: "4px" }}>{key.name}</p>
+                          <p style={{ fontFamily: "monospace", fontSize: "13px", color: "var(--text-muted)", marginBottom: "8px" }}>{key.key.slice(0, 15)}...</p>
+                          <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+                            {key.permissions.map((p: string) => (
+                              <span key={p} className="badge" style={{ fontSize: "10px", background: "var(--bg-primary)", color: "var(--text-muted)", border: "0.5px solid var(--border-subtle)" }}>{p}</span>
+                            ))}
+                            {!key.is_active && <span className="badge" style={{ fontSize: "10px", background: "rgba(255,94,94,0.1)", color: "var(--danger)", border: "none" }}>Revoked</span>}
+                          </div>
+                        </div>
+                        <div style={{ textAlign: "right" }}>
+                          <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>Status: {key.is_active ? "Active" : "Inactive"}</p>
+                          <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "12px" }}>Created: {new Date(key.created_at).toLocaleDateString()}</p>
+                          {key.is_active && (
+                            <button 
+                              onClick={() => handleRevokeKey(key.id)}
+                              style={{ background: "none", border: "0.5px solid rgba(255,94,94,0.25)", borderRadius: "8px", padding: "6px 14px", color: "var(--danger)", cursor: "pointer", fontSize: "12px", fontFamily: "'DM Sans', sans-serif" }}
+                            >
+                              Revoke
+                            </button>
+                          )}
                         </div>
                       </div>
-                      <div style={{ textAlign: "right" }}>
-                        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "4px" }}>Last used: {key.lastUsed}</p>
-                        <p style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "'DM Sans', sans-serif", marginBottom: "12px" }}>Created: {key.created}</p>
-                        <button style={{ background: "none", border: "0.5px solid rgba(255,94,94,0.25)", borderRadius: "8px", padding: "6px 14px", color: "var(--danger)", cursor: "pointer", fontSize: "12px", fontFamily: "'DM Sans', sans-serif" }}>
-                          Revoke
-                        </button>
-                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
               {/* New Key Modal */}
               {showNewKeyModal && (
                 <div style={{ position: "fixed", inset: 0, background: "rgba(8,11,7,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
                   <div style={{ background: "var(--bg-secondary)", border: "0.5px solid var(--border-subtle)", borderRadius: "20px", padding: "32px", width: "440px" }}>
-                    <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>New API Key Generated</h3>
-                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>This is shown only once. Copy it now.</p>
-                    <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "14px 16px", fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)", marginBottom: "20px", wordBreak: "break-all" }}>
-                      mca_prod_sk_live_abcdef1234567890xyz...complete_key_here
-                    </div>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      <button className="btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: "13px" }}>Copy Key</button>
-                      <button className="btn-ghost" style={{ fontSize: "13px" }} onClick={() => setShowNewKeyModal(false)}>Done</button>
-                    </div>
+                    {!newKeyData ? (
+                      <>
+                        <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>Generate API Key</h3>
+                        <p style={{ fontSize: "13px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "20px" }}>Give your key a name to identify it later.</p>
+                        <input 
+                          type="text" 
+                          value={keyName} 
+                          onChange={(e) => setKeyName(e.target.value)}
+                          placeholder="e.g. Production Mobile App"
+                          style={{ width: "100%", padding: "12px", borderRadius: "8px", border: "1px solid var(--border-subtle)", background: "var(--bg-primary)", color: "var(--text-primary)", marginBottom: "20px" }}
+                        />
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <button className="btn-primary" style={{ flex: 1, justifyContent: "center" }} onClick={handleGenerateKey}>Generate Key</button>
+                          <button className="btn-ghost" onClick={() => setShowNewKeyModal(false)}>Cancel</button>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "20px", marginBottom: "8px" }}>Key Generated Successfully</h3>
+                        <p style={{ fontSize: "13px", color: "var(--text-secondary)", fontFamily: "'DM Sans', sans-serif", marginBottom: "16px" }}>This is shown only once. Copy it now.</p>
+                        <div style={{ background: "var(--bg-primary)", border: "0.5px solid var(--border-subtle)", borderRadius: "10px", padding: "14px 16px", fontFamily: "monospace", fontSize: "13px", color: "var(--text-primary)", marginBottom: "20px", wordBreak: "break-all" }}>
+                          {newKeyData.key}
+                        </div>
+                        <div style={{ display: "flex", gap: "10px" }}>
+                          <button className="btn-primary" style={{ flex: 1, justifyContent: "center", fontSize: "13px" }} onClick={() => handleCopy(newKeyData.key)}>
+                            {copied ? "✓ Copied" : "Copy Key"}
+                          </button>
+                          <button className="btn-ghost" style={{ fontSize: "13px" }} onClick={() => { setShowNewKeyModal(false); setNewKeyData(null); fetchKeys(); }}>Done</button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               )}

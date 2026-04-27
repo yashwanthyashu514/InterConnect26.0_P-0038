@@ -7,33 +7,54 @@ import {
   Search, FileText, Landmark, AlertTriangle, DollarSign,
   Lock, Mic, FileSignature, Scale, TrendingUp, Shield,
   HardHat, Globe, Wallet, Building2, PenTool, Rocket,
-  Package, ShieldAlert, Coins, Leaf, ScrollText, MessageSquare, Files, Clock, CheckCircle2, User, Users, Menu, X, ArrowLeft
+  Package, ShieldAlert, Coins, Leaf, ScrollText, MessageSquare,
+  Files, Clock, CheckCircle2, User, Users, Menu, X, ArrowLeft,
+  Cpu, Gem, Banknote, Mic2, Brain, Gavel
 } from "lucide-react";
 
-import { AGENTS } from "@/lib/agents";
+import { AGENTS, EMPIRE_AGENTS } from "@/lib/agents";
 
 const getAgentIcon = (id: string, size = 18) => {
   switch (id) {
+    case "A0": return <Cpu size={size} />;
     case "A1": return <FileText size={size} />;
     case "A2": return <Landmark size={size} />;
-    case "A3": return <Scale size={size} />;
-    case "A4": return <Users size={size} />;
+    case "A3": return <AlertTriangle size={size} />;
+    case "A4": return <DollarSign size={size} />;
     case "A5": return <Rocket size={size} />;
-    case "A6": return <Mic size={size} />;
-    case "A7": return <PenTool size={size} />;
-    case "A8": return <Files size={size} />;
-    case "A12": return <ShieldAlert size={size} />;
+    case "A6": return <Mic2 size={size} />;
+    case "A7": return <Search size={size} />;
+    case "A8": return <Scale size={size} />;
+    case "A12": return <Lock size={size} />;
     case "A13": return <Globe size={size} />;
+    case "A21": return <ShieldAlert size={size} />;
     case "A23": return <Leaf size={size} />;
     case "A24": return <ScrollText size={size} />;
     case "A22": return <Coins size={size} />;
-    case "A25": return <Shield size={size} />;
+    case "A25": return <Brain size={size} />;
     case "A26": return <TrendingUp size={size} />;
+    case "A27": return <Gem size={size} />;
+    case "A28": return <Banknote size={size} />;
+    case "E1": return <Scale size={size} />;
+    case "E2": return <Gavel size={size} />;
+    case "E3": return <Building2 size={size} />;
+    case "E4": return <Shield size={size} />;
+    case "E5": return <Zap size={size} />;
     default: return <Bot size={size} />;
   }
 };
 
-const allAgents = AGENTS.map(agent => ({
+const allEmpireAgents = EMPIRE_AGENTS.map(agent => ({
+  id: agent.id,
+  name: agent.name,
+  icon: getAgentIcon(agent.id, 24),
+  desc: agent.description,
+  tag: agent.category,
+  href: agent.path,
+  subAgents: agent.subAgents
+}));
+
+const allSpecialistAgents = AGENTS.map(agent => ({
   id: agent.id,
   name: agent.name,
   icon: getAgentIcon(agent.id, 20),
@@ -44,10 +65,14 @@ const allAgents = AGENTS.map(agent => ({
 
 export default function AllAgentsPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [filter, setFilter] = useState("ALL");
+  const categories = ["EMPIRE", "CORE", "GROWTH", "ELITE", "ALL"];
+  const [filter, setFilter] = useState("EMPIRE");
 
-  const categories = ["ALL", "CORE", "GROWTH", "ELITE"];
-  const filteredAgents = filter === "ALL" ? allAgents : allAgents.filter(a => a.tag === filter);
+  const filteredAgents = filter === "ALL" 
+    ? [...allEmpireAgents, ...allSpecialistAgents] 
+    : filter === "EMPIRE" 
+      ? allEmpireAgents 
+      : allSpecialistAgents.filter(a => a.tag === filter);
 
 
   return (
@@ -65,7 +90,7 @@ export default function AllAgentsPage() {
         boxShadow: isSidebarOpen ? "20px 0 50px rgba(0,0,0,0.5)" : "none"
       }}>
         <div style={{ padding: "0 20px 24px 28px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "transparent", padding: "6px 0", borderRadius: "none", border: "none" }}>
+          <Link href="/" style={{ display: "flex", width: "fit-content", alignItems: "center", textDecoration: "none", background: "transparent", padding: "6px 0", borderRadius: 0, border: "none" }}>
             <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "18px", color: "var(--acid)", letterSpacing: "-0.5px", whiteSpace: "nowrap" }}>
               maCA Empire
             </span>
@@ -134,8 +159,8 @@ export default function AllAgentsPage() {
 
         <div style={{ flex: 1, overflowY: "auto", padding: "48px 32px" }}>
            <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-              <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "42px", color: "var(--acid)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "-1px" }}>Registry</h1>
-              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "48px" }}>Universal command structure for all 18 architecture vectors.</p>
+              <h1 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "42px", color: "var(--acid)", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "-1px" }}>NEURAL REGISTRY</h1>
+              <p style={{ color: "rgba(255,255,255,0.4)", fontSize: "14px", marginBottom: "48px" }}>Deploying Sovereign Intelligence from the Empire Command Tier.</p>
 
               <div style={{ 
                 display: "grid", 
@@ -204,7 +229,14 @@ export default function AllAgentsPage() {
                         fontWeight: 700,
                         letterSpacing: "0.5px"
                       }}>{a.tag}</span>
-                      <span style={{ fontSize: "11px", color: "#B5FF2E", fontWeight: 700 }}>Deploy →</span>
+                      {a.tag === "EMPIRE" && (
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--acid)" }}></span>
+                          <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--acid)" }}></span>
+                          <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--acid)" }}></span>
+                        </div>
+                      )}
+                      <span style={{ fontSize: "11px", color: "#B5FF2E", fontWeight: 700 }}>Deploy Command →</span>
                     </div>
                   </Link>
                 ))}

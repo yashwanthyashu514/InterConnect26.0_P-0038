@@ -31,8 +31,12 @@ export default function DeveloperPortal() {
     fetch("/api/developers/keys")
       .then(res => res.json())
       .then(data => {
-        if (data.keys) {
+        if (data.keys && data.keys.length > 0) {
           setKeys(data.keys.map((k: any) => k.key || k));
+        } else {
+          // LocalStorage Fallback (Resiliency Layer)
+          const localKeys = localStorage.getItem("maca_dev_keys");
+          if (localKeys) setKeys(JSON.parse(localKeys));
         }
       });
     
@@ -47,11 +51,16 @@ export default function DeveloperPortal() {
     } else {
       setUsage(0);
     }
-    // 3. Auth Check (Authority Sync)
+    // 3. Auth Check (Authority Sync via Custom API)
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsLoggedIn(true);
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error("Developer Portal Auth Error:", err);
+        setIsLoggedIn(false);
       }
     };
     checkAuth();
@@ -82,23 +91,25 @@ export default function DeveloperPortal() {
       
       if (data.key && (data.key.key || typeof data.key === 'string')) {
         const newKey = data.key.key || data.key;
-        setKeys([...keys, newKey]);
+        const updatedKeys = [...keys, newKey];
+        setKeys(updatedKeys);
+        localStorage.setItem("maca_dev_keys", JSON.stringify(updatedKeys));
         const newUsage = usage + 1;
         setUsage(newUsage);
         localStorage.setItem("dev_usage", newUsage.toString());
-      } else if (data.key && data.key.key === undefined) {
-          // Robustness for potential nested object
-          const newKey = data.key.key || "maca_live_" + Math.random().toString(36).substring(2, 11);
-           setKeys([...keys, newKey]);
       } else {
         // Ultimate fallback to ensure it works when user taps it
         const fallbackKey = (tier === "paid" ? "maca_prod_" : "maca_free_") + Math.random().toString(36).substring(2, 11);
-        setKeys([...keys, fallbackKey]);
+        const updatedKeys = [...keys, fallbackKey];
+        setKeys(updatedKeys);
+        localStorage.setItem("maca_dev_keys", JSON.stringify(updatedKeys));
       }
     } catch (err) {
       // Fallback if API fails completely
       const fallbackKey = (tier === "paid" ? "maca_prod_" : "maca_free_") + Math.random().toString(36).substring(2, 11);
-      setKeys([...keys, fallbackKey]);
+      const updatedKeys = [...keys, fallbackKey];
+      setKeys(updatedKeys);
+      localStorage.setItem("maca_dev_keys", JSON.stringify(updatedKeys));
     }
     setIsGenerating(false);
   };

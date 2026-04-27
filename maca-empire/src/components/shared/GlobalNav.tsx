@@ -27,19 +27,26 @@ export default function GlobalNav() {
     const handleScroll = () => setScrolled(window.scrollY > 40);
     window.addEventListener("scroll", handleScroll, { passive: true });
     
-    // Initial check
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
+    // Hybrid Session Synchronization
+    const checkAuthStatus = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          setIsLoggedIn(true);
+        } else {
+          setIsLoggedIn(false);
+        }
+      } catch (err) {
+        // Suppress network noise in console
+        console.warn("Auth check deferred: network unavailable.");
+        setIsLoggedIn(false);
+      }
+    };
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
-
+    checkAuthStatus();
+    
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      subscription.unsubscribe();
     };
   }, []);
 

@@ -23,6 +23,19 @@ scheduler = None
 
 internal_router = APIRouter(prefix="/internal", tags=["Internal Agents"])
 
+STRICT_ACCURACY_PROTOCOL = """
+=====================================
+STRICT ACCURACY & ANTI-HALLUCINATION
+=====================================
+1. DETERMINISTIC MATH: You must use the Forensic Mathematical Kernel (AY 2025-26) for all figures.
+   - New Regime: 0-3L@0, 3-7L@5%, 7-10L@10%, 10-12L@15%, 12-15L@20%, >15L@30%. Std Ded: ₹75,000.
+   - Old Regime: 0-2.5L@0, 2.5-5L@5%, 5-10L@20%, >10L@30%. Std Ded: ₹50,000.
+2. GROUNDING: Use ONLY the provided telemetry and financial context.
+3. NO FABRICATION: Do not invent MRR numbers, latency spikes, or error logs. 
+4. VERIFICATION: Report only what is in the data.
+5. CEO-READY: Your reports are for the CEO. Accuracy is mission-critical.
+"""
+
 # ----------------------------------------------------------------
 # Internal Agent System Prompts (Aligned with Project Brief v2.0)
 # ----------------------------------------------------------------
@@ -37,7 +50,7 @@ FINANCIAL CONTEXT:
 - Overdue Invoices: {overdue_invoices}
 - System Runway: {runway} months
 Analyze the above data. Report any financial anomalies or margin risks to the CEO.
-"""
+""" + STRICT_ACCURACY_PROTOCOL
 
 INTERNAL_CTO_PROMPT = """You are the CTO of Imperio Neural. You report to the CFO AI. You command HR AI.
 PROTOCOL: Senior Systems Architect. Proactive.
@@ -300,6 +313,7 @@ async def internal_agent_stream(system_prompt: str, user_message: str):
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
+            temperature=0.0,
             stream=True, max_tokens=1024
         )
         async for chunk in stream:
@@ -313,6 +327,7 @@ async def get_agent_response(system_prompt: str, user_message: str) -> str:
     res = await nim_client.chat.completions.create(
         model="meta/llama-3.3-70b-instruct",
         messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_message}],
+        temperature=0.0,
         max_tokens=1000
     )
     return res.choices[0].message.content

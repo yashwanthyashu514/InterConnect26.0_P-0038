@@ -17,8 +17,6 @@ build/
 next-env.d.ts
 
 # Secrets & Private Strategy
-**/.env
-**/.env.*
 !.env.example
 *.local
 *.secret

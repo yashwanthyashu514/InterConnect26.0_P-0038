@@ -15,44 +15,42 @@ export default function AppHeader({ onMenuClick }: { onMenuClick?: () => void })
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user as { email?: string });
-        
-        // Fetch role from marketplace_users
-        const { data: userData } = await supabase
-          .from("marketplace_users")
-          .select("id, role")
-          .eq("email", session.user.email)
-          .single();
-        
-        if (userData?.role) {
-          const r = userData.role.toLowerCase();
-          setRole(r.toUpperCase());
-          
-          if (r === "ca") {
-            // check kyc_status
-            const { data: profile } = await supabase
-              .from("ca_profiles")
-              .select("kyc_status")
-              .eq("user_id", userData.id)
-              .maybeSingle();
-            
-            if (profile?.kyc_status === "approved") setHomePath("/ca-dashboard");
-            else setHomePath("/ca-onboarding?kyc=pending");
-          } else if (r === "admin") {
-            setHomePath("/admin");
-          } else {
-            setHomePath("/");
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const { user: session } = await res.json();
+          if (session) {
+            setUser({ email: session.email });
+            const r = (session.role || "user").toLowerCase();
+            setRole(r.toUpperCase());
+
+            if (r === "ca") {
+              if (session.kyc_status === "approved") setHomePath("/ca-dashboard");
+              else setHomePath("/ca-onboarding?kyc=pending");
+            } else if (r === "admin") {
+              setHomePath("/admin");
+            } else if (r === "developer") {
+              setHomePath("/developers");
+            } else {
+              setHomePath("/");
+            }
           }
         }
+      } catch (err) {
+        console.error("Header session check failed:", err);
       }
     };
     fetchUser();
   }, []);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      // Also try supabase signOut in case they are logged in there
+      try { await supabase.auth.signOut(); } catch (e) {}
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
     router.push("/login");
   };
 

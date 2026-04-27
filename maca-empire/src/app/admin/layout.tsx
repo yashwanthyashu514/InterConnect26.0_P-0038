@@ -30,8 +30,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   // Check for existing verified session in this browser tab
   useEffect(() => {
     const session = sessionStorage.getItem(SESSION_KEY);
-    if (session === "true") setVerified(true);
-    setChecking(false);
+    if (session === "true") {
+      setTimeout(() => setVerified(true), 0);
+    }
+    setTimeout(() => setChecking(false), 0);
   }, []);
 
   useEffect(() => {

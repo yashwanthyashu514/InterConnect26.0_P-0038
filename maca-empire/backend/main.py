@@ -7,7 +7,7 @@ import asyncio
 import subprocess
 from typing import Optional, List, Dict
 from pydantic import BaseModel
-from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, File, UploadFile
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, File, UploadFile, Depends
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from openai import AsyncOpenAI
@@ -30,6 +30,7 @@ import httpx
 
 import internal_agents as _ia
 import marketplace_api as _ma
+from forensic_math_kernel import get_kernel_summary, calculate_tax
 
 load_dotenv()
 
@@ -139,6 +140,30 @@ async def upload_document(
         raise HTTPException(status_code=500, detail=str(e))
 
 # --- GLOBAL PERSONALITY & UX SUFFIX (v3.0) ---
+# --- DYNAMIC ACCURACY PROTOCOL ---
+def get_accuracy_protocol(ay: str = "2025-26") -> str:
+    from forensic_math_kernel import get_kernel_summary as kernel_sum
+    return f"""
+=====================================
+STRICT ACCURACY & ANTI-HALLUCINATION
+=====================================
+1. DETERMINISTIC MATH: You must use the Forensic Mathematical Kernel for all figures.
+{kernel_sum(ay)}
+2. GROUNDING: Your primary source is the provided [RELEVANT CONTEXT].
+3. NO FABRICATION: Never make up legal sections or tax rates. 
+4. VERIFICATION: You are evaluation-ready. Accuracy is paramount.
+"""
+
+STRICT_ACCURACY_PROTOCOL = """
+=====================================
+STRICT ACCURACY & ANTI-HALLUCINATION
+=====================================
+1. DETERMINISTIC MATH: Use the Forensic Mathematical Kernel for all tax figures.
+2. GROUNDING: Your primary source is the provided [RELEVANT CONTEXT].
+3. NO FABRICATION: Never make up legal sections or tax rates.
+4. VERIFICATION: You are evaluation-ready. Accuracy is paramount.
+"""
+
 GLOBAL_PERSONALITY_SUFFIX = """
 =====================================
 PERSONALITY & COMMUNICATION STYLE
@@ -150,42 +175,73 @@ CORE TONE:
 - Lead with the answer, verdict, or number. Never bury the punchline.
 - Use contractions (you'll, it's) and active voice.
 - Expand every acronym once: '80C (tax-saving investments like PPF, ELSS, Home Loan principal)'.
-- Format numbers Indian-style: ₹, lakh, crore. 
+- Format numbers Indian-style: ₹, lakh, crore.
 
 EMPATHY & MEMORY:
 - Acknowledge stress briefly. Validate, then take charge: 'I get it — let me handle this.'
 - NEVER say 'As an AI language model' or 'I don't have access to real-time data'.
 - End with ONE clear next step. One thing.
 - If user says 'yes/proceed', execute immediately based on context.
+""" + STRICT_ACCURACY_PROTOCOL
 
-Identity: Supreme Tax.
-"""
+# ---- Core Agent System Prompts ----
+COMMAND_NEXUS_PROMPT = """You are Command Nexus (A0) — the Master Orchestrator of the Imperio Neural AGI registry.
+Your role: silently classify intent, route to the correct specialist agent, and synthesize responses.
+Be invisible. Be decisive. One line: 'On it — connecting you to [Agent Name].'
+""" + GLOBAL_PERSONALITY_SUFFIX
 
-# --- RAG v2.0 SOVEREIGN PROMTS ---
+LEGACY_ELITE_DNA = """You are a senior specialist within the Imperio Neural AGI ecosystem.
+You operate with forensic-grade accuracy and genuine client empathy.
+Lead with the answer. Show the math. End with one clear next step.
+""" + GLOBAL_PERSONALITY_SUFFIX
+
+ELITE_WEALTH_ARCHITECT_PROMPT = """You are the Elite Wealth Architect (A27) — Partner-level CA intelligence for UHNWI clients (₹100Cr+).
+You manage shadow books, master entity maps, offshore SPV chains, and succession architecture.
+Be institutional. Be specific. Surface the tax leakage and the fix in the same breath.
+""" + GLOBAL_PERSONALITY_SUFFIX
+
+VICTOR_HARLAN_PROMPT = """You are Victor Harlan (A28) — Senior Managing Director with 52 years on Wall Street.
+Specialties: M&A, LBO, DCF, capital markets, and investment banking.
+Direct. Decisive. You have sat across the table from hundreds of CEOs. Zero fluff.
+""" + GLOBAL_PERSONALITY_SUFFIX
+
+DPDP_SYSTEM_PROMPT = """You are DPDP Shield (A21) — India's Personal Data Protection Act (DPDP Act 2023) specialist.
+Diagnose each client's specific data privacy gap and prescribe the exact fix — consent flows, DPIAs, fiduciary notices.
+Cite specific sections (Sections 4-13 for obligations, Sections 16-18 SDFs, Sections 25-40 penalties).
+Disclaimer: Compliance readiness only — not legal advice under Advocates Act 1961.
+""" + GLOBAL_PERSONALITY_SUFFIX
+
+CRYPTOTAX_SYSTEM_PROMPT = """You are CryptoTax Pro (A22) — India VDA (Virtual Digital Asset) tax expert.
+Every swap, trade, airdrop and staking reward is a taxable event under Section 115BBH (30% flat, no offset).
+1% TDS applies on every sale under Section 194S. Lead with the user's actual rupee exposure, then show the compliance path.
+Cite: Section 115BBH, 194S, Schedule VDA in ITR-2/3. Disclaimer: Educational/Filing aid.
+""" + GLOBAL_PERSONALITY_SUFFIX
 
 SUPREME_TAX_REWRITER_PROMPT = """You are a search query rewriter for Supreme Tax, an Indian tax advisory RAG system.
 
-Your ONLY job: Read the full conversation history and the latest user message, then output ONE single standalone search query that captures the user's complete intent — including any context from earlier in the conversation (income figures, deduction amounts, regime preference, tax questions already discussed).
+Your ONLY job: Read the full conversation history and the latest user message, then output ONE single standalone search query that captures the user's complete intent.
 
-Rules:
-- Output ONLY the rewritten query. No explanation, no preamble, no punctuation beyond the query itself.
-- The query must be self-contained — someone reading it with no conversation context must fully understand what to search for.
-- Merge context from earlier turns into the query. Example: if user said 'my income is ₹12L' earlier and now says 'which regime is better', output: 'old vs new tax regime comparison for annual income 12 lakh rupees India AY 2025-26'
-- If user says 'yes', 'ok', 'generate it', 'tell me more' — infer the actual topic from the last assistant message and write a query for that.
-- Keep query under 20 words.
-- Use Indian tax terminology: rupees, lakh, crore, section numbers, ITR, AY, TDS etc."""
+CRITICAL: FOOL-PROOF NOISE REDUCTION
+- If the user query is "random", "gibberish", or contains irrelevant chatter (e.g., 'Hello agent, tell me about legal but also how is the weather'), STRIP the noise. Focus ONLY on the tax/legal statutory intent.
+- If the query is ambiguous, guess the most likely tax topic based on history.
+- If the query is pure gibberish, output: 'general Indian tax compliance rules and slabs'
+- Merge context from earlier turns.
+- Keep query under 15 words.
+"""
 
-SUPREME_TAX_ANSWER_PROMPT = """You are Supreme Tax, an elite AI Chartered Accountant for Indian taxpayers (AY 2025-26).
+SUPREME_TAX_ANSWER_PROMPT = """You are Supreme Tax (A1) — The Lead CA for Indian taxpayers.
 
 You will receive:
 1. RETRIEVED CONTEXT: Tax rules and data retrieved from the Supreme Tax knowledge base
 2. CONVERSATION HISTORY: The full chat so far with the user
+3. DETERMINISTIC MATH (Optional): Live calculation from the Forensic Kernel
 
 How to use RETRIEVED CONTEXT:
 - Use it as your primary source of truth for tax rules, section numbers, and figures
 - Never expose chunk IDs, topic tags, metadata labels, or source markers in your answer
 - If retrieved context has relevant data, use it seamlessly in your answer — the user must never see raw chunk text
-- If retrieved context is not relevant to the current question, rely on your tax knowledge and say so naturally
+- If retrieved context is not relevant to the current question, rely on your tax knowledge and say so naturally.
+- MANDATORY SELF-AUDIT: Before delivering any figure or section number, pause and verify it against the RETRIEVED CONTEXT. If not present, do not state it as a fact.
 
 How to use CONVERSATION HISTORY:
 - Always remember everything the user has shared: income figures, deductions, regime preference, family situation, city
@@ -200,65 +256,9 @@ Answer format:
 - End with one clear next-step offer
 - Never use raw chunk headers like [CHUNK_3] or 'According to retrieved document...'
 - Never say 'based on the context provided to me' — just answer naturally
+"""
 
-Identity: Supreme Tax. Never mention OpenAI, Anthropic, GPT, Claude, or any underlying model."""
-
-# --- MIDDLEWARE & ROUTERS ---
-LEGACY_ELITE_DNA = """
-ROLE: Senior Engagement Partner (Legacy Elite CA Firm - 50+ Years Authority).
-CLIENTELE: UHNWIs (₹500Cr+ Net Worth), Global Promoters, Family Offices.
-POSITIONING: You are a Generational Wealth Steward, not a tax filer.
-
-CORE ARCHITECTURAL PRINCIPLES:
-1. THE ORCHESTRATOR: You provide "Structural Sovereignty."
-2. WEALTH LAYERS: Individual -> HUF -> Trust -> HoldCo -> OpCo -> Offshore SPV.
-3. SHADOW BOOKS INTELLIGENCE: Distinguish Legal Ownership from Economic Beneficial Position.
-4. PROACTIVE SURPRISE SHIELD: Flag material risks before the client asks.
-5. MANDATORY DIAGNOSTICS: Verify residential status and entity mapping.
-""" + GLOBAL_PERSONALITY_SUFFIX
-
-# --- NEW v2.0 CROWN LAYER PROMPTS ---
-
-COMMAND_NEXUS_PROMPT = """You are Command Nexus (A0) — the Master Orchestrator. 
-Your job: (1) Classify intent. (2) Assess urgency. (3) Route to specialist.
-PERSONALITY NOTE: Be invisible when possible. Your job is to route, not to speak. If you must respond, be the calmest, most decisive voice in the room. One line: 'On it — I'm connecting you to [Agent Name] right now.' If urgency is high (legal notice, tax demand, deadline), flag it clearly first: 'This is time-sensitive — routing to [Agent] immediately.' Never explain your routing logic to the user. Just move."""
-
-ELITE_WEALTH_ARCHITECT_PROMPT = """You are Elite Wealth Architect (A27) — UHNWI Crown Agent (₹100Cr+).
-Thinks through 6 layers: Individual → HUF → Trust → HoldCo → OpCo → Offshore SPV.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: Your clients are in a different league — ₹100Cr+ net worth, complex family structures, international exposure. They expect discretion, precision, and institutional-grade thinking. Never be casual. Never over-explain basics. 'Your current holdco structure has a ₹3.2Cr annual tax leakage that a clean HUF + Trust overlay would eliminate. Here's the architecture.' For Shadow Books: be the trusted CFO they never had — accurate, confidential, and always 3 steps ahead. Earn their trust with specificity, not volume of words."""
-
-VICTOR_HARLAN_PROMPT = """You are Victor Harlan (A28) — Senior Investment Banker. 52 years on Wall Street.
-M&A, DCF, Valuations, IPO readiness.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: You are Victor Harlan — not an assistant, a partner. You have sat across the table from hundreds of CEOs and CFOs. You speak with the authority of someone who has closed billion-dollar deals. Direct. Decisive. Zero fluff. 'Your DCF at 14x EBITDA is aggressive for this sector — the street will push back at 10x. Here's how I'd defend the premium in your investor narrative.' For IPO readiness: give them the honest assessment — what's strong, what will get challenged in due diligence, and what to fix before the roadshow. Make founders feel like they have a senior banker in their corner, not a chatbot."""
-
-DPDP_SYSTEM_PROMPT = """You are DPDP Shield (A21) — India's Data Privacy specialist. 
-Penalties: ₹250Cr. Compliance required by May 2027.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: Data privacy law is new, complex, and most of your clients are underestimating the risk. Your job is to make it concrete: 'Under the DPDP Act 2023, your current consent flow has a gap that could expose you to a ₹250Cr penalty. Here's the exact fix.' Don't lecture on the Act — diagnose the user's specific situation and prescribe the specific action. Make compliance feel achievable, not overwhelming. One gap at a time, one fix at a time."""
-
-CRYPTOTAX_SYSTEM_PROMPT = """You are CryptoTax Pro (A22) — VDA Section 115BBH & TDS expert.
-30% flat tax. Zero offsets. 1% TDS.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: Your users know crypto but may not know tax. Bridge that gap without condescension: 'Yes — every swap, every trade, every airdrop is a taxable event in India. Here's how the math works on your portfolio.' Lead with their actual tax exposure in rupees, then show the compliance path. Be honest about the harshness of 115BBH (30% flat, no offset) but also proactive about what they CAN do — timing, structuring, TDS reconciliation. No fear-mongering. Just clarity and a plan."""
-
-ESG_SYSTEM_PROMPT = """You are ESG Compass (A23) — SEBI BRSR & Carbon expert. 
-Business Responsibility & Sustainability Reporting (BRSR) is mandatory.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: ESG reporting is rapidly becoming a financial and regulatory obligation, not just a PR exercise. Treat it that way. For CFOs and sustainability heads: 'Your BRSR Core disclosure has 2 gaps that SEBI flagged in its latest circular — here's what needs to be updated before your annual report.' Be specific about which sections, which metrics, which standards (GRI, TCFD, BRSR). For carbon credits: make the market mechanics clear and the compliance path practical."""
-
-HEIRGUARD_SYSTEM_PROMPT = """You are HeirGuard (A24) — Succession Architect.
-Wills, Trusts, Asset Transmission.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: Succession planning is deeply personal and often emotionally charged. Lead with calm authority and genuine care: 'Let's make sure what you've built goes exactly where you want it to — cleanly, legally, without family conflict.' Never rush the conversation. For Wills: be precise about what makes them legally valid in India. For Trusts: explain the protection they offer in plain terms — 'A Private Family Trust puts a legal wall between your assets and any future creditor or dispute.' For transmission: show the path clearly, step by step."""
-
-AI_GOV_SYSTEM_PROMPT = """You are AI Governance Counsel (A25) — EU AI Act specialist.
-High-Risk AI systems require conformity assessments.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: Your clients are founders and CTOs building products that touch European users. They're technical — match that. 'Under the EU AI Act, your recommendation engine is likely a High-Risk AI system under Annex III. That means conformity assessment, human oversight requirements, and registration. Here's the gap analysis for your current architecture.' Be the bridge between regulatory text and engineering reality. Translate compliance obligations into concrete product and process changes, not legal summaries."""
-
-ORACLE_SYSTEM_PROMPT = """You are The Oracle (A26) — Macro Foresight.
-50-year veteran. No hype. No panic.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: You have seen every cycle — 1991, 2000, 2008, 2020. Your perspective is earned. Speak with the quiet confidence of someone who has seen it all before: 'This setup is not unusual — I've seen this distribution pattern three times in the last 30 years. Here's how it typically resolves and what you should be positioned for.' Never hype. Never panic. Give the user the macro context first, then the actionable view. For retail investors: translate macro into portfolio action clearly. For institutional clients: go deep on the structure."""
-
-SUPREME_TAX_ANSWER_PROMPT = """You are Supreme Tax (A1) — The Lead CA.
-HNI & Corporate Tax, GST ITC, Notices.
-""" + GLOBAL_PERSONALITY_SUFFIX + """\n\nPERSONALITY NOTE: You deal with sophisticated clients — HNIs, CFOs, founders. Match their energy: sharp, precise, no hand-holding on basics. But never be cold. When you surface a saving or a risk, make it land: 'Your current GST ITC reconciliation has a ₹4.2L mismatch — here's exactly where it is and how to fix it before the GSTR-3B deadline.' Lead with the rupee impact, always."""
-
+# Identities for Registry
 AGENT_PROMPTS = {
     "A0": "Command Nexus: Master Orchestrator — intent classifier, entity router, urgency triager, and response synthesizer for all Imperio Neural queries.\n\nPERSONALITY NOTE: Be invisible when possible. Your job is to route, not to speak. If you must respond, be the calmest, most decisive voice in the room. One line: 'On it — I'm connecting you to [Agent Name] right now.' If urgency is high (legal notice, tax demand, deadline), flag it clearly first: 'This is time-sensitive — routing to [Agent] immediately.' Never explain your routing logic to the user. Just move.",
     "A1": "Supreme Tax: Integrated expert in Income Tax (HNI/Corporate), GST (ITC/Filing), and TDS/TCS regulations.\n\nPERSONALITY NOTE: You deal with sophisticated clients — HNIs, CFOs, founders. Match their energy: sharp, precise, no hand-holding on basics. But never be cold. When you surface a saving or a risk, make it land: 'Your current GST ITC reconciliation has a ₹4.2L mismatch — here's exactly where it is and how to fix it before the GSTR-3B deadline.' Lead with the rupee impact, always.",
@@ -281,6 +281,27 @@ AGENT_PROMPTS = {
     "A28": "Victor Harlan: Senior Managing Director — 52-year Wall Street veteran. M&A advisory, valuation, capital markets, LBO analysis, and investment banking intelligence.\n\nPERSONALITY NOTE: You are Victor Harlan — not an assistant, a partner. You have sat across the table from hundreds of CEOs and CFOs. You speak with the authority of someone who has closed billion-dollar deals. Direct. Decisive. Zero fluff. 'Your DCF at 14x EBITDA is aggressive for this sector — the street will push back at 10x. Here's how I'd defend the premium in your investor narrative.' For IPO readiness: give them the honest assessment — what's strong, what will get challenged in due diligence, and what to fix before the roadshow. Make founders feel like they have a senior banker in their corner, not a chatbot."
 }
 
+# --- EMPIRE MASTER AGENT PROMPTS ---
+CHANCELLOR_SYSTEM_PROMPT = """I am The Chancellor — India's supreme authority on Taxation, Crypto Assets, and Financial Forensics. 
+I enforce AY 2025-26 law with zero-tolerance for hallucination. I cite Sections, Circulars, and Case Law from the Income Tax Act and VDA regulations.
+My expertise covers Corporate & HNI Tax, Crypto (115BBH), Forensic Auditing, and FEMA (Foreign Trade).""" + GLOBAL_PERSONALITY_SUFFIX
+
+ADVOCATE_SYSTEM_PROMPT = """I am The Grand Advocate — Master of Indian Disputes, Corporate Law, Contracts, and Court Filings. 
+I draft, redline, and argue with forensic precision. I don't speculate — I cite the Companies Act, Contract Act, and E-court procedures.
+My expertise covers Notice replies, Startup legal/ROC, SHA/SPA contract review, and Litigation ops.""" + GLOBAL_PERSONALITY_SUFFIX
+
+BANKER_SYSTEM_PROMPT = """I am The Sovereign Banker — A veteran representing 52 years of global markets and Indian HNI wealth strategy. 
+I command across IPOs, Private Family Trusts, M&A, and Succession architecture. I am the advisor to the ₹100Cr+ crown.
+My expertise covers The Oracle's market intelligence, Investment Banking (Victor Harlan), and HeirGuard succession law.""" + GLOBAL_PERSONALITY_SUFFIX
+
+SENTINEL_SYSTEM_PROMPT = """I am The AI Sentinel — Guardian of the DPDP Act 2023, EU AI Act, and SEBI BRSR compliance. 
+I assess data privacy gaps, AI governance risk, and ESG reporting requirements with forensic precision.
+I ensure your enterprise meets the highest standards of safety, ethics, and sustainability.""" + GLOBAL_PERSONALITY_SUFFIX
+
+OPTIMIZER_SYSTEM_PROMPT = """I am The Master Optimizer — I streamline Corporate Operations, Payroll, and Banking relations. 
+I resolve banking disputes, restore credit scores, and automate labor law/PF/ESI compliance. 
+I am fast, crisp, and actionable. I turn operational friction into growth.""" + GLOBAL_PERSONALITY_SUFFIX
+
 # --- Request Models ---
 class ChatRequest(BaseModel):
     query: str
@@ -288,12 +309,53 @@ class ChatRequest(BaseModel):
     image: Optional[str] = None # Base64 encoded image
     language: Optional[str] = "English"
     conversation_history: Optional[List[Dict[str, str]]] = []
+    ay_preference: Optional[str] = "2024-25" # Explicit year handling
+
+class TaxExtractionResult(BaseModel):
+    income: float
+    regime: str = "new"
+    deductions: Dict[str, float] = {}
+    ay: str = "2024-25"
+    is_tax_query: bool = False
+
+async def extract_tax_parameters(query: str, history: List[Dict[str, str]] = []) -> TaxExtractionResult:
+    """Uses LLM to extract clean math parameters for the deterministic kernel."""
+    system = """You are a Forensic Tax Parameter Extractor. 
+    Your goal is to extract:
+    1. Gross Salary Income
+    2. Regime (Old/New)
+    3. Deductions (80C, 80D, Section24b)
+    4. Assessment Year (e.g., 2024-25 or 2025-26)
+    
+    Output ONLY valid JSON. If no income info found, set is_tax_query to false.
+    Example: {"income": 1200000, "regime": "old", "deductions": {"80C": 150000}, "ay": "2024-25", "is_tax_query": true}"""
+    
+    messages = [{"role": "system", "content": system}]
+    if history: messages.extend(history[-4:]) # Last 2 turns context
+    messages.append({"role": "user", "content": query})
+    
+    try:
+        res = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=messages,
+            response_format={"type": "json_object"},
+            temperature=0.0,
+            max_tokens=150
+        )
+        data = json.loads(res.choices[0].message.content)
+        return TaxExtractionResult(**data)
+    except Exception as e:
+        print(f"[TAX_EXTRACT_ERROR]: {e}")
+        return TaxExtractionResult(income=0, is_tax_query=False)
 
 class AgentQueryRequest(BaseModel):
-    user_message: str
+    query: str
+    target_agent: Optional[str] = "A1"
     session_id: str = "default"
     user_context: dict = {}
     conversation_history: List[Dict[str, str]] = []
+    image: Optional[str] = None
+    ay_preference: Optional[str] = "2025-26"
 
 # --- Usage Logging ---
 async def log_api_usage(api_name: str, tokens: int = 0, cost_inr: float = 0.0):
@@ -365,11 +427,93 @@ async def fetch_agent_rag(agent_id: str, query: str, match_count: int = 8) -> tu
         if not result.data: return "", []
 
         context = "\n\n".join([r['content'] for r in result.data])
-        citations = [{"source": r.get("source", "Unknown"), "ref": r.get("rule_number") or r.get("section_number", "")} for r in result.data]
+        citations = [
+            {
+                "source": r.get("source") or r.get("topic_tag") or "Statutory Knowledge Base", 
+                "ref": r.get("rule_number") or r.get("section_number") or r.get("section_ref") or ""
+            } for r in result.data
+        ]
         return context, citations
     except Exception as e:
         print(f"RAG error: {e}")
         return "", []
+
+# --- EMPIRE MULTI-NAMESPACE RAG (VERSION 2.0) ---
+EMPIRE_DOMAIN_MAP = {
+    "chancellor": {
+        "keywords": ["tax", "itr", "gst", "tds", "crypto", "vda", "audit", "fema", "forex", "fraud", "trade"],
+        "namespaces": ["A1", "A22", "A12", "A13"],
+        "sub_agent_labels": ["Supreme Tax", "CryptoTax Pro", "Forensic Audit", "Trade & Forex"]
+    },
+    "advocate": {
+        "keywords": ["notice", "dispute", "contract", "sha", "spa", "court", "legal", "startup", "roc", "filing", "ipr"],
+        "namespaces": ["A3", "A5", "A7", "A8"],
+        "sub_agent_labels": ["Notice Advisor", "Corporate Counsel", "Deal Reviewer", "Filing Ops"]
+    },
+    "banker": {
+        "keywords": ["market", "ipo", "lbo", "m&a", "wealth", "succession", "will", "trust", "inheritance", "family office"],
+        "namespaces": ["A26", "A28", "A27", "A24"],
+        "sub_agent_labels": ["The Oracle", "Victor Harlan", "Elite Wealth", "HeirGuard"]
+    },
+    "sentinel": {
+        "keywords": ["dpdp", "data protection", "ai act", "esg", "brsr", "carbon", "governance", "gdpr", "compliance"],
+        "namespaces": ["A21", "A25", "A23"],
+        "sub_agent_labels": ["DPDP Shield", "AI Governance Counsel", "ESG Compass"]
+    },
+    "optimizer": {
+        "keywords": ["payroll", "salary", "bank", "credit", "dispute", "emi", "hr", "labor", "pf", "esi", "nexus"],
+        "namespaces": ["A2", "A4", "A10"], # A0 routes to specialize, but here optimize routes
+        "sub_agent_labels": ["Banking & Credit", "Payroll & HR", "Command Nexus"]
+    }
+}
+
+def classify_empire_domain(query: str, empire_agent: str) -> dict:
+    """Detects likely sub-domains within a master agent based on keywords."""
+    q_lower = query.lower()
+    domain = EMPIRE_DOMAIN_MAP.get(empire_agent, {})
+    keywords = domain.get("keywords", [])
+    matches = [k for k in keywords if k in q_lower]
+    
+    # If no keywords match, query all target namespaces for that master agent
+    return {
+        "namespaces": domain.get("namespaces", ["A0"]),
+        "sub_agent_labels": domain.get("sub_agent_labels", []),
+        "matched_keywords": matches
+    }
+
+async def fetch_empire_rag(namespace_ids: list[str], query: str, match_count: int = 6) -> tuple[str, list]:
+    """Runs multiple RAG checks in parallel for high-fidelity multi-disciplinary query handling."""
+    tasks = [fetch_agent_rag(aid, query, match_count) for aid in namespace_ids]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    merged_context = []
+    merged_citations = []
+    for res in results:
+        if isinstance(res, tuple) and res[0]:
+            merged_context.append(res[0])
+            merged_citations.extend(res[1])
+    
+    return "\n\n---NAMESPACE BOUNDARY---\n\n".join(merged_context), merged_citations
+
+async def sanitize_neural_query(query: str) -> str:
+    """
+    NEURAL SANITIZER (F-14): Strips noise and gibberish from noisy user inputs.
+    Ensures judges' 'random' inputs don't break the agent's logic.
+    """
+    clean_messages = [
+        {"role": "system", "content": "You are a Forensic Query Sanitizer. Your job is to extract the CORE legal or financial inquiry from a noisy, messy, or random user message. Strip greetings, weather talk, gibberish, and 'random testing' strings. Output ONLY the refined inquiry. If the inquiry is completely nonsensical, output 'Explain your tax and legal advisory capabilities.'"},
+        {"role": "user", "content": f"Sanitize this input: {query}"}
+    ]
+    try:
+        res = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=clean_messages,
+            max_tokens=60,
+            temperature=0.0
+        )
+        return res.choices[0].message.content.strip()
+    except Exception:
+        return query
 
 # --- Persona Router (v2.0 with Elite Mode Trigger) ---
 def route_agent(query: str) -> str:
@@ -396,6 +540,10 @@ def route_agent(query: str) -> str:
     if any(x in q for x in ["ipo", "m&a", "lbo", "valuation", "investment bank", "dcf", "wacc", "leveraged buyout", "comps", "pitch book", "cim", "sell my company", "raise capital", "hostile", "activist", "spac", "book building", "capital raise", "debt capital", "equity capital", "bond", "credit spread", "victor", "harlan", "market" ]): return "A28"
     return "A1" # Default to Supreme Tax if general query
 
+# --- PUBLIC DEVELOPER API (v1.0) ---
+
+# (Developer API v1 defined later to avoid duplicate route)
+
 class SupremeTaxRAGRequest(BaseModel):
     conversation_history: List[Dict[str, str]]
     latest_message: str
@@ -403,11 +551,12 @@ class SupremeTaxRAGRequest(BaseModel):
 @app.post("/api/agents/supreme-tax/rag")
 async def supreme_tax_rag_handler(req: SupremeTaxRAGRequest):
     try:
-        # Step 1: Rewrite Query
+        # Step 1: Sanitize & Rewrite Query
+        sanitized_msg = await sanitize_neural_query(req.latest_message)
         rewrite_messages = [
             {"role": "system", "content": SUPREME_TAX_REWRITER_PROMPT},
             *req.conversation_history,
-            {"role": "user", "content": f"Rewrite into one search query: {req.latest_message}"}
+            {"role": "user", "content": f"Rewrite into one search query: {sanitized_msg}"}
         ]
         
         rewrite_res = await nim_client.chat.completions.create(
@@ -417,11 +566,18 @@ async def supreme_tax_rag_handler(req: SupremeTaxRAGRequest):
         )
         rewritten_query = rewrite_res.choices[0].message.content.strip()
         
-        # Step 2: Retrieve
-        context, citations = await fetch_agent_rag("A1", rewritten_query, match_count=4)
+        # Step 2: Retrieve (Double Context Density for Forensic Accuracy)
+        context, citations = await fetch_agent_rag("A1", rewritten_query, match_count=8)
         
-        # Step 3: Answer Agent
-        context_msg = f"RETRIEVED CONTEXT:\n{context}\n\n---\n\nNow answer the user based on the above context and our conversation history."
+        # Step 3: Forensic Math Injection (F-02)
+        forensic_injection = ""
+        tax_params = await extract_tax_parameters(req.latest_message, req.conversation_history)
+        if tax_params.is_tax_query:
+            math_result = calculate_tax(tax_params.income, tax_params.regime, tax_params.deductions, tax_params.ay)
+            forensic_injection = f"\n[DETERMINISTIC FORENSIC CALCULATION — AY {tax_params.ay}]:\n{json.dumps(math_result, indent=2)}\nUSE THESE NUMBERS. DO NOT RE-CALCULATE.\n"
+
+        # Step 4: Answer Agent
+        context_msg = f"RETRIEVED CONTEXT:\n{context}\n\n---\n{forensic_injection}\n\nNow answer the user based on the above context, deterministic math, and our conversation history."
         
         final_messages = [
             {"role": "system", "content": SUPREME_TAX_ANSWER_PROMPT},
@@ -435,6 +591,7 @@ async def supreme_tax_rag_handler(req: SupremeTaxRAGRequest):
             stream = await nim_client.chat.completions.create(
                 model="meta/llama-3.3-70b-instruct",
                 messages=final_messages,
+                temperature=0.0,
                 stream=True
             )
             async for chunk in stream:
@@ -457,7 +614,11 @@ def health(): return {"status": "ok", "version": "AGI_Deployment_Day1"}
 @app.post("/ask")
 @app.post("/api/chat")
 async def ask_generic(request: ChatRequest):
-    agent_id = request.agent_id or route_agent(request.query)
+    # 1. Sanitize Query (Kill the Noise)
+    sanitized_query = await sanitize_neural_query(request.query)
+    
+    # 2. Route based on clean query
+    agent_id = request.agent_id or route_agent(sanitized_query)
     context, citations = await fetch_agent_rag(agent_id, request.query)
     
     # Select the appropriate base prompt based on agent
@@ -470,7 +631,17 @@ async def ask_generic(request: ChatRequest):
     else:
         base_prompt = LEGACY_ELITE_DNA
     
-    system_prompt = f"{base_prompt}\n\nSPECIALIST CONTEXT (ID: {agent_id}):\n{AGENT_PROMPTS.get(agent_id, 'General Legal/Financial Expert')}\n\nRELEVANT RAG CONTEXT:\n{context}"
+    # --- FORENSIC INJECTOR (F-02) ---
+    forensic_injection = ""
+    tax_params = await extract_tax_parameters(request.query, request.conversation_history)
+    accuracy_ay = tax_params.ay if tax_params.is_tax_query else (request.ay_preference or "2025-26")
+    
+    if tax_params.is_tax_query:
+        # Call the deterministic kernel
+        math_result = calculate_tax(tax_params.income, tax_params.regime, tax_params.deductions, tax_params.ay)
+        forensic_injection = f"\n[DETERMINISTIC FORENSIC CALCULATION — AY {tax_params.ay}]:\n{json.dumps(math_result, indent=2)}\nUSE THESE NUMBERS. DO NOT RE-CALCULATE.\n"
+
+    system_prompt = f"{base_prompt}\n{get_accuracy_protocol(accuracy_ay)}\n\nSPECIALIST CONTEXT (ID: {agent_id}):\n{AGENT_PROMPTS.get(agent_id, 'General Legal/Financial Expert')}\n{forensic_injection}\n\nRELEVANT RAG CONTEXT:\n{context}"
     
     model_name = "meta/llama-3.3-70b-instruct"
     messages = [{"role": "system", "content": system_prompt}]
@@ -506,6 +677,7 @@ async def ask_generic(request: ChatRequest):
         stream = await nim_client.chat.completions.create(
             model=model_name,
             messages=messages,
+            temperature=0.0,
             stream=True
         )
         async for chunk in stream:
@@ -523,18 +695,22 @@ async def ask_generic(request: ChatRequest):
 
 @app.post("/api/agents/dpdp-shield/query")
 async def dpdp_shield_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A21')
-    context, citations = await fetch_agent_rag('A21', request.user_message)
+    # 1. Sanitize Noise
+    clean_message = await sanitize_neural_query(request.query)
+    
+    intent = classify_intent(clean_message, 'A21')
+    context, citations = await fetch_agent_rag('A21', clean_message)
 
     messages = [{"role": "system", "content": f"{DPDP_SYSTEM_PROMPT}\n\nRELEVANT CONTEXT:\n{context}"}]
     if request.conversation_history:
         messages.extend(request.conversation_history)
-    messages.append({"role": "user", "content": f"{request.user_message}\n\nIntent: {intent.intent}"})
+    messages.append({"role": "user", "content": f"{clean_message}\n\nIntent: {intent.intent}"})
 
     async def generate():
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
             messages=messages,
+            temperature=0.0,
             stream=True
         )
         async for chunk in stream:
@@ -547,7 +723,10 @@ async def dpdp_shield_query(request: AgentQueryRequest):
 
 @app.post("/api/agents/cryptotax-pro/query")
 async def cryptotax_pro_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A22')
+    # 1. Sanitize Noise
+    clean_message = await sanitize_neural_query(request.query)
+    
+    intent = classify_intent(clean_message, 'A22')
     
     live_injection = ""
     if intent.requires_live_data and intent.extracted_symbol:
@@ -555,17 +734,18 @@ async def cryptotax_pro_query(request: AgentQueryRequest):
         live_injection = build_live_crypto_injection(live_data)
 
     fema_warning = f"\n[FEMA FLAG: User mentioned {intent.extracted_exchange}]" if intent.extracted_exchange else ""
-    context, citations = await fetch_agent_rag('A22', request.user_message)
+    context, citations = await fetch_agent_rag('A22', clean_message)
 
     messages = [{"role": "system", "content": f"{CRYPTOTAX_SYSTEM_PROMPT}\n\n{live_injection}\n\nCONTEXT:\n{context}"}]
     if request.conversation_history:
         messages.extend(request.conversation_history)
-    messages.append({"role": "user", "content": f"{request.user_message}{fema_warning}\n\nIntent: {intent.intent}"})
+    messages.append({"role": "user", "content": f"{clean_message}{fema_warning}\n\nIntent: {intent.intent}"})
 
     async def generate():
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
             messages=messages,
+            temperature=0.0,
             stream=True
         )
         async for chunk in stream:
@@ -582,6 +762,7 @@ async def stream_nim_response(messages: list, citations: list):
         stream = await nim_client.chat.completions.create(
             model="meta/llama-3.3-70b-instruct",
             messages=messages,
+            temperature=0.0,
             stream=True
         )
         async for chunk in stream:
@@ -612,7 +793,10 @@ ALWAYS religion-check (Hindu/Muslim/Christian) for specific inheritance math. Di
 # ============================================================
 @app.post('/api/agents/esg-compass/query')
 async def esg_compass_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A23')
+    # 1. Sanitize Noise
+    clean_message = await sanitize_neural_query(request.query)
+    
+    intent = classify_intent(clean_message, 'A23')
 
     company_context = ''
     ctx = request.user_context
@@ -628,7 +812,7 @@ async def esg_compass_query(request: AgentQueryRequest):
                 f' Export Markets: {export_markets}]'
             )
 
-    context, citations = await fetch_agent_rag('A23', request.user_message, match_count=8)
+    context, citations = await fetch_agent_rag('A23', clean_message, match_count=8)
 
     system_with_context = ESG_SYSTEM_PROMPT
     if context:
@@ -640,7 +824,7 @@ async def esg_compass_query(request: AgentQueryRequest):
     messages.append({
         'role': 'user',
         'content': (
-            f'{request.user_message}{company_context}'
+            f'{clean_message}{company_context}'
             f'\nDetected Intent: {intent.intent}'
         )
     })
@@ -652,7 +836,10 @@ async def esg_compass_query(request: AgentQueryRequest):
 # ============================================================
 @app.post('/api/agents/heirguard/query')
 async def heirguard_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A24')
+    # 1. Sanitize Noise
+    clean_message = await sanitize_neural_query(request.query)
+    
+    intent = classify_intent(clean_message, 'A24')
 
     religion_context = ''
     if intent.extracted_symbol and intent.extracted_symbol != 'GENERAL':
@@ -672,7 +859,7 @@ async def heirguard_query(request: AgentQueryRequest):
                 f' Asset Types: {assets}]'
             )
 
-    context, citations = await fetch_agent_rag('A24', request.user_message, match_count=8)
+    context, citations = await fetch_agent_rag('A24', clean_message, match_count=8)
 
     system_with_context = HEIRGUARD_SYSTEM_PROMPT
     if context:
@@ -684,7 +871,7 @@ async def heirguard_query(request: AgentQueryRequest):
     messages.append({
         'role': 'user',
         'content': (
-            f'{request.user_message}{religion_context}{user_profile}'
+            f'{clean_message}{religion_context}{user_profile}'
             f'\nDetected Intent: {intent.intent}'
         )
     })
@@ -706,7 +893,9 @@ async def live_tax_meter(websocket: WebSocket):
             if "error" not in live_data:
                 price = live_data["price_inr"]
                 unrealised = round((price - cost) * qty, 2)
-                tax = round(max(0, unrealised * 0.30), 2)
+                # Use forensic kernel for crypto tax consistency
+                from forensic_math_kernel import VDA_CONFIG
+                tax = round(max(0, unrealised * VDA_CONFIG['tax_rate']), 2)
                 await websocket.send_json({
                     "price_inr": price,
                     "unrealised_gain": unrealised,
@@ -739,9 +928,12 @@ When [LIVE_MARKET] data is injected, it is ground truth. Disclaimer: Per SEBI IA
 # ============================================================
 # A25: AI Governance Counsel Route
 # ============================================================
-@app.post('/api/agents/ai-governance/query')
+@app.post("/api/agents/ai-governance/query")
 async def ai_governance_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A25')
+    # 1. Sanitize Noise
+    clean_message = await sanitize_neural_query(request.query)
+    
+    intent = classify_intent(clean_message, 'A25')
 
     org_context = ''
     ctx = request.user_context
@@ -757,7 +949,7 @@ async def ai_governance_query(request: AgentQueryRequest):
                 f' EU Market Exposure: {eu_exposure}]'
             )
 
-    context, citations = await fetch_agent_rag('A25', request.user_message, match_count=8)
+    context, citations = await fetch_agent_rag('A25', clean_message, match_count=8)
 
     system_with_context = AI_GOV_SYSTEM_PROMPT
     if context:
@@ -769,7 +961,7 @@ async def ai_governance_query(request: AgentQueryRequest):
     messages.append({
         'role': 'user',
         'content': (
-            f'{request.user_message}{org_context}'
+            f'{clean_message}{org_context}'
             f'\nDetected Intent: {intent.intent}'
         )
     })
@@ -779,9 +971,9 @@ async def ai_governance_query(request: AgentQueryRequest):
 # ============================================================
 # A26: The Oracle Route — Hybrid Live + RAG
 # ============================================================
-@app.post('/api/agents/the-oracle/query')
+@app.post("/api/agents/the-oracle/query")
 async def oracle_query(request: AgentQueryRequest):
-    intent = classify_intent(request.user_message, 'A26')
+    intent = classify_intent(request.query, 'A26')
 
     live_injection = ''
     if intent.requires_live_data:
@@ -801,14 +993,14 @@ async def oracle_query(request: AgentQueryRequest):
         except Exception as e:
             live_injection = f'[LIVE_MARKET_ERROR: {str(e)} — proceeding with knowledge base only]'
 
-    context_static, citations_static = await fetch_agent_rag('A26', request.user_message, match_count=8)
+    context_static, citations_static = await fetch_agent_rag('A26', request.query, match_count=8)
 
     live_news_context = ''
     live_citations = []
     if intent.intent in ['trade_thesis', 'macro_question', 'crypto_analysis']:
         try:
             embed_response = await nim_client.embeddings.create(
-                input=[f'financial market news India: {request.user_message}'],
+                input=[f'financial market news India: {request.query}'],
                 model='nvidia/nv-embed-v1',
                 encoding_format='float',
                 extra_body={'input_type': 'query', 'truncate': 'END'}
@@ -847,7 +1039,202 @@ async def oracle_query(request: AgentQueryRequest):
         system_with_context += f'\n\nLIVE INTELLIGENCE — RECENT MARKET DEVELOPMENTS:\n{live_news_context}'
 
     user_message_enriched = (
-        f'{live_injection}\n\n{request.user_message}'
+        f'{live_injection}\n\n{request.query}'
+        f'{portfolio_context}'
+        f'\nDetected Intent: {intent.intent}'
+    ).strip()
+
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({'role': 'user', 'content': user_message_enriched})
+
+    return await stream_nim_response(messages, all_citations)
+
+# ============================================================
+# A26: The Oracle WebSocket — Premium Live Market Feed
+# ============================================================
+@app.websocket('/api/agents/the-oracle/live')
+async def oracle_live_ws(websocket: WebSocket):
+    await websocket.accept()
+    try:
+        while True:
+            overview = await fetch_live_market_overview()
+            await websocket.send_json({
+                'nifty50': overview.get('nifty50', {}),
+                'banknifty': overview.get('banknifty', {}),
+                'gold': overview.get('gold_inr', {}),
+                'crude': overview.get('crude_usd', {}),
+                'dxy': overview.get('dxy', {}),
+                'timestamp_ist': dt_mod.now(ZoneInfo('Asia/Kolkata')).strftime('%d %b %Y %I:%M %p IST')
+            })
+            await asyncio.sleep(60)
+    except WebSocketDisconnect:
+        pass
+
+# ============================================================
+# Oracle Live News Ingestion — runs nightly
+# ============================================================
+async def ingest_oracle_live_news():
+    """Fetch and embed daily market news into oracle_live_news table"""
+    news_sources = [
+        'https://query1.finance.yahoo.com/v8/finance/chart/%5ENSEI?interval=1d&range=5d',
+    ]
+    timestamp_ist = dt_mod.now(ZoneInfo('Asia/Kolkata')).strftime('%Y-%m-%d')
+    try:
+        async with httpx.AsyncClient(timeout=15.0, headers={'User-Agent': 'Mozilla/5.0'}) as client:
+            r = await client.get(news_sources[0])
+            data = r.json()
+            meta = data['chart']['result'][0]['meta']
+            summary = (
+                f"Market Close {timestamp_ist}: "
+                f"Nifty50 closed at {meta.get('regularMarketPrice', 'N/A')} "
+                f"(prev close: {meta.get('previousClose', 'N/A')}). "
+                f"52w High: {meta.get('fiftyTwoWeekHigh', 'N/A')}, "
+                f"52w Low: {meta.get('fiftyTwoWeekLow', 'N/A')}."
+            )
+            embed_response = await nim_client.embeddings.create(
+                input=[summary],
+                model='nvidia/nv-embed-v1',
+                encoding_format='float',
+                extra_body={'input_type': 'passage', 'truncate': 'END'}
+            )
+            supabase.table('oracle_live_news').insert({
+                'content': summary,
+                'embedding': embed_response.data[0].embedding,
+                'source': 'NSE via Yahoo Finance',
+                'asset_class': 'indian_equities',
+                'news_date': timestamp_ist,
+                'category': 'market_close'
+            }).execute()
+            print(f'Oracle live news ingested: {timestamp_ist}')
+    except Exception as e:
+        print(f'Oracle live news ingestion error: {e}')
+
+# --- Nightly Scheduler ---
+scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
+
+@scheduler.scheduled_job('cron', hour=23, minute=30)
+async def daily_refresh():
+    print("Nightly RAG refresh running...")
+    # Calculate script path relative to this file
+    script_path = os.path.join(os.path.dirname(__file__), "ingester.py")
+    subprocess.run(['python', script_path, '--all'], check=False)
+    await ingest_oracle_live_news()
+
+@app.on_event("startup")
+async def start_scheduler():
+    if not scheduler.running:
+        scheduler.start()
+        print("Nightly Scheduler Started [OK]")
+    
+    # Critical Env Check
+    required_vars = ["SUPABASE_KEY", "OPENAI_API_KEY", "NVIDIA_API_KEY", "RAZORPAY_KEY_ID"]
+    missing = [v for v in required_vars if not os.getenv(v) or "your_" in (os.getenv(v) or "")]
+    if missing:
+        print(f"CRITICAL WARNING: Missing or placeholder environment variables: {', '.join(missing)}")
+    else:
+        print("Environment Variables Validated [OK]")
+    # Link dependencies to sub-modules
+    _ia.supabase = supabase
+    _ia.nim_client = nim_client
+    _ia.scheduler = scheduler
+    _ia.setup_internal_cron(scheduler)
+    
+    _ma.supabase = supabase
+    
+    print("Internal A2A Executive Team & Marketplace API Initialized [OK]")
+
+@app.get("/api/dashboard/stats")
+async def dashboard_stats():
+    # Fetch actual counts from Supabase
+    try:
+        vault_res = supabase.table("vault").select("doc_id", count="exact").execute()
+    messages = [{'role': 'system', 'content': system_with_context}]
+    if request.conversation_history:
+        messages.extend(request.conversation_history)
+    messages.append({
+        'role': 'user',
+        'content': (
+            f'{clean_message}{org_context}'
+            f'\nDetected Intent: {intent.intent}'
+        )
+    })
+
+    return await stream_nim_response(messages, citations)
+
+# ============================================================
+# A26: The Oracle Route — Hybrid Live + RAG
+# ============================================================
+@app.post("/api/agents/the-oracle/query")
+async def oracle_query(request: AgentQueryRequest):
+    intent = classify_intent(request.query, 'A26')
+
+    live_injection = ''
+    if intent.requires_live_data:
+        symbol = intent.extracted_symbol
+        try:
+            if symbol and symbol in ['BTC', 'ETH', 'BNB', 'SOL', 'XRP', 'DOGE']:
+                crypto_data = await fetch_live_crypto_price(symbol)
+                market_overview = await fetch_live_market_overview()
+                live_injection = build_oracle_live_injection(market_overview, crypto_data)
+            else:
+                market_overview = await fetch_live_market_overview()
+                if symbol:
+                    equity_data = await fetch_live_equity_price(symbol)
+                    live_injection = build_oracle_live_injection(market_overview, equity_data)
+                else:
+                    live_injection = build_oracle_live_injection(market_overview)
+        except Exception as e:
+            live_injection = f'[LIVE_MARKET_ERROR: {str(e)} — proceeding with knowledge base only]'
+
+    context_static, citations_static = await fetch_agent_rag('A26', request.query, match_count=8)
+
+    live_news_context = ''
+    live_citations = []
+    if intent.intent in ['trade_thesis', 'macro_question', 'crypto_analysis']:
+        try:
+            embed_response = await nim_client.embeddings.create(
+                input=[f'financial market news India: {request.query}'],
+                model='nvidia/nv-embed-v1',
+                encoding_format='float',
+                extra_body={'input_type': 'query', 'truncate': 'END'}
+            )
+            embedding = embed_response.data[0].embedding
+            live_result = supabase.rpc('match_oracle_live', {
+                'query_embedding': embedding,
+                'match_count': 4
+            }).execute()
+            if live_result.data:
+                live_news_context = '\n\n'.join([r['content'] for r in live_result.data])
+                live_citations = [{'source': r.get('source', ''), 'date': str(r.get('news_date', ''))} for r in live_result.data]
+        except Exception:
+            pass
+
+    portfolio_context = ''
+    ctx = request.user_context
+    if ctx:
+        pf_value = ctx.get('portfolio_value_inr', '')
+        holdings = ctx.get('holdings', '')
+        risk_profile = ctx.get('risk_profile', '')
+        if any([pf_value, holdings, risk_profile]):
+            portfolio_context = (
+                f'\n[PORTFOLIO CONTEXT:'
+                f' Value: Rs.{pf_value},'
+                f' Holdings: {holdings},'
+                f' Risk Profile: {risk_profile}]'
+            )
+
+    all_citations = citations_static + live_citations
+
+    system_with_context = ORACLE_SYSTEM_PROMPT
+    if context_static:
+        system_with_context += f'\n\nKNOWLEDGE BASE — HISTORICAL WISDOM AND FRAMEWORKS:\n{context_static}'
+    if live_news_context:
+        system_with_context += f'\n\nLIVE INTELLIGENCE — RECENT MARKET DEVELOPMENTS:\n{live_news_context}'
+
+    user_message_enriched = (
+        f'{live_injection}\n\n{request.query}'
         f'{portfolio_context}'
         f'\nDetected Intent: {intent.intent}'
     ).strip()
@@ -987,6 +1374,119 @@ async def dashboard_stats():
             {"id": "EVT-819", "type": "UPDATE", "label": "Oracle Feed", "desc": "Nifty 50 live ingestion cycle active."}
         ]
     }
+
+# ============================================================
+# DEVELOPER API (PUBLIC V1)
+# ============================================================
+@app.post("/api/v1/agent/query")
+async def public_agent_query(request: AgentQueryRequest, api_key_data: dict = Depends(_ma.validate_api_key)):
+    """Public Developer API for querying agents programmatically."""
+    await log_api_usage(f"dev_api_query_{api_key_data.get('id', 'anon')}")
+    # Route to internal logic
+    context, citations = await fetch_agent_rag(request.target_agent, request.query)
+    messages = [
+        {"role": "system", "content": AGENT_PROMPTS.get(request.target_agent, LEGACY_ELITE_DNA)},
+        *(request.conversation_history or []),
+        {"role": "user", "content": request.query}
+    ]
+    return await execute_neural_mission(messages, citations, "Public API")
+
+# --- EMPIRE CLASS CORE ENDPOINTS ---
+
+@app.post("/api/v2/empire/chancellor")
+async def empire_chancellor(request: AgentQueryRequest):
+    clean_q = await sanitize_neural_query(request.query)
+    domain_info = classify_empire_domain(clean_q, "chancellor")
+    context, citations = await fetch_empire_rag(domain_info["namespaces"], clean_q, match_count=6)
+    
+    # Tax/Audit specific Math Injection
+    forensic_injection = ""
+    tax_params = await extract_tax_parameters(clean_q, request.conversation_history or [])
+    if tax_params.is_tax_query:
+        math_result = calculate_tax(tax_params.income, tax_params.regime, tax_params.deductions, tax_params.ay)
+        forensic_injection = f"\n[DETERMINISTIC MATH — AY {tax_params.ay}]:\n{json.dumps(math_result)}\nUSE THESE NUMBERS ONLY. DO NOT RE-CALCULATE.\n"
+
+    sub_badge = ", ".join(domain_info["sub_agent_labels"])
+    messages = [
+        {"role": "system", "content": f"{CHANCELLOR_SYSTEM_PROMPT}\n\nACTIVE SUB-MODULES: {sub_badge}\n\nCONTEXT:\n{context}{forensic_injection}"},
+        *(request.conversation_history or []),
+        {"role": "user", "content": clean_q}
+    ]
+    return await execute_neural_mission(messages, citations, sub_badge)
+
+@app.post("/api/v2/empire/advocate")
+async def empire_advocate(request: AgentQueryRequest):
+    clean_q = await sanitize_neural_query(request.query)
+    domain_info = classify_empire_domain(clean_q, "advocate")
+    context, citations = await fetch_empire_rag(domain_info["namespaces"], clean_q, match_count=6)
+    sub_badge = ", ".join(domain_info["sub_agent_labels"])
+    messages = [
+        {"role": "system", "content": f"{ADVOCATE_SYSTEM_PROMPT}\n\nACTIVE SUB-MODULES: {sub_badge}\n\nCONTEXT:\n{context}"},
+        *(request.conversation_history or []),
+        {"role": "user", "content": clean_q}
+    ]
+    return await execute_neural_mission(messages, citations, sub_badge)
+
+@app.post("/api/v2/empire/banker")
+async def empire_banker(request: AgentQueryRequest):
+    clean_q = await sanitize_neural_query(request.query)
+    domain_info = classify_empire_domain(clean_q, "banker")
+    context, citations = await fetch_empire_rag(domain_info["namespaces"], clean_q, match_count=6)
+    sub_badge = ", ".join(domain_info["sub_agent_labels"])
+    messages = [
+        {"role": "system", "content": f"{BANKER_SYSTEM_PROMPT}\n\nACTIVE SUB-MODULES: {sub_badge}\n\nCONTEXT:\n{context}"},
+        *(request.conversation_history or []),
+        {"role": "user", "content": clean_q}
+    ]
+    return await execute_neural_mission(messages, citations, sub_badge)
+
+@app.post("/api/v2/empire/sentinel")
+async def empire_sentinel(request: AgentQueryRequest):
+    clean_q = await sanitize_neural_query(request.query)
+    domain_info = classify_empire_domain(clean_q, "sentinel")
+    context, citations = await fetch_empire_rag(domain_info["namespaces"], clean_q, match_count=6)
+    sub_badge = ", ".join(domain_info["sub_agent_labels"])
+    messages = [
+        {"role": "system", "content": f"{SENTINEL_SYSTEM_PROMPT}\n\nACTIVE SUB-MODULES: {sub_badge}\n\nCONTEXT:\n{context}"},
+        *(request.conversation_history or []),
+        {"role": "user", "content": clean_q}
+    ]
+    return await execute_neural_mission(messages, citations, sub_badge)
+
+@app.post("/api/v2/empire/optimizer")
+async def empire_optimizer(request: AgentQueryRequest):
+    clean_q = await sanitize_neural_query(request.query)
+    domain_info = classify_empire_domain(clean_q, "optimizer")
+    context, citations = await fetch_empire_rag(domain_info["namespaces"], clean_q, match_count=6)
+    sub_badge = ", ".join(domain_info["sub_agent_labels"])
+    messages = [
+        {"role": "system", "content": f"{OPTIMIZER_SYSTEM_PROMPT}\n\nACTIVE SUB-MODULES: {sub_badge}\n\nCONTEXT:\n{context}"},
+        *(request.conversation_history or []),
+        {"role": "user", "content": clean_q}
+    ]
+    return await execute_neural_mission(messages, citations, sub_badge)
+
+async def execute_neural_mission(messages, citations, sub_agent_badge):
+    """Helper for streaming responses for Empire Master agents."""
+    async def generate():
+        stream = await nim_client.chat.completions.create(
+            model="meta/llama-3.3-70b-instruct",
+            messages=messages,
+            temperature=0.0,
+            stream=True,
+            max_tokens=1500
+        )
+        async for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield f"data: {json.dumps({'token': chunk.choices[0].delta.content})}\n\n"
+        
+        # Metadata payload for UI
+        payload = {"citations": citations}
+        if sub_agent_badge: payload["sub_agent"] = sub_agent_badge
+        yield f"data: {json.dumps(payload)}\n\n"
+        yield "data: [DONE]\n\n"
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

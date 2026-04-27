@@ -5,38 +5,15 @@ import Link from "next/link";
 import Footer from "@/components/shared/Footer";
 import { supabase } from "@/lib/supabase";
 import { 
-  FileText, Landmark, Scale, Briefcase, Globe, Shield, 
-  Wallet, DollarSign, Calendar, Lock, Mic, Search, 
-  TrendingUp, HardHat, FileSignature, Rocket, Package, Bot, 
-  Building2, ShieldAlert, Coins, Leaf, ScrollText, PenTool,
-  Clock, AlertTriangle, Brain, Ban, Gavel, Timer, Zap, Cpu, Gem, Banknote
+  Clock, AlertTriangle, Brain, Ban, Gavel, Timer, Zap, Cpu, Gem, Banknote, Mic2, Search, Lock, Globe, Landmark, FileText, Scale, TrendingUp, DollarSign, Rocket, ShieldAlert, Leaf, ScrollText, Coins, Building2, Shield
 } from "lucide-react";
 
 const agents = [
-  // TAX & BANKING (CORE) - 6 Agents
-  { id: "A0",  name: "Command Nexus",  icon: <Cpu size={18} />,        desc: "Master Orchestrator — intent routing, urgency triage, elite dispatch.",    tag: "CORE",  href: "/command-nexus" },
-  { id: "A1",  name: "Supreme Tax",    icon: <FileText size={18} />,   desc: "Integrated Income Tax, GST & TDS intelligence.",                           tag: "CORE",  href: "/tax" },
-  { id: "A2",  name: "Banking & Credit", icon: <Landmark size={18} />, desc: "Dispute resolution and credit score restoration.",                          tag: "CORE",  href: "/bankfight" },
-  { id: "A3",  name: "Notice & Disputes", icon: <AlertTriangle size={18} />, desc: "Notice reply drafting and legal risk simulation.",                     tag: "CORE",  href: "/notice" },
-  { id: "A4",  name: "Payroll & HR",   icon: <DollarSign size={18} />, desc: "Automated payroll and labor law compliance.",                               tag: "CORE",  href: "/payroll" },
-  { id: "A6",  name: "Voice CA",       icon: <Mic size={18} />,        desc: "Multimodal AI — Talk to your personal CA.",                                 tag: "CORE",  href: "/voice",     featured: true },
-  
-  // LEGAL & CORPORATE (GROWTH) - 6 Agents
-  { id: "A5", name: "Corporate Counsel", icon: <Rocket size={18} />, desc: "Startup legal, ROC, and IP/Trademark protection.", tag: "GROWTH", href: "/compliance" },
-  { id: "A7", name: "Deal Reviewer", icon: <Search size={18} />, desc: "AI redlining for SHA/SPA and high-stakes contracts.", tag: "GROWTH", href: "/contract-reviewer" },
-  { id: "A8", name: "Filing Ops", icon: <Scale size={18} />, desc: "E-court filing automation and RTI drafting.", tag: "GROWTH", href: "/court-filer" },
-  { id: "A12", name: "Forensic Audit", icon: <Lock size={18} />, desc: "Investigative auditing for fraud and leakage.", tag: "GROWTH", href: "/audit-shield" },
-  { id: "A13", name: "Trade & Forex", icon: <Globe size={18} />, desc: "FEMA compliance and EXIM logistics intelligence.", tag: "GROWTH", href: "/trade" },
-  { id: "A21", name: "DPDP Shield", icon: <Shield size={18} />, desc: "India DPDP Act 2023 & MeitY compliance authority.", tag: "GROWTH", href: "/dpdp" },
-  { id: "A25", name: "Data & AI Safety", icon: <Brain size={18} />, desc: "DPDP Act and EU AI Act Governance.", tag: "GROWTH", href: "/ai-governance" },
-
-  // SPECIALIZED INTELLIGENCE (ELITE) - 6 Agents
-  { id: "A27", name: "Elite Wealth",   icon: <Gem size={18} />,        desc: "Crown Agent for ₹100Cr+ UHNWIs — shadow books & offshore SPV authority.",    tag: "ELITE", href: "/elite-wealth",  featured: true },
-  { id: "A23", name: "ESG Compass", icon: <Leaf size={18} />, desc: "SEBI BRSR Core Auto-fill and GHG Scope tracking.", tag: "ELITE", href: "/esg-compass" },
-  { id: "A24", name: "HeirGuard", icon: <ScrollText size={18} />, desc: "Will Drafting and Succession Planning.", tag: "ELITE", href: "/heirguard" },
-  { id: "A22", name: "CryptoTax Pro", icon: <Coins size={18} />, desc: "30% VDA Tax and live TDS monitoring.", tag: "ELITE", href: "/crypto-tax" },
-  { id: "A26", name: "The Oracle", icon: <TrendingUp size={18} />, desc: "50-Year Market Wisdom with Live Feeds.", tag: "ELITE", href: "/the-oracle", featured: true },
-  { id: "A28", name: "Victor Harlan", icon: <Banknote size={18} />, desc: "52-Year Wall Street MD — M&A, IPO, LBO & Capital Markets.", tag: "ELITE", href: "/victor-harlan", featured: true },
+  { id: "E1", name: "The Chancellor", icon: <Scale size={28} />, desc: "Supreme Financial Authority — Tax, Crypto, Audit & Trade.", tag: "EMPIRE", href: "/chancellor", sub: "Supreme Tax, CryptoTax Pro, Forensic Audit" },
+  { id: "E2", name: "The Grand Advocate", icon: <Gavel size={28} />, desc: "Master of Disputes, Corporate Counsel & Court Filing.", tag: "EMPIRE", href: "/advocate", sub: "Notice Advisor, Deal Reviewer, Filing Ops" },
+  { id: "E3", name: "The Sovereign Banker", icon: <Building2 size={28} />, desc: "Wealth, Markets, M&A & Succession Planning.", tag: "EMPIRE", href: "/banker", sub: "The Oracle, Victor Harlan, Elite Wealth" },
+  { id: "E4", name: "The AI Sentinel", icon: <Shield size={28} />, desc: "DPDP, AI Safety, ESG & Governance Compliance.", tag: "EMPIRE", href: "/sentinel", sub: "DPDP Shield, AI Governance, ESG Compass" },
+  { id: "E5", name: "The Master Optimizer", icon: <Zap size={28} />, desc: "Operations, Payroll, HR & Banking Efficiency.", tag: "EMPIRE", href: "/optimizer", sub: "Banking & Credit, Payroll & HR, Command Nexus" },
 ];
 
 
@@ -64,15 +41,16 @@ export default function LandingPage() {
   const [scrollY, setScrollY] = useState(0);
 
   useEffect(() => {
-    // Check session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsLoggedIn(!!session);
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsLoggedIn(!!session);
-    });
+    // Check session using custom system
+    const checkSession = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        setIsLoggedIn(res.ok);
+      } catch (err) {
+        setIsLoggedIn(false);
+      }
+    };
+    checkSession();
 
     // Parallax scroll listener
     const handleScroll = () => setScrollY(window.scrollY);
@@ -99,7 +77,6 @@ export default function LandingPage() {
     return () => { 
       clearInterval(timer); 
       window.removeEventListener("scroll", handleScroll);
-      subscription.unsubscribe();
     };
   }, []); // Run once on mount
 
@@ -337,105 +314,66 @@ export default function LandingPage() {
           <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "48px", flexWrap: "wrap", gap: "20px" }}>
               <div>
-                <span className="section-tag fade-up" style={{ marginBottom: "12px" }}>The Platform</span>
-                <h2 className="fade-up" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px, 4vw, 48px)", letterSpacing: "-2px" }}>
-                  18 agents. Every sovereign need.
+                <span className="section-tag fade-up" style={{ marginBottom: "12px" }}>The Empire Class</span>
+                <h2 className="fade-up" style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "clamp(28px, 4vw, 48px)", letterSpacing: "-20px" }}>
+                  Consolidated Intelligence. Total Sovereignty.
                 </h2>
               </div>
               {/* Filter tabs — horizontally scrollable on mobile */}
-              <div style={{ display: "flex", gap: "10px", overflowX: "auto", paddingBottom: "4px" }} className="no-scrollbar">
-                {["ALL", "CORE", "GROWTH", "ELITE"].map((filter) => (
-                  <button 
-                    key={filter} 
-                    onClick={() => setActiveFilter(filter)}
-                    className="filter-btn"
-                    style={{ 
-                      background: activeFilter === filter ? "#B5FF2E" : "rgba(181,255,46,0.02)", 
-                      color: activeFilter === filter ? "#080B07" : "rgba(240,244,232,0.45)", 
-                      borderColor: activeFilter === filter ? "#B5FF2E" : "rgba(255,255,255,0.12)",
-                      borderWidth: "1px",
-                      borderStyle: "solid",
-                      borderRadius: "100px",
-                      padding: "8px 24px",
-                      fontSize: "12px",
-                      fontWeight: 700,
-                      transition: "all 0.3s ease",
-                      whiteSpace: "nowrap"
-                    }}
-
-                  >
-                    {filter}
-                  </button>
-                ))}
-              </div>
             </div>
 
-            {/* Agents grid — 1 col mobile, 2 col tablet, 3 col desktop */}
-            <div className="card-grid">
-              {[
-                { name: "Tax & Banking", icon: <FileText size={28} />, category: "CORE" },
-                { name: "Legal & Corporate", icon: <Scale size={28} />, category: "GROWTH" },
-                { name: "Specialized Intelligence", icon: <Globe size={28} />, category: "ELITE" },
-              ].map((group, idx) => {
-                // Only show the group if it matches the active filter or if filter is "ALL"
-                if (activeFilter !== "ALL" && activeFilter !== group.category) return null;
-                
-                const chunk = agents.filter(a => a.tag === group.category);
-                
-                return (
-                  <Link key={idx} href={isLoggedIn ? "/dashboard" : "/onboarding"} className="fade-up" style={{ 
+            <div className="card-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(clamp(280px, 100%, 350px), 1fr))", gap: "24px" }}>
+              {agents.map((agent, idx) => (
+                  <Link key={idx} href={agent.href} className="fade-up" style={{ 
                     textDecoration: "none",
                     background: "#0D1117", 
                     borderWidth: "1px",
                     borderStyle: "solid",
-                    borderColor: "rgba(255,255,255,0.1)", 
-                    borderRadius: "24px", 
-                    padding: "32px",
+                    borderColor: "rgba(181,255,46,0.15)", 
+                    borderRadius: "32px", 
+                    padding: "40px 32px",
                     display: "flex",
                     flexDirection: "column",
                     gap: "24px",
                     transition: "all 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
-                    minHeight: "340px",
+                    minHeight: "380px",
                     position: "relative",
-                    overflow: "hidden"
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.borderColor = "#B5FF2E";
                     e.currentTarget.style.transform = "translateY(-8px)";
                     e.currentTarget.style.background = "#161B22";
-                    e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(181,255,46,0.05)";
+                    e.currentTarget.style.boxShadow = "0 30px 60px rgba(181,255,46,0.1)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.borderColor = "rgba(181,255,46,0.15)";
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.background = "#0D1117";
                     e.currentTarget.style.boxShadow = "none";
                   }}
                   >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                        <span style={{ fontSize: "24px" }}>{group.icon}</span>
-                        <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "16px", color: "#B5FF2E", textTransform: "uppercase", letterSpacing: "1px", margin: 0 }}>
-                          {group.name}
-                        </h3>
+                    <div style={{ width: "68px", height: "68px", background: "rgba(181,255,46,0.05)", border: "1px solid rgba(181,255,46,0.2)", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>
+                      {agent.icon}
+                    </div>
+
+                    <div>
+                      <h3 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "22px", color: "#fff", marginBottom: "8px" }}>
+                        {agent.name}
+                      </h3>
+                      <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>{agent.desc}</p>
+                    </div>
+
+                    <div style={{ marginTop: "auto" }}>
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "24px" }}>
+                         {agent.sub.split(", ").map((tag, i) => (
+                           <span key={i} style={{ fontSize: "10px", fontWeight: 800, color: "var(--acid)", textTransform: "uppercase", letterSpacing: "0.5px", background: "rgba(181,255,46,0.05)", padding: "4px 10px", borderRadius: "100px", border: "0.5px solid rgba(181,255,46,0.2)" }}>{tag}</span>
+                         ))}
                       </div>
-                    </div>
-
-                    <div style={{ display: "flex", flexDirection: "column", gap: "14px", opacity: 0.7 }}>
-                      {chunk.map((agent) => (
-                        <div key={agent.id} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                          <span style={{ fontSize: "16px" }}>{agent.icon}</span>
-                          <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "13px", color: "#F0F4E8" }}>{agent.name}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div style={{ marginTop: "auto", paddingTop: "20px", borderTop: "0.5px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ fontSize: "12px", fontWeight: 700, color: "#B5FF2E", letterSpacing: "0.5px" }}>LAUNCH BUNDLE →</span>
+                      <span style={{ fontSize: "12px", fontWeight: 800, color: "var(--acid)", letterSpacing: "1px" }}>ACCESS COMMAND →</span>
                     </div>
                   </Link>
-                );
-              })}
+                )
+              )}
             </div>
           </div>
           </section>

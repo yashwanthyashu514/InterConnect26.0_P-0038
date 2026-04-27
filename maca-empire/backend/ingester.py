@@ -336,6 +336,7 @@ def build_payload(agent_name: str, file_name: str, chunk: str, embedding: list[f
             "ay": "2025-26",
             "content": chunk,
             "embedding": embedding,
+            "source": file_name
         }
 
     return payload

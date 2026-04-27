@@ -5,7 +5,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   Activity, Gem, Cpu, Megaphone, Bell, ChevronRight,
-  RefreshCw, ShieldCheck, FileText, TrendingUp, Users,
+  RefreshCw, FileText, Users,
   AlertTriangle, CheckCircle, Download, Zap, BarChart3
 } from "lucide-react";
 

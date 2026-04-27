@@ -8,6 +8,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from supabase import create_client, Client
 import razorpay
+import secrets
 from fastapi.responses import JSONResponse
 
 # --- Config ---
@@ -470,3 +471,31 @@ async def mark_all_read(user=Depends(get_current_user)):
 async def unread_count(user=Depends(get_current_user)):
     res = supabase.table("marketplace_notifications").select("id", count="exact").eq("recipient_id", user["user_id"]).eq("is_read", False).execute()
     return {"count": res.count or 0}
+
+# --- DEVELOPER KEY ROUTES ---
+
+@marketplace_router.get("/developer/keys")
+async def get_developer_keys(user=Depends(get_current_user)):
+    res = supabase.table("developer_keys").select("*").eq("user_id", user["user_id"]).execute()
+    return {"keys": res.data}
+
+@marketplace_router.post("/developer/keys/create")
+async def create_developer_key(req: dict, user=Depends(get_current_user)):
+    name = req.get("name", "New Key")
+    new_key = f"mca_live_{secrets.token_urlsafe(24)}"
+    try:
+        res = supabase.table("developer_keys").insert({
+            "user_id": user["user_id"],
+            "name": name,
+            "key": new_key,
+            "is_active": True,
+            "permissions": ["read", "agents"]
+        }).execute()
+        return {"status": "ok", "key": res.data[0]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@marketplace_router.post("/developer/keys/{key_id}/revoke")
+async def revoke_developer_key(key_id: str, user=Depends(get_current_user)):
+    supabase.table("developer_keys").update({"is_active": False}).eq("id", key_id).eq("user_id", user["user_id"]).execute()
+    return {"status": "ok"}

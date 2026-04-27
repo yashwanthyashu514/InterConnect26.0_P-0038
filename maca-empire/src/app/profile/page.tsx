@@ -15,29 +15,41 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchProfile() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        router.push("/login");
-        return;
-      }
-      
-      setUser(session.user);
+      try {
+        const res = await fetch("/api/auth/me");
+        if (!res.ok) {
+          router.push("/login");
+          return;
+        }
+        
+        const { user: session } = await res.json();
+        setUser(session);
 
-      // Fetch additional profile data
-      const { data } = await supabase
-        .from("marketplace_users")
-        .select("*")
-        .eq("email", session.user.email)
-        .single();
-      
-      setProfile(data);
-      setLoading(false);
+        // Fetch additional profile data from database
+        const { data } = await supabase
+          .from("marketplace_users")
+          .select("*")
+          .eq("id", session.user_id)
+          .single();
+        
+        setProfile(data);
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+        router.push("/login");
+      } finally {
+        setLoading(false);
+      }
     }
     fetchProfile();
   }, [router]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      try { await supabase.auth.signOut(); } catch (e) {}
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
     router.push("/login");
   };
 

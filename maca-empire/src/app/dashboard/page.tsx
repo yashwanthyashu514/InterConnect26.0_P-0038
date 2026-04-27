@@ -7,10 +7,13 @@ import {
   Search, FileText, Landmark, AlertTriangle, DollarSign,
   Lock, Mic, FileSignature, Scale, TrendingUp, Shield,
   HardHat, Globe, Wallet, Building2, PenTool, Rocket,
-  Package, ShieldAlert, Coins, Leaf, ScrollText, MessageSquare, Files, Clock, CheckCircle2, User, Users, Menu, X, Activity, Server, Cpu, Globe2, Scan, Database, Info, Gem, Banknote, Loader2
+  Package, ShieldAlert, Coins, Leaf, ScrollText, MessageSquare,
+  Files, Clock, CheckCircle2, User, Users, Menu, X,
+  Activity, Server, Cpu, Globe2, Scan, Database, Info,
+  Gem, Banknote, Loader2, Code2, Download, Mic2, Brain, Gavel
 } from "lucide-react";
 
-import { AGENTS } from "@/lib/agents";
+import { AGENTS, EMPIRE_AGENTS } from "@/lib/agents";
 import AppHeader from "@/components/shared/AppHeader";
 
 export const dynamic = "force-dynamic";
@@ -46,34 +49,45 @@ const getAgentIcon = (id: string, size = 18) => {
     case "A0": return <Cpu size={size} />;
     case "A1": return <FileText size={size} />;
     case "A2": return <Landmark size={size} />;
-    case "A3": return <Scale size={size} />;
-    case "A4": return <Users size={size} />;
+    case "A3": return <AlertTriangle size={size} />;
+    case "A4": return <DollarSign size={size} />;
     case "A5": return <Rocket size={size} />;
-    case "A6": return <Mic size={size} />;
-    case "A7": return <PenTool size={size} />;
-    case "A8": return <Files size={size} />;
-    case "A12": return <ShieldAlert size={size} />;
+    case "A6": return <Mic2 size={size} />;
+    case "A7": return <Search size={size} />;
+    case "A8": return <Scale size={size} />;
+    case "A12": return <Lock size={size} />;
     case "A13": return <Globe size={size} />;
     case "A21": return <ShieldAlert size={size} />;
     case "A23": return <Leaf size={size} />;
     case "A24": return <ScrollText size={size} />;
     case "A22": return <Coins size={size} />;
-    case "A25": return <Shield size={size} />;
+    case "A25": return <Brain size={size} />;
     case "A26": return <TrendingUp size={size} />;
     case "A27": return <Gem size={size} />;
     case "A28": return <Banknote size={size} />;
+    case "E1": return <Scale size={size} />;
+    case "E2": return <Gavel size={size} />;
+    case "E3": return <Building2 size={size} />;
+    case "E4": return <Shield size={size} />;
+    case "E5": return <Zap size={size} />;
     default: return <Bot size={size} />;
   }
 };
 
-// Featured Crown Layer agents first, then next top agents
-const topAgents = [
-  ...AGENTS.filter(a => ["A27", "A28", "A0", "A26", "A24"].includes(a.id))
-    .sort((a, b) => ["A27", "A28", "A0", "A26", "A24"].indexOf(a.id) - ["A27", "A28", "A0", "A26", "A24"].indexOf(b.id))
-].map(agent => ({
+const empireAgents = EMPIRE_AGENTS.map(agent => ({
   id: agent.id,
   name: agent.name,
-  icon: getAgentIcon(agent.id, 20),
+  icon: getAgentIcon(agent.id, 24),
+  desc: agent.description,
+  tag: agent.category,
+  href: agent.path,
+  subAgents: agent.subAgents
+}));
+
+const advancedSpecialists = AGENTS.filter(a => a.id !== "A0").map(agent => ({
+  id: agent.id,
+  name: agent.name,
+  icon: getAgentIcon(agent.id, 18),
   desc: agent.description,
   tag: agent.category,
   href: agent.path,
@@ -85,9 +99,10 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
+  const allSearchable = [...EMPIRE_AGENTS, ...AGENTS];
   const filteredAgents = searchQuery.trim() === "" 
     ? [] 
-    : AGENTS.filter(a => 
+    : allSearchable.filter(a => 
         a.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         a.description.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 5);
@@ -199,6 +214,7 @@ export default function DashboardPage() {
             { id: "agents", icon: <Bot size={18} />, label: "Intelligence Vectors", href: "/agents" },
             { id: "vault", icon: <Briefcase size={18} />, label: "Document Vault", href: "/vault" },
             { id: "calendar", icon: <Calendar size={18} />, label: "Compliance Map", href: "/compliance" },
+            { id: "developer-api", icon: <Code2 size={18} />, label: "Developer API", href: "/developers" },
           ].map((item) => (
             <Link key={item.id} href={item.href} className={`nav-item ${item.href === "/dashboard" ? "active" : ""}`} style={{ padding: "12px 28px" }}>
               <span style={{ fontSize: "18px" }}>{item.icon}</span>
@@ -242,26 +258,36 @@ export default function DashboardPage() {
                </div>
             </div>
 
-            {/* Architecture Feed (Active Vectors) */}
+            {/* Architecture Feed (Empire Master Agents) */}
             <div>
                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px", flexWrap: "wrap", gap: "10px" }}>
-                  <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", textTransform: "uppercase", letterSpacing: "1px", color: "#fff" }}>High-Sovereign Vectors</h2>
-                  <Link href="/agents" style={{ fontSize: "10px", color: "var(--acid)", fontWeight: 800, textTransform: "uppercase", letterSpacing: "1px", textDecoration: "none" }}>Access Registry →</Link>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <div style={{ padding: "4px 8px", background: "var(--acid)", color: "#000", fontSize: "10px", fontWeight: 900, borderRadius: "4px" }}>LEVEL 3</div>
+                    <h2 style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "16px", textTransform: "uppercase", letterSpacing: "1px", color: "#fff" }}>Empire Master Agents</h2>
+                  </div>
                </div>
                
-               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(clamp(280px, 100%, 400px), 1fr))", gap: "20px", marginBottom: "60px" }}>
-                  {topAgents.map(a => (
-                    <Link key={a.id} href={a.href} style={{ background: "#FFFFFF", border: "0.5px solid #E5E7EB", borderRadius: "24px", padding: "32px", textDecoration: "none", transition: "all 0.2s", boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-5px)"; e.currentTarget.style.borderColor = "var(--acid)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "#E5E7EB"; }}>
-                      <div style={{ display: "flex", gap: "24px", alignItems: "center", marginBottom: "20px" }}>
-                        <div style={{ width: "52px", height: "52px", background: "#000", border: "0.5px solid #222", borderRadius: "14px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>{a.icon}</div>
+               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(clamp(280px, 100%, 380px), 1fr))", gap: "24px", marginBottom: "80px" }}>
+                  {empireAgents.map(a => (
+                    <Link key={a.id} href={a.href} style={{ background: "linear-gradient(135deg, #0A0A0A 0%, #000000 100%)", border: "1px solid rgba(181,255,46,0.15)", borderRadius: "32px", padding: "32px", textDecoration: "none", transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)", position: "relative", overflow: "hidden" }} onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-8px)"; e.currentTarget.style.borderColor = "var(--acid)"; e.currentTarget.style.boxShadow = "0 20px 40px rgba(181,255,46,0.15)"; }} onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(181,255,46,0.15)"; e.currentTarget.style.boxShadow = "none"; }}>
+                      <div style={{ display: "flex", gap: "20px", alignItems: "center", marginBottom: "24px" }}>
+                        <div style={{ width: "64px", height: "64px", background: "rgba(181,255,46,0.05)", border: "1px solid rgba(181,255,46,0.2)", borderRadius: "20px", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--acid)" }}>{a.icon}</div>
                         <div>
-                           <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: "18px", color: "#000000" }}>{a.name}</p>
+                           <p style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: "20px", color: "#fff", marginBottom: "4px" }}>{a.name}</p>
+                           <p style={{ fontSize: "10px", color: "var(--acid)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "1px" }}>Master Class</p>
                         </div>
                       </div>
-                      <p style={{ fontSize: "14px", color: "#374151", lineHeight: 1.6 }}>{a.desc}</p>
+                      <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.6)", lineHeight: 1.6, marginBottom: "24px" }}>{a.desc}</p>
+                      
+                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                         {a.subAgents.map((sub, i) => (
+                           <span key={i} style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.5px", background: "rgba(255,255,255,0.03)", padding: "4px 10px", borderRadius: "100px", border: "0.5px solid rgba(255,255,255,0.1)" }}>{sub}</span>
+                         ))}
+                      </div>
                     </Link>
                   ))}
                </div>
+            </div>
 
                 {/* ── Booking Tracker (M9) ── */}
                 <div style={{ marginBottom: "60px" }}>
@@ -329,17 +355,38 @@ export default function DashboardPage() {
                         <p style={{ fontSize: "13px", color: "#4B5563" }}>No recorded transactions in the Empire ledger.</p>
                       ) : (
                         bookings.filter(b => b.status === "paid" || b.status === "completed").map(b => (
-                          <div key={b.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #F3F4F6", fontSize: "13px" }}>
-                            <span style={{ fontWeight: 600 }}>{b.ca_profiles?.marketplace_users?.name} · Advisory</span>
-                            <span style={{ color: "#6B7280" }}>{new Date(b.created_at).toLocaleDateString()}</span>
-                            <span style={{ fontWeight: 800 }}>₹{(b.amount_paise / 100).toLocaleString()}</span>
+                          <div key={b.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: "1px solid #F3F4F6", fontSize: "13px" }}>
+                            <div style={{ flex: 1 }}>
+                              <span style={{ fontWeight: 600, color: "#000" }}>{b.ca_profiles?.marketplace_users?.name} · Advisory</span>
+                              <p style={{ fontSize: "10px", color: "#9CA3AF", margin: "2px 0 0" }}>TxID: {b.id.slice(0,8).toUpperCase()}</p>
+                            </div>
+                            <span style={{ color: "#6B7280", margin: "0 20px" }}>{new Date(b.created_at).toLocaleDateString()}</span>
+                            <span style={{ fontWeight: 800, color: "#000", margin: "0 20px" }}>₹{(b.amount_paise / 100).toLocaleString()}</span>
+                            <button 
+                              onClick={() => {
+                                const receipt = {
+                                  tx_id: b.id,
+                                  ca: b.ca_profiles?.marketplace_users?.name,
+                                  amount: b.amount_paise / 100,
+                                  timestamp: new Date().toISOString(),
+                                  notary_seal: "IMPERIO-NEURAL-BLOCKCHAIN-SIGNED-" + Math.random().toString(36).substring(7).toUpperCase()
+                                };
+                                const blob = new Blob([JSON.stringify(receipt, null, 2)], { type: "application/json" });
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement("a");
+                                a.href = url;
+                                a.download = `NeuralReceipt_${b.id.slice(0,8)}.json`;
+                                a.click();
+                              }}
+                              style={{ display: "flex", alignItems: "center", gap: "6px", background: "#F3F4F6", border: "none", padding: "6px 12px", borderRadius: "8px", fontSize: "10px", fontWeight: 700, cursor: "pointer", color: "#000" }}
+                            >
+                              <Download size={12} /> Neural Receipt
+                            </button>
                           </div>
                         ))
                       )}
                    </div>
                 </div>
-            </div>
-
           </div>
         </div>
       </div>
